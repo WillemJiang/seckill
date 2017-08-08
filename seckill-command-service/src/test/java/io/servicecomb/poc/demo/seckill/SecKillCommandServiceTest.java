@@ -23,7 +23,7 @@ public class SecKillCommandServiceTest {
   private final int numberOfCoupons = 10;
   private final BlockingQueue<Integer> coupons = new ArrayBlockingQueue<>(numberOfCoupons);
 
-  private final SecKillCommandService commandService = new SecKillCommandService(coupons, numberOfCoupons);
+  private final SecKillCommandService<Integer> commandService = new SecKillCommandService<>(coupons, numberOfCoupons);
   private final AtomicInteger customerIdGenerator = new AtomicInteger();
   private final AtomicInteger numberOfSuccess = new AtomicInteger();
 
