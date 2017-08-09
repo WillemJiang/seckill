@@ -1,22 +1,22 @@
 package io.servicecomb.poc.demo.seckill;
 
-class Coupon<T> {
+public class Coupon<T> {
 
   private final T customerId;
 
   //ticket discount
-  private final double discount;
+  private final float discount;
 
-  Coupon(T customerId, double discount) {
+  public Coupon(T customerId, float discount) {
     this.customerId = customerId;
     this.discount = discount;
   }
 
-  T getCustomerId() {
+  public T getCustomerId() {
     return customerId;
   }
 
-  double getDiscount() {
+  public float getDiscount() {
     return discount;
   }
 }

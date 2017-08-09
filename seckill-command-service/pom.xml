@@ -13,6 +13,11 @@
 
   <dependencies>
     <dependency>
+      <groupId>io.servicecomb.poc.demo</groupId>
+      <artifactId>seckill-event-store</artifactId>
+    </dependency>
+
+    <dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
     </dependency>
@@ -37,7 +42,7 @@
       <artifactId>awaitility</artifactId>
     </dependency>
 
-
+    <!--for sprint boot test config-->
     <dependency>
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-jersey</artifactId>

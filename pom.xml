@@ -11,6 +11,7 @@
 
   <modules>
     <module>seckill-command-service</module>
+    <module>seckill-event-store</module>
   </modules>
 
   <parent>
@@ -37,8 +38,13 @@
         <scope>import</scope>
       </dependency>
       <dependency>
-        <groupId>io.servicecomb.demo</groupId>
+        <groupId>io.servicecomb.poc.demo</groupId>
         <artifactId>seckill-command-service</artifactId>
+        <version>0.0.1-SNAPSHOT</version>
+      </dependency>
+      <dependency>
+        <groupId>io.servicecomb.poc.demo</groupId>
+        <artifactId>seckill-event-store</artifactId>
         <version>0.0.1-SNAPSHOT</version>
       </dependency>
       <dependency>
@@ -64,7 +70,17 @@
         <version>2.4.9</version>
         <scope>test</scope>
       </dependency>
-
+      <dependency>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-jersey</artifactId>
+        <scope>compile</scope>
+        <version>1.4.5.RELEASE</version>
+      </dependency>
+      <dependency>
+        <groupId>mysql</groupId>
+        <artifactId>mysql-connector-java</artifactId>
+        <version>5.1.43</version>
+      </dependency>
       <dependency>
         <groupId>io.swagger</groupId>
         <artifactId>swagger-jersey2-jaxrs</artifactId>
