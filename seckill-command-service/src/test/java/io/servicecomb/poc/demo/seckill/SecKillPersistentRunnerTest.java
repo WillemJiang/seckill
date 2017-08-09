@@ -17,14 +17,17 @@ public class SecKillPersistentRunnerTest {
   private final List<Integer> customerIds = new LinkedList<>();
   private final CouponRepository<Integer> repository = coupon -> customerIds.add(coupon.getCustomerId());
 
-  private final BlockingQueue<Integer> coupons = new ArrayBlockingQueue<>(numberOfCoupons);
+  private final BlockingQueue<Coupon<Integer>> coupons = new ArrayBlockingQueue<>(numberOfCoupons);
 
   private final SecKillPersistentRunner<Integer> runner = new SecKillPersistentRunner<>(coupons, repository);
 
   @Test
   public void persistsCouponUsingRepo() {
+
+    double discount = 0.7;
+
     for (int i = 0; i < numberOfCoupons; i++) {
-      coupons.offer(i);
+      coupons.offer(new Coupon<>(i,discount));
     }
 
     runner.run();
