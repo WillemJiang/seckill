@@ -5,17 +5,19 @@
 //import static org.hamcrest.collection.IsIterableContainingInOrder.contains;
 //import static org.junit.Assert.assertThat;
 //
+//import io.servicecomb.poc.demo.seckill.repositories.CouponEventRepository;
 //import java.util.LinkedList;
 //import java.util.List;
 //import java.util.concurrent.ArrayBlockingQueue;
 //import java.util.concurrent.BlockingQueue;
 //import org.junit.Test;
 //
+//
 //public class SecKillPersistentRunnerTest {
 //  private final int numberOfCoupons = 5;
 //
 //  private final List<Integer> customerIds = new LinkedList<>();
-//  private final CouponRepository<Integer> repository = coupon -> customerIds.add(coupon.getCustomer_id());
+//  private final CouponEventRepository repository = coupon -> customerIds.add(coupon.getCustomer_id());
 //
 //  private final BlockingQueue<Coupon<Integer>> coupons = new ArrayBlockingQueue<>(numberOfCoupons);
 //

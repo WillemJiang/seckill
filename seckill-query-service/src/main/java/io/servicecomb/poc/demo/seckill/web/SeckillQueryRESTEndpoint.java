@@ -11,11 +11,15 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RestController;
 
 //use restfull style
-@RestSchema(schemaId = "seckillQuery")
-@Path("/query")
-@Api(value = "Coupon Query Service", produces = MediaType.APPLICATION_JSON)
+@RestSchema(schemaId = "query")
+@RestController
+@RequestMapping("/query")
 public class SeckillQueryRESTEndpoint implements SecKillQueryEndpoint {
 
   private Logger logger = Logger.getLogger(SeckillQueryRESTEndpoint.class.getName());
@@ -24,17 +28,13 @@ public class SeckillQueryRESTEndpoint implements SecKillQueryEndpoint {
   private SecKillEventSubscriber secKillEventSubscriber;
 
   @Override
-  @GET
-  @Path("/success/{id}")
-  @Produces(MediaType.APPLICATION_JSON)
-  public List<CouponInfo> querySuccess(@PathParam("id") String customerId) {
+  @RequestMapping(method = RequestMethod.GET,value = "/success/{customerId}")
+  public List<CouponInfo> querySuccess(@PathVariable String customerId) {
     return secKillEventSubscriber.querySuccessCoupon(customerId);
   }
 
   @Override
-  @GET
-  @Path("/current")
-  @Produces(MediaType.APPLICATION_JSON)
+  @RequestMapping(method = RequestMethod.GET,value = "/current")
   public CouponInfo queryCurrent() {
     return secKillEventSubscriber.queryCurrentCoupon();
   }

@@ -1,29 +1,13 @@
 package io.servicecomb.poc.demo.seckill.web;
 
-import io.servicecomb.poc.demo.seckill.event.CouponEvent;
 import java.util.Date;
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlRootElement;
 
-@XmlAccessorType(XmlAccessType.PUBLIC_MEMBER)
-@XmlRootElement(name = "Coupon")
 public class CouponInfo {
 
-  @XmlElement(name = "id")
   private String id;
-
-  @XmlElement(name = "time")
   private Date time;
-
-  @XmlElement(name = "customer_id")
   private String customer_id;
-
-  @XmlElement(name = "count")
   private int count;
-
-  @XmlElement(name = "discount")
   private float discount;
 
   public String getId() {
@@ -69,11 +53,11 @@ public class CouponInfo {
   public CouponInfo() {
   }
 
-  public CouponInfo(CouponEvent event) {
-    this.id = event.getId();
-    this.time = event.getTime();
-    this.customer_id = event.getCustomerId();
-    this.count = event.getCount();
-    this.discount = event.getDiscount();
+  public CouponInfo(String id, Date time, String customer_id, int count, float discount) {
+    this.id = id;
+    this.time = time;
+    this.customer_id = customer_id;
+    this.count = count;
+    this.discount = discount;
   }
 }

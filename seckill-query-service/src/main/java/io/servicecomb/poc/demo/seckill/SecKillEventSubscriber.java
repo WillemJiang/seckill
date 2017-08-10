@@ -17,7 +17,9 @@ public class SecKillEventSubscriber {
 
   public List<CouponInfo> querySuccessCoupon(String customerId){
     List<CouponEvent> events = repository.findByCustomerId(customerId);
-    return events.stream().map(e -> new CouponInfo(e)).collect(Collectors.toList());
+    return events.stream().map(
+        event -> new CouponInfo(event.getId(), event.getTime(), event.getCustomerId(), event.getCount(),
+            event.getDiscount())).collect(Collectors.toList());
   }
 
   public CouponInfo queryCurrentCoupon(){
@@ -25,7 +27,8 @@ public class SecKillEventSubscriber {
     for (CouponEvent event : events) {
       if(event.getType().equals(CouponEventType.Start)) {
         if(events.stream().noneMatch(e -> e.getType().equals(CouponEventType.Finish) && e.getCustomerId().equals(event.getId()))) {
-          return new CouponInfo(event);
+          return new CouponInfo(event.getId(), event.getTime(), event.getCustomerId(), event.getCount(),
+              event.getDiscount());
         }
       }
     }

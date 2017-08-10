@@ -10,8 +10,10 @@
   <version>0.0.1-SNAPSHOT</version>
 
   <modules>
-    <module>seckill-command-service</module>
     <module>seckill-event-store</module>
+    <module>seckill-common</module>
+    <module>seckill-command-service</module>
+    <module>seckill-query-service</module>
   </modules>
 
   <parent>
@@ -39,12 +41,22 @@
       </dependency>
       <dependency>
         <groupId>io.servicecomb.poc.demo</groupId>
-        <artifactId>seckill-command-service</artifactId>
+        <artifactId>seckill-common</artifactId>
         <version>0.0.1-SNAPSHOT</version>
       </dependency>
       <dependency>
         <groupId>io.servicecomb.poc.demo</groupId>
         <artifactId>seckill-event-store</artifactId>
+        <version>0.0.1-SNAPSHOT</version>
+      </dependency>
+      <dependency>
+        <groupId>io.servicecomb.poc.demo</groupId>
+        <artifactId>seckill-command-service</artifactId>
+        <version>0.0.1-SNAPSHOT</version>
+      </dependency>
+      <dependency>
+        <groupId>io.servicecomb.poc.demo</groupId>
+        <artifactId>seckill-query-service</artifactId>
         <version>0.0.1-SNAPSHOT</version>
       </dependency>
       <dependency>
@@ -71,22 +83,10 @@
         <scope>test</scope>
       </dependency>
       <dependency>
-        <groupId>org.springframework.boot</groupId>
-        <artifactId>spring-boot-starter-jersey</artifactId>
-        <scope>compile</scope>
-        <version>1.4.5.RELEASE</version>
-      </dependency>
-      <dependency>
         <groupId>mysql</groupId>
         <artifactId>mysql-connector-java</artifactId>
         <version>5.1.43</version>
       </dependency>
-      <dependency>
-        <groupId>io.swagger</groupId>
-        <artifactId>swagger-jersey2-jaxrs</artifactId>
-        <version>1.5.12</version>
-      </dependency>
-
       <dependency>
         <groupId>au.com.dius</groupId>
         <artifactId>pact-jvm-consumer_2.11</artifactId>
