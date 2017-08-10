@@ -7,10 +7,9 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
 
 @SpringBootApplication
-public class CommandServiceApplication {
-
+public class CommandQueryApplication {
   public static void main(String[] args) {
-    SpringApplication.run(CommandServiceApplication.class, args);
+    SpringApplication.run(CommandQueryApplication.class, args);
   }
 
   @EnableServiceComb

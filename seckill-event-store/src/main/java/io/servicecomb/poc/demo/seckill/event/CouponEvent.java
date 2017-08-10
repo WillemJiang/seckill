@@ -1,94 +1,72 @@
 package io.servicecomb.poc.demo.seckill.event;
 
 import java.util.Date;
+import java.util.UUID;
 import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
 import javax.persistence.Id;
 
 @Entity
 public class CouponEvent {
 
   @Id
-  @GeneratedValue(strategy = GenerationType.AUTO)
-  private Integer id;
+  private String id;
 
-  //start : new coupon started
-  //seckill : customer success kill a ticket
-  //finish : coupon finish
+  //CouponEventType
   private String type;
 
-  private Date startTime;
+  private Date time;
 
   private Integer count;
 
   private Float discount;
 
-  //only when type = seckill
   private String customerId;
 
-  public Integer getId() {
+  public String getId() {
     return id;
-  }
-
-  public void setId(Integer id) {
-    this.id = id;
   }
 
   public String getType() {
     return type;
   }
 
-  public void setType(String type) {
-    this.type = type;
-  }
-
-  public Date getStartTime() {
-    return startTime;
-  }
-
-  public void setStartTime(Date startTime) {
-    this.startTime = startTime;
+  public Date getTime() {
+    return time;
   }
 
   public Integer getCount() {
     return count;
   }
 
-  public void setCount(Integer count) {
-    this.count = count;
-  }
-
   public Float getDiscount() {
     return discount;
-  }
-
-  public void setDiscount(Float discount) {
-    this.discount = discount;
   }
 
   public String getCustomerId() {
     return customerId;
   }
 
-  public void setCustomerId(String customerId) {
-    this.customerId = customerId;
-  }
-
-  public CouponEvent() {
-  }
+  public CouponEvent() { }
 
   public CouponEvent(String type, String customerId, Float discount) {
+    this.id = UUID.randomUUID().toString();
     this.type = type;
-    this.startTime = new Date(System.currentTimeMillis());
+    this.count = 1;
+    this.time = new Date(System.currentTimeMillis());
     this.discount = discount;
     this.customerId = customerId;
   }
 
   public CouponEvent(String type, Integer count, Float discount) {
+    this.id = UUID.randomUUID().toString();
     this.type = type;
-    this.startTime = new Date(System.currentTimeMillis());
+    this.time = new Date(System.currentTimeMillis());
     this.count = count;
     this.discount = discount;
+  }
+
+  public CouponEvent(String type, String customerId, Integer count, Float discount) {
+    this(type, count, discount);
+    this.customerId = customerId;
   }
 }

@@ -1,6 +1,6 @@
 package io.servicecomb.poc.demo.seckill.web;
 
-import io.servicecomb.poc.demo.seckill.Coupon;
+import io.servicecomb.poc.demo.seckill.SecKillCode;
 import io.servicecomb.poc.demo.seckill.SecKillCommandService;
 import io.servicecomb.poc.demo.seckill.SecKillPersistentRunner;
 import io.servicecomb.poc.demo.seckill.event.CouponEvent;
@@ -44,10 +44,10 @@ public class SeckillCommandRESTEndpoint implements SeckillCommandEndpoint {
     if (number > 0 && discount > 0 && discount <= 1) {
       CouponEvent event;
       synchronized (lock) {
-        coupons = new ArrayBlockingQueue<>(number);
-        commandService = new SecKillCommandService<>(coupons, number);
-        persistentRunner = new SecKillPersistentRunner<>(coupons, discount, couponRepository);
         event = new CouponEvent(CouponEventType.Start, number, discount);
+        coupons = new ArrayBlockingQueue<>(number);
+        commandService = new SecKillCommandService<>(coupons,event.getId(), number,discount);
+        persistentRunner = new SecKillPersistentRunner<>(coupons, discount, couponRepository);
       }
       couponRepository.save(event);
       persistentRunner.run();
@@ -67,8 +67,12 @@ public class SeckillCommandRESTEndpoint implements SeckillCommandEndpoint {
     synchronized (lock) {
       service = commandService;
     }
-    boolean result = service.addCouponTo(customerId);
+    SecKillCode result = service.addCouponTo(customerId);
+    if(result == SecKillCode.Finish){
+      CouponEvent event = new CouponEvent(CouponEventType.Finish,service.getCouponId(), service.getTotalCoupons(), service.getDiscount());
+      couponRepository.save(event);
+    }
     logger.info(String.format("seckill from = %s result = %s", customerId, result));
-    return result;
+    return result != SecKillCode.Failed;
   }
 }

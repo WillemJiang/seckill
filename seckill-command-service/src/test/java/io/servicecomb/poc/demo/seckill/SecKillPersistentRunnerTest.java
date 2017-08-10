@@ -15,7 +15,7 @@
 //  private final int numberOfCoupons = 5;
 //
 //  private final List<Integer> customerIds = new LinkedList<>();
-//  private final CouponRepository<Integer> repository = coupon -> customerIds.add(coupon.getCustomerId());
+//  private final CouponRepository<Integer> repository = coupon -> customerIds.add(coupon.getCustomer_id());
 //
 //  private final BlockingQueue<Coupon<Integer>> coupons = new ArrayBlockingQueue<>(numberOfCoupons);
 //
