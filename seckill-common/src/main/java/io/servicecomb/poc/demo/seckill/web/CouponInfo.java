@@ -6,7 +6,7 @@ public class CouponInfo {
 
   private String id;
   private Date time;
-  private String customer_id;
+  private String customerId;
   private int count;
   private float discount;
 
@@ -26,12 +26,12 @@ public class CouponInfo {
     this.time = time;
   }
 
-  public String getCustomer_id() {
-    return customer_id;
+  public String getCustomerId() {
+    return customerId;
   }
 
-  public void setCustomer_id(String customer_id) {
-    this.customer_id = customer_id;
+  public void setCustomerId(String customerId) {
+    this.customerId = customerId;
   }
 
   public int getCount() {
@@ -53,10 +53,10 @@ public class CouponInfo {
   public CouponInfo() {
   }
 
-  public CouponInfo(String id, Date time, String customer_id, int count, float discount) {
+  public CouponInfo(String id, Date time, String customerId, int count, float discount) {
     this.id = id;
     this.time = time;
-    this.customer_id = customer_id;
+    this.customerId = customerId;
     this.count = count;
     this.discount = discount;
   }

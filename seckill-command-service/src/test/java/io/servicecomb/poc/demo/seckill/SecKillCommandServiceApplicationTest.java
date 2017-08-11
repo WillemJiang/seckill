@@ -5,6 +5,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.test.web.servlet.setup.MockMvcBuilders.webAppContextSetup;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.servicecomb.poc.demo.CommandServiceApplication;
 import io.servicecomb.poc.demo.seckill.web.CouponSecKill;
 import io.servicecomb.poc.demo.seckill.web.CouponStart;
@@ -42,10 +43,10 @@ public class SecKillCommandServiceApplicationTest {
 
   @Test
   public void testCreateAndSecKill() throws Exception {
-    this.mockMvc.perform(post("/admin/start").contentType(contentType).content(new CouponStart(5,0.7f).toString()))
+    this.mockMvc.perform(post("/admin/start").contentType(contentType).content(new ObjectMapper().writeValueAsString(new CouponStart(5,0.7f))))
         .andExpect(status().isOk()).andExpect(content().string("true"));
 
-    this.mockMvc.perform(post("/command/seckill").contentType(contentType).content(new CouponSecKill("zyy").toString()))
+    this.mockMvc.perform(post("/command/seckill").contentType(contentType).content(new ObjectMapper().writeValueAsString(new CouponSecKill("zyy"))))
         .andExpect(status().isOk()).andExpect(content().string("true"));
   }
 }

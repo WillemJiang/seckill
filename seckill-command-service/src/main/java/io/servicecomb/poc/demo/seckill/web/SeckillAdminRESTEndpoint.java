@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/admin")
 public class SeckillAdminRESTEndpoint implements SecKillAdminEndpoint {
 
-  private Logger logger = Logger.getLogger(SeckillAdminRESTEndpoint.class.getName());
+  private final Logger logger = Logger.getLogger(SeckillAdminRESTEndpoint.class.getName());
 
   @Autowired
   private SecKillController secKillController;
@@ -29,7 +29,7 @@ public class SeckillAdminRESTEndpoint implements SecKillAdminEndpoint {
       logger.info(String.format("star a new coupon number = %d discount = %f", start.getNumber(), start.getDiscount()));
       return true;
     } else {
-      return false;
+      throw new SecKillException();
     }
   }
 }

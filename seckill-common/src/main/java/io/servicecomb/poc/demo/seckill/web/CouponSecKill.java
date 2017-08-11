@@ -20,13 +20,4 @@ public class CouponSecKill {
   public CouponSecKill(String id) {
     this.id = id;
   }
-
-  @Override
-  public String toString() {
-    try {
-      return new ObjectMapper().writeValueAsString(this);
-    } catch (JsonProcessingException e) {
-      return null;
-    }
-  }
 }

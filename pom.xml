@@ -15,6 +15,7 @@
     <module>seckill-command-service</module>
     <module>seckill-query-service</module>
 
+
     <module>docker-build-config</module>
   </modules>
 
@@ -147,15 +148,13 @@
       <dependency>
         <groupId>org.springframework</groupId>
         <artifactId>spring-jdbc</artifactId>
-        <version>4.3.10.RELEASE</version>
+        <version>4.3.7.RELEASE</version>
       </dependency>
       <dependency>
         <groupId>mysql</groupId>
         <artifactId>mysql-connector-java</artifactId>
         <version>5.1.43</version>
       </dependency>
-
-
 
     </dependencies>
   </dependencyManagement>
@@ -259,38 +258,38 @@
     </pluginManagement>
   </build>
 
-  <!--<profiles>-->
-    <!--<profile>-->
-      <!--<id>docker-machine</id>-->
-      <!--<build>-->
-        <!--<pluginManagement>-->
-          <!--<plugins>-->
-            <!--<plugin>-->
-              <!--<groupId>io.fabric8</groupId>-->
-              <!--<artifactId>docker-maven-plugin</artifactId>-->
-              <!--<configuration>-->
-                <!--<machine>-->
-                  <!--<name>default</name>-->
-                  <!--<autoCreate>true</autoCreate>-->
-                <!--</machine>-->
-              <!--</configuration>-->
-            <!--</plugin>-->
-          <!--</plugins>-->
-        <!--</pluginManagement>-->
-      <!--</build>-->
-    <!--</profile>-->
-    <!--<profile>-->
-      <!--<id>jacoco</id>-->
-      <!--<build>-->
-        <!--<plugins>-->
-          <!--<plugin>-->
-            <!--<groupId>org.jacoco</groupId>-->
-            <!--<artifactId>jacoco-maven-plugin</artifactId>-->
-          <!--</plugin>-->
-        <!--</plugins>-->
-      <!--</build>-->
-    <!--</profile>-->
-  <!--</profiles>-->
+  <profiles>
+    <profile>
+      <id>docker-machine</id>
+      <build>
+        <pluginManagement>
+          <plugins>
+            <plugin>
+              <groupId>io.fabric8</groupId>
+              <artifactId>docker-maven-plugin</artifactId>
+              <configuration>
+                <machine>
+                  <name>default</name>
+                  <autoCreate>true</autoCreate>
+                </machine>
+              </configuration>
+            </plugin>
+          </plugins>
+        </pluginManagement>
+      </build>
+    </profile>
+    <profile>
+      <id>jacoco</id>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.jacoco</groupId>
+            <artifactId>jacoco-maven-plugin</artifactId>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+  </profiles>
 
 
 </project>

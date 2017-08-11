@@ -30,13 +30,4 @@ public class CouponStart {
   public void setDiscount(float discount) {
     this.discount = discount;
   }
-
-  @Override
-  public String toString() {
-    try {
-      return new ObjectMapper().writeValueAsString(this);
-    } catch (JsonProcessingException e) {
-      return null;
-    }
-  }
 }

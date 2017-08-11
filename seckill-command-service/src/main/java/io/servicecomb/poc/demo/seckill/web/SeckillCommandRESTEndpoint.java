@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/command")
 public class SeckillCommandRESTEndpoint implements SeckillCommandEndpoint {
 
-  private Logger logger = Logger.getLogger(SeckillCommandRESTEndpoint.class.getName());
+  private final Logger logger = Logger.getLogger(SeckillCommandRESTEndpoint.class.getName());
 
   @Autowired
   private SecKillController secKillController;
