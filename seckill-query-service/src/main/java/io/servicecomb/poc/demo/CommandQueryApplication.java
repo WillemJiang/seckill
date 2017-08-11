@@ -13,7 +13,7 @@ public class CommandQueryApplication {
   }
 
   @EnableServiceComb
-  @Profile("!dev")
+  @Profile("cse")
   @Configuration
   static class ServiceCombConfig {
   }

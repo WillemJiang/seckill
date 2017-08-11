@@ -1,11 +1,4 @@
-server:
-  port: 0
-
 spring:
   jpa:
     hibernate:
       ddl-auto: create
-  datasource:
-    url: jdbc:mysql://192.168.99.100:32768/seckill_db?useSSL=false
-    username: seckill
-    password: 123

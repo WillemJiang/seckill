@@ -5,7 +5,7 @@
 //import static org.hamcrest.collection.IsIterableContainingInOrder.contains;
 //import static org.junit.Assert.assertThat;
 //
-//import io.servicecomb.poc.demo.seckill.repositories.CouponEventRepository;
+//import io.servicecomb.poc.demo.seckill.CouponEventRepository;
 //import java.util.LinkedList;
 //import java.util.List;
 //import java.util.concurrent.ArrayBlockingQueue;

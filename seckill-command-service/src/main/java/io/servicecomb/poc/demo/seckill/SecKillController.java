@@ -6,9 +6,9 @@ import io.servicecomb.poc.demo.seckill.repositories.CouponEventRepository;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 
-@Component
+@Service
 public class SecKillController {
 
   private BlockingQueue<String> coupons = null;

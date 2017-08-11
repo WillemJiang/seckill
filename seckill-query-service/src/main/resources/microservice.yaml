@@ -1,5 +1,5 @@
 ﻿# all interconnected microservices must belong to an application wth the same ID
-APPLICATION_ID: company
+APPLICATION_ID: seckill
 service_description:
 # name of the declaring microservice
   name: seckillCommandService
