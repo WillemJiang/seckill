@@ -10,7 +10,12 @@
   <version>0.0.1-SNAPSHOT</version>
 
   <modules>
+    <module>seckill-event-store</module>
     <module>seckill-command-service</module>
+    <module>seckill-query-service</module>
+
+
+    <module>docker-build-config</module>
   </modules>
 
   <parent>
@@ -37,8 +42,23 @@
         <scope>import</scope>
       </dependency>
       <dependency>
-        <groupId>io.servicecomb.demo</groupId>
+        <groupId>io.servicecomb.poc.demo</groupId>
+        <artifactId>seckill-common</artifactId>
+        <version>0.0.1-SNAPSHOT</version>
+      </dependency>
+      <dependency>
+        <groupId>io.servicecomb.poc.demo</groupId>
+        <artifactId>seckill-event-store</artifactId>
+        <version>0.0.1-SNAPSHOT</version>
+      </dependency>
+      <dependency>
+        <groupId>io.servicecomb.poc.demo</groupId>
         <artifactId>seckill-command-service</artifactId>
+        <version>0.0.1-SNAPSHOT</version>
+      </dependency>
+      <dependency>
+        <groupId>io.servicecomb.poc.demo</groupId>
+        <artifactId>seckill-query-service</artifactId>
         <version>0.0.1-SNAPSHOT</version>
       </dependency>
       <dependency>
@@ -64,6 +84,7 @@
         <version>2.4.9</version>
         <scope>test</scope>
       </dependency>
+
       <dependency>
         <groupId>au.com.dius</groupId>
         <artifactId>pact-jvm-consumer_2.11</artifactId>
@@ -122,6 +143,18 @@
         <version>3.0.0</version>
         <scope>test</scope>
       </dependency>
+
+      <dependency>
+        <groupId>org.springframework</groupId>
+        <artifactId>spring-jdbc</artifactId>
+        <version>4.3.7.RELEASE</version>
+      </dependency>
+      <dependency>
+        <groupId>mysql</groupId>
+        <artifactId>mysql-connector-java</artifactId>
+        <version>5.1.43</version>
+      </dependency>
+
     </dependencies>
   </dependencyManagement>
 
