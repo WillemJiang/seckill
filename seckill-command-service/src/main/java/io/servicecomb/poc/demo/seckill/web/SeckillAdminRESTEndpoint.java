@@ -25,9 +25,11 @@ public class SeckillAdminRESTEndpoint implements SecKillAdminEndpoint {
   public boolean start(
       @RequestBody CouponStart start) {
     if (start.getNumber() > 0 && start.getDiscount() > 0 && start.getDiscount() <= 1) {
-      secKillController.create(start.getNumber(), start.getDiscount());
-      logger.info(String.format("star a new coupon number = %d discount = %f", start.getNumber(), start.getDiscount()));
-      return true;
+      boolean result = secKillController.create(start.getNumber(), start.getDiscount());
+      if(result) {
+        logger.info(String.format("star a new coupon number = %d discount = %f", start.getNumber(), start.getDiscount()));
+      }
+      return result;
     } else {
       throw new SecKillException();
     }

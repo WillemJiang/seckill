@@ -17,26 +17,42 @@ public class SecKillController {
   private float discount;
   private SecKillPersistentRunner<String> persistentRunner = null;
 
+  private boolean available = false;
+
   @Autowired
   private CouponEventRepository couponRepository;
 
-  public synchronized void create(int number,float discount){
-    this.discount = discount;
-    this.currentEvent = new CouponEvent(CouponEventType.Start, number, discount);
-    this.coupons = new ArrayBlockingQueue<>(number);
-    this.commandService = new SecKillCommandService<>(coupons,number);
-    this.persistentRunner = new SecKillPersistentRunner<>(coupons, discount, couponRepository);
-    persistentRunner.run();
-    couponRepository.save(currentEvent);
+  public synchronized boolean create(int number,float discount){
+    if(!available) {
+      this.discount = discount;
+      this.currentEvent = new CouponEvent(CouponEventType.Start, number, discount);
+      this.coupons = new ArrayBlockingQueue<>(number);
+      this.commandService = new SecKillCommandService<>(coupons, number);
+      this.persistentRunner = new SecKillPersistentRunner<>(coupons, discount, couponRepository);
+      persistentRunner.run();
+      couponRepository.save(currentEvent);
+      //init completed
+      available = true;
+      return true;
+    } else {
+      return false;
+    }
   }
 
-  public synchronized SecKillCode seckill(String customerId){
-    SecKillCode result = commandService.addCouponTo(customerId);
-    if(result == SecKillCode.Finish){
-      CouponEvent event = new CouponEvent(CouponEventType.Finish,currentEvent.getId(), commandService.getTotalCoupons(), discount);
-      couponRepository.save(event);
+  public SecKillCode seckill(String customerId){
+    if(available) {
+      SecKillCode result = commandService.addCouponTo(customerId);
+      if (result == SecKillCode.Finish) {
+        CouponEvent event = new CouponEvent(CouponEventType.Finish, currentEvent.getId(),
+            commandService.getTotalCoupons(), discount);
+        couponRepository.save(event);
+        //close current seckill
+        available = false;
+      }
+      return result;
+    } else {
+      return SecKillCode.Failed;
     }
-    return result;
   }
 
 }
