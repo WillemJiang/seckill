@@ -1,0 +1,41 @@
+version: '2.0'
+
+services:
+  mysql:
+    image: "mysql:latest"
+    hostname: mysql
+    environment:
+      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
+      - MYSQL_DATABASE=${MYSQL_DATABASE}
+      - MYSQL_USER=${MYSQL_USER}
+      - MYSQL_PASSWORD=${MYSQL_PASSWORD}
+    ports:
+      - "3306:3306"
+
+  service-center:
+    image: "servicecomb/service-center"
+    hostname: service-center
+    ports:
+      - "30100:30100"
+
+  command-service:
+    image: "zhengyangyong/seckill-command-service:0.0.1-SNAPSHOT"
+    hostname: command-service
+    links:
+      - "mysql:mysql"
+      - "service-center:sc.servicecomb.io"
+    environment:
+      - JAVA_OPTS=-Dspring.profiles.active=cse -Dserver.port=6060 -Dcse.service.registry.address=http://sc.servicecomb.io:30100 -Dspring.datasource.url=jdbc:mysql://mysql:3306/${MYSQL_DATABASE}?useSSL=false -Dspring.datasource.username=${MYSQL_USER} -Dspring.datasource.password=${MYSQL_PASSWORD}
+    ports:
+      - "8081:8080"
+
+  query-service:
+    image: "zhengyangyong/seckill-query-service:0.0.1-SNAPSHOT"
+    hostname: query-service
+    links:
+      - "mysql:mysql"
+      - "service-center:sc.servicecomb.io"
+    environment:
+      - JAVA_OPTS=-Dspring.profiles.active=cse -Dserver.port=6060 -Dcse.service.registry.address=http://sc.servicecomb.io:30100 -Dspring.datasource.url=jdbc:mysql://mysql:3306/${MYSQL_DATABASE}?useSSL=false -Dspring.datasource.username=${MYSQL_USER} -Dspring.datasource.password=${MYSQL_PASSWORD}
+    ports:
+      - "8082:8080"

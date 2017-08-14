@@ -2,6 +2,7 @@ package io.servicecomb.poc.demo.seckill;
 
 import static org.hamcrest.collection.IsIterableContainingInOrder.contains;
 import static org.hamcrest.core.Is.is;
+import static org.hamcrest.core.IsNot.not;
 import static org.junit.Assert.assertThat;
 
 import java.util.ArrayList;
@@ -30,11 +31,9 @@ public class SecKillCommandServiceTest {
   @Test
   public void putsAllCustomersInQueue() {
     for (int i = 0; i < 5; i++) {
-      boolean success = commandService.addCouponTo(i);
-
-      assertThat(success, is(true));
+      SecKillCode success = commandService.addCouponTo(i);
+      assertThat(success, not(SecKillCode.Failed));
     }
-
     assertThat(coupons, contains(0, 1, 2, 3, 4));
   }
 
@@ -49,7 +48,8 @@ public class SecKillCommandServiceTest {
         , () -> {
           try {
             barrier.await();
-            return commandService.addCouponTo(customerIdGenerator.incrementAndGet());
+            SecKillCode code = commandService.addCouponTo(customerIdGenerator.incrementAndGet());
+            return !code.equals(SecKillCode.Failed);
           } catch (InterruptedException | BrokenBarrierException e) {
             throw new RuntimeException(e);
           }
@@ -65,13 +65,13 @@ public class SecKillCommandServiceTest {
   @Test
   public void failsToAddCustomerIfQueueIsFull() {
     for (int i = 0; i < numberOfCoupons; i++) {
-      boolean success = commandService.addCouponTo(i);
+      boolean success = !commandService.addCouponTo(i).equals(SecKillCode.Failed);
       assertThat(success, is(true));
     }
 
     assertThat(coupons.size(), is(numberOfCoupons));
 
-    boolean success = commandService.addCouponTo(100);
+    boolean success = !commandService.addCouponTo(100).equals(SecKillCode.Failed);
     assertThat(success, is(false));
     assertThat(coupons, contains(0, 1, 2, 3, 4, 5, 6, 7, 8, 9));
   }

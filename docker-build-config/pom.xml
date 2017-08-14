@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <parent>
+    <artifactId>seckill</artifactId>
+    <groupId>io.servicecomb.poc.demo</groupId>
+    <version>0.0.1-SNAPSHOT</version>
+  </parent>
+  <modelVersion>4.0.0</modelVersion>
+
+  <artifactId>docker-build-config</artifactId>
+  <packaging>pom</packaging>
+
+  <build>
+    <pluginManagement>
+      <plugins>
+        <plugin>
+          <groupId>org.commonjava.maven.plugins</groupId>
+          <artifactId>directory-maven-plugin</artifactId>
+          <executions>
+            <execution>
+              <id>directories</id>
+              <goals>
+                <goal>highest-basedir</goal>
+              </goals>
+              <phase>initialize</phase>
+              <configuration>
+                <property>rootpath</property>
+              </configuration>
+            </execution>
+          </executions>
+        </plugin>
+        <plugin>
+          <groupId>io.fabric8</groupId>
+          <artifactId>docker-maven-plugin</artifactId>
+          <configuration>
+            <images>
+              <image>
+                <name>${project.artifactId}:${project.version}</name>
+                <alias>${project.artifactId}</alias>
+                <build>
+                  <from>openjdk:8</from>
+                  <ports>
+                    <port>8080</port>
+                  </ports>
+                  <assembly>
+                    <mode>tar</mode>
+                    <!--TODO : need use ${rootpath} locate-->
+                    <!--<descriptor>${rootpath}/docker-build-config/docker-assembly.xml</descriptor>-->
+                    <descriptor>docker-assembly.xml</descriptor>
+                  </assembly>
+                  <entryPoint>
+                    <shell>java $JAVA_OPTS -jar /maven/seckill/${project.artifactId}-${project.version}-exec.jar</shell>
+                  </entryPoint>
+                </build>
+              </image>
+            </images>
+          </configuration>
+          <executions>
+            <execution>
+              <id>build</id>
+              <phase>package</phase>
+              <goals>
+                <goal>build</goal>
+              </goals>
+            </execution>
+          </executions>
+        </plugin>
+        <plugin>
+          <groupId>org.springframework.boot</groupId>
+          <artifactId>spring-boot-maven-plugin</artifactId>
+          <executions>
+            <execution>
+              <goals>
+                <goal>repackage</goal>
+              </goals>
+              <configuration>
+                <outputDirectory>${project.build.directory}/seckill</outputDirectory>
+                <classifier>exec</classifier>
+              </configuration>
+            </execution>
+          </executions>
+        </plugin>
+      </plugins>
+    </pluginManagement>
+  </build>
+
+
+</project>
