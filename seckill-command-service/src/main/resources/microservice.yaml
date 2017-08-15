@@ -1,0 +1,23 @@
+﻿# all interconnected microservices must belong to an application wth the same ID
+APPLICATION_ID: seckill
+service_description:
+# name of the declaring microservice
+  name: seckillCommandService
+  version: 0.0.1
+cse:
+  service:
+    registry:
+      address: http://localhost:30100
+  highway:
+    address: 0.0.0.0:7070
+  rest:
+    address: 0.0.0.0:8080
+  handler:
+    chain:
+      Provider:
+        default: tracing-provider,bizkeeper-provider
+
+servicecomb:
+  tracing:
+    collector:
+      address: http://zipkin.io:9411
