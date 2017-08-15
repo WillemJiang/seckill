@@ -6,6 +6,7 @@ import static org.hamcrest.core.IsNot.not;
 import static org.junit.Assert.assertThat;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
@@ -22,17 +23,22 @@ import org.junit.Test;
 public class SecKillCommandServiceTest {
 
   private final int numberOfCoupons = 10;
-  private final BlockingQueue<Integer> coupons = new ArrayBlockingQueue<>(numberOfCoupons);
 
-  private final SecKillCommandService<Integer> commandService = new SecKillCommandService<>(coupons, numberOfCoupons);
+  private final BlockingQueue<Integer> coupons = new ArrayBlockingQueue<>(numberOfCoupons);
+  private final CouponInfo couponInfo = new CouponInfo(new Date(), numberOfCoupons, 0.7f);
+  private final AtomicInteger claimedCoupons = new AtomicInteger();
+
+  private final  SeckillRecoveryCheckResult recovery = new SeckillRecoveryCheckResult(numberOfCoupons);
+  private final SecKillCommandService<Integer> commandService = new SecKillCommandService<>(couponInfo, coupons,claimedCoupons,recovery);
+
   private final AtomicInteger customerIdGenerator = new AtomicInteger();
   private final AtomicInteger numberOfSuccess = new AtomicInteger();
 
   @Test
   public void putsAllCustomersInQueue() {
     for (int i = 0; i < 5; i++) {
-      SecKillCode success = commandService.addCouponTo(i);
-      assertThat(success, not(SecKillCode.Failed));
+      boolean success = commandService.addCouponTo(i);
+      assertThat(success, is(true));
     }
     assertThat(coupons, contains(0, 1, 2, 3, 4));
   }
@@ -48,8 +54,7 @@ public class SecKillCommandServiceTest {
         , () -> {
           try {
             barrier.await();
-            SecKillCode code = commandService.addCouponTo(customerIdGenerator.incrementAndGet());
-            return !code.equals(SecKillCode.Failed);
+            return commandService.addCouponTo(customerIdGenerator.incrementAndGet());
           } catch (InterruptedException | BrokenBarrierException e) {
             throw new RuntimeException(e);
           }
@@ -65,13 +70,13 @@ public class SecKillCommandServiceTest {
   @Test
   public void failsToAddCustomerIfQueueIsFull() {
     for (int i = 0; i < numberOfCoupons; i++) {
-      boolean success = !commandService.addCouponTo(i).equals(SecKillCode.Failed);
+      boolean success = commandService.addCouponTo(i);
       assertThat(success, is(true));
     }
 
     assertThat(coupons.size(), is(numberOfCoupons));
 
-    boolean success = !commandService.addCouponTo(100).equals(SecKillCode.Failed);
+    boolean success = commandService.addCouponTo(100);
     assertThat(success, is(false));
     assertThat(coupons, contains(0, 1, 2, 3, 4, 5, 6, 7, 8, 9));
   }

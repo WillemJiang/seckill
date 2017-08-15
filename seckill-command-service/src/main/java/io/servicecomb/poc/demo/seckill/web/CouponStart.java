@@ -2,29 +2,19 @@ package io.servicecomb.poc.demo.seckill.web;
 
 public class CouponStart {
 
-  private int number = 0;
-  private float discount = 1;
+  private String couponId;
 
   public CouponStart() { }
 
-  public CouponStart(int number, float discount) {
-    this.number = number;
-    this.discount = discount;
+  public CouponStart(String couponId) {
+    this.couponId = couponId;
   }
 
-  public int getNumber() {
-    return number;
+  public String getCouponId() {
+    return couponId;
   }
 
-  public void setNumber(int number) {
-    this.number = number;
-  }
-
-  public float getDiscount() {
-    return discount;
-  }
-
-  public void setDiscount(float discount) {
-    this.discount = discount;
+  public void setCouponId(String couponId) {
+    this.couponId = couponId;
   }
 }

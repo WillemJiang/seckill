@@ -1,15 +1,20 @@
 package io.servicecomb.poc.demo.seckill.event;
 
+import io.servicecomb.poc.demo.seckill.CouponInfo;
 import java.util.Date;
-import java.util.UUID;
 import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
 import javax.persistence.Id;
 
 @Entity
 public class CouponEvent {
 
   @Id
-  private String id;
+  @GeneratedValue(strategy = GenerationType.AUTO)
+  private int id;
+
+  private String couponId;
 
   //CouponEventType
   private String type;
@@ -22,8 +27,12 @@ public class CouponEvent {
 
   private String customerId;
 
-  public String getId() {
+  public int getId() {
     return id;
+  }
+
+  public String getCouponId() {
+    return couponId;
   }
 
   public String getType() {
@@ -48,25 +57,34 @@ public class CouponEvent {
 
   public CouponEvent() { }
 
-  public CouponEvent(String type, String customerId, Float discount) {
-    this.id = UUID.randomUUID().toString();
-    this.type = type;
-    this.count = 1;
-    this.time = new Date(System.currentTimeMillis());
-    this.discount = discount;
-    this.customerId = customerId;
+  public static CouponEvent genStartCouponEvent(CouponInfo info) {
+    CouponEvent event = new CouponEvent();
+    event.type = CouponEventType.Start;
+    event.couponId = info.getId();
+    event.time = new Date();
+    event.count = info.getCount();
+    event.discount = info.getDiscount();
+    return event;
   }
 
-  public CouponEvent(String type, Integer count, Float discount) {
-    this.id = UUID.randomUUID().toString();
-    this.type = type;
-    this.time = new Date(System.currentTimeMillis());
-    this.count = count;
-    this.discount = discount;
+  public static CouponEvent genFinishCouponEvent(CouponInfo info) {
+    CouponEvent event = new CouponEvent();
+    event.type = CouponEventType.Finish;
+    event.couponId = info.getId();
+    event.time = new Date();
+    event.count = info.getCount();
+    event.discount = info.getDiscount();
+    return event;
   }
 
-  public CouponEvent(String type, String customerId, Integer count, Float discount) {
-    this(type, count, discount);
-    this.customerId = customerId;
+  public static CouponEvent genSecKillCouponEvent(CouponInfo info,String customerId) {
+    CouponEvent event = new CouponEvent();
+    event.type = CouponEventType.SecKill;
+    event.couponId = info.getId();
+    event.time = new Date();
+    event.count = 1;
+    event.discount = info.getDiscount();
+    event.customerId = customerId;
+    return event;
   }
 }

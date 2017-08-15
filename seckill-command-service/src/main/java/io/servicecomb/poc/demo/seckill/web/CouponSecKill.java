@@ -1,20 +1,20 @@
 package io.servicecomb.poc.demo.seckill.web;
 
-public class CouponSecKill {
+public class CouponSecKill<T> {
 
-  private String id;
+  private T customerId;
 
-  public String getId() {
-    return id;
+  public T getCustomerId() {
+    return customerId;
   }
 
-  public void setId(String id) {
-    this.id = id;
+  public void setCustomerId(T customerId) {
+    this.customerId = customerId;
   }
 
   public CouponSecKill() { }
 
-  public CouponSecKill(String id) {
-    this.id = id;
+  public CouponSecKill(T id) {
+    this.customerId = id;
   }
 }
