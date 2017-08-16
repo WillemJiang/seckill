@@ -1,0 +1,13 @@
+sudo: required
+dist: trusty
+
+language: java
+
+services:
+  - docker
+
+script:
+  - mvn clean install
+
+after_success:
+  - mvn clean verify -Pjacoco coveralls:report #-Ddocker.showLogs -Pdocker
