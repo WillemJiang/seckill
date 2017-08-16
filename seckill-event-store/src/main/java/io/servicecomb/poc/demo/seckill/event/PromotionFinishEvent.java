@@ -16,9 +16,18 @@
 
 package io.servicecomb.poc.demo.seckill.event;
 
-public class PromotionEventType {
-  public static final String Start = "start";
-  public static final String Grab = "grab";
-  public static final String Finish = "finish";
+import io.servicecomb.poc.demo.seckill.Promotion;
 
+public class PromotionFinishEvent<T> extends PromotionEvent<T> {
+
+  public PromotionFinishEvent() {
+    super();
+    this.type = PromotionEventType.Finish;
+  }
+
+  public PromotionFinishEvent(Promotion info) {
+    this();
+    this.couponId = info.getId();
+    this.discount = info.getDiscount();
+  }
 }

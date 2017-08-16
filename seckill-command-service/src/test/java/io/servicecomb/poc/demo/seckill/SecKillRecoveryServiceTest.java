@@ -24,6 +24,9 @@ import static org.mockito.Mockito.when;
 
 import io.servicecomb.poc.demo.seckill.event.PromotionEvent;
 import io.servicecomb.poc.demo.seckill.event.PromotionEventType;
+import io.servicecomb.poc.demo.seckill.event.PromotionFinishEvent;
+import io.servicecomb.poc.demo.seckill.event.PromotionGrabEvent;
+import io.servicecomb.poc.demo.seckill.event.PromotionStartEvent;
 import io.servicecomb.poc.demo.seckill.repositories.SpringBasedCouponEventRepository;
 import java.util.ArrayList;
 import java.util.Date;
@@ -46,23 +49,23 @@ public class SecKillRecoveryServiceTest {
     when(repository.findTopByCouponIdAndTypeOrderByIdDesc(unstartPromotion.getId(), PromotionEventType.Start))
         .thenReturn(null);
     when(repository.findTopByCouponIdAndTypeOrderByIdDesc(needRecoverPromotion.getId(), PromotionEventType.Start))
-        .thenReturn(PromotionEvent.genStartCouponEvent(needRecoverPromotion));
+        .thenReturn(new PromotionStartEvent<>(needRecoverPromotion));
     when(repository.findTopByCouponIdAndTypeOrderByIdDesc(finishPromotion.getId(), PromotionEventType.Start))
-        .thenReturn(PromotionEvent.genStartCouponEvent(finishPromotion));
+        .thenReturn(new PromotionStartEvent<>(finishPromotion));
 
     when(repository.findByCouponIdAndIdGreaterThan(unstartPromotion.getId(), 0))
         .thenReturn(new ArrayList<>());
 
     List<PromotionEvent<String>> needRecoverPromotionEvents = new ArrayList<>();
-    needRecoverPromotionEvents.add(PromotionEvent.genSecKillCouponEvent(needRecoverPromotion, "zyy"));
+    needRecoverPromotionEvents.add(new PromotionGrabEvent<>(needRecoverPromotion, "zyy"));
     when(repository.findByCouponIdAndIdGreaterThan(needRecoverPromotion.getId(), 0))
         .thenReturn(needRecoverPromotionEvents);
 
     List<PromotionEvent<String>> finishPromotionEvents = new ArrayList<>();
     for (int i = 0; i < finishPromotion.getNumberOfCoupons(); i++) {
-      finishPromotionEvents.add(PromotionEvent.genSecKillCouponEvent(finishPromotion, String.valueOf(i)));
+      finishPromotionEvents.add(new PromotionGrabEvent<>(finishPromotion, String.valueOf(i)));
     }
-    finishPromotionEvents.add(PromotionEvent.genFinishCouponEvent(finishPromotion));
+    finishPromotionEvents.add(new PromotionFinishEvent<>(finishPromotion));
     when(repository.findByCouponIdAndIdGreaterThan(finishPromotion.getId(), 0))
         .thenReturn(finishPromotionEvents);
 

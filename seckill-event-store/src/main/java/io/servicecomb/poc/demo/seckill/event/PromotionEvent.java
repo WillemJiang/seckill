@@ -16,7 +16,6 @@
 
 package io.servicecomb.poc.demo.seckill.event;
 
-import io.servicecomb.poc.demo.seckill.Promotion;
 import java.util.Date;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
@@ -31,19 +30,17 @@ public class PromotionEvent<T> {
   @GeneratedValue(strategy = GenerationType.AUTO)
   private int id;
 
-  private String couponId;
+  protected String couponId;
 
   //PromotionEventType
-  private String type;
+  protected String type;
 
-  private Date time;
+  protected Date time;
 
-  private Integer count;
-
-  private Float discount;
+  protected Float discount;
 
   @Type(type = "java.lang.String")
-  private T customerId;
+  protected T customerId;
 
   public int getId() {
     return id;
@@ -61,10 +58,6 @@ public class PromotionEvent<T> {
     return time;
   }
 
-  public Integer getCount() {
-    return count;
-  }
-
   public Float getDiscount() {
     return discount;
   }
@@ -73,36 +66,7 @@ public class PromotionEvent<T> {
     return customerId;
   }
 
-  public PromotionEvent() { }
-
-  public static PromotionEvent<String> genStartCouponEvent(Promotion info) {
-    PromotionEvent<String> event = new PromotionEvent<>();
-    event.type = PromotionEventType.Start;
-    event.couponId = info.getId();
-    event.time = new Date();
-    event.count = info.getNumberOfCoupons();
-    event.discount = info.getDiscount();
-    return event;
-  }
-
-  public static PromotionEvent<String> genFinishCouponEvent(Promotion info) {
-    PromotionEvent<String> event = new PromotionEvent<>();
-    event.type = PromotionEventType.Finish;
-    event.couponId = info.getId();
-    event.time = new Date();
-    event.count = info.getNumberOfCoupons();
-    event.discount = info.getDiscount();
-    return event;
-  }
-
-  public static PromotionEvent<String> genSecKillCouponEvent(Promotion info,String customerId) {
-    PromotionEvent<String> event = new PromotionEvent<>();
-    event.type = PromotionEventType.SecKill;
-    event.couponId = info.getId();
-    event.time = new Date();
-    event.count = 1;
-    event.discount = info.getDiscount();
-    event.customerId = customerId;
-    return event;
+  public PromotionEvent() {
+    this.time = new Date();
   }
 }
