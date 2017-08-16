@@ -17,6 +17,9 @@
 package io.servicecomb.poc.demo.seckill;
 
 import io.servicecomb.poc.demo.seckill.event.PromotionEvent;
+import io.servicecomb.poc.demo.seckill.event.PromotionFinishEvent;
+import io.servicecomb.poc.demo.seckill.event.PromotionGrabEvent;
+import io.servicecomb.poc.demo.seckill.event.PromotionStartEvent;
 import io.servicecomb.poc.demo.seckill.repositories.CouponEventRepository;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.CompletableFuture;
@@ -47,12 +50,10 @@ public class SecKillPersistentRunner<T> {
 
   public void run() {
     if (!recoveryInfo.isStartEventAvailable()) {
-      PromotionEvent<String> start = PromotionEvent.genStartCouponEvent(promotion);
-      repository.save(start);
+      repository.save(new PromotionStartEvent<>(promotion));
     }
 
     CompletableFuture.runAsync(() -> {
-
       boolean promotionEnded = false;
       while (!Thread.currentThread().isInterrupted() && !hasConsumedAllCoupons() && !promotionEnded) {
         try {
@@ -62,16 +63,14 @@ public class SecKillPersistentRunner<T> {
         }
       }
 
-      PromotionEvent<String> finish = PromotionEvent.genFinishCouponEvent(promotion);
-      repository.save(finish);
+      repository.save(new PromotionFinishEvent<>(promotion));
     });
   }
 
   private boolean consumeCoupon() throws InterruptedException {
     T customerId = coupons.poll(promotion.getFinishTime().getTime() - System.currentTimeMillis(), TimeUnit.MILLISECONDS);
     if (customerId != null) {
-      PromotionEvent<String> event = PromotionEvent.genSecKillCouponEvent(promotion, customerId.toString());
-      repository.save(event);
+      repository.save(new PromotionGrabEvent<>(promotion, customerId.toString()));
     }
     return customerId == null;
   }

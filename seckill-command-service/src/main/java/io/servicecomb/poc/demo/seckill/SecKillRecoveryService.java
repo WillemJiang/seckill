@@ -39,8 +39,8 @@ public class SecKillRecoveryService {
       List<PromotionEvent<String>> allEvents = this.repository.findByCouponIdAndIdGreaterThan(promotion.getId(), lastStart.getId());
       if (allEvents.size() != 0) {
         result.setFinishEventAvailable(allEvents.stream().anyMatch(event -> PromotionEventType.Finish.equals(event.getType())));
-        long count = allEvents.stream().filter(event -> PromotionEventType.SecKill.equals(event.getType())).count();
-        result.setRemainingCoupons(lastStart.getCount() - (int) count);
+        long count = allEvents.stream().filter(event -> PromotionEventType.Grab.equals(event.getType())).count();
+        result.setRemainingCoupons(promotion.getNumberOfCoupons() - (int) count);
         result.getClaimedCustomers().addAll(allEvents.stream().filter(event -> !PromotionEventType.Finish.equals(event.getType()))
             .map(PromotionEvent::getCustomerId).collect(Collectors.toSet()));
       }

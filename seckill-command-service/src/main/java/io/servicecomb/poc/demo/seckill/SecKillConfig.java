@@ -46,13 +46,11 @@ class SecKillConfig {
       SeckillRecoveryCheckResult recoveryInfo,
       BlockingQueue<String> couponQueue) {
 
-    SecKillPersistentRunner<String> runner = new SecKillPersistentRunner<>(promotion,
+    return new SecKillPersistentRunner<>(promotion,
         couponQueue,
         claimedCoupons,
         repository,
         recoveryInfo);
-    runner.run();
-    return runner;
   }
 
   @Bean
