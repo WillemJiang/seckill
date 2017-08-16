@@ -1,3 +1,19 @@
+/*
+ *   Copyright 2017 Huawei Technologies Co., Ltd
+ *
+ *   Licensed under the Apache License, Version 2.0 (the "License");
+ *   you may not use this file except in compliance with the License.
+ *   You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *   Unless required by applicable law or agreed to in writing, software
+ *   distributed under the License is distributed on an "AS IS" BASIS,
+ *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *   See the License for the specific language governing permissions and
+ *   limitations under the License.
+ */
+
 package io.servicecomb.poc.demo.seckill;
 
 import static org.hamcrest.collection.IsIterableContainingInOrder.contains;
@@ -5,6 +21,7 @@ import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.assertThat;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
@@ -21,9 +38,15 @@ import org.junit.Test;
 public class SecKillCommandServiceTest {
 
   private final int numberOfCoupons = 10;
-  private final BlockingQueue<Integer> coupons = new ArrayBlockingQueue<>(numberOfCoupons);
 
-  private final SecKillCommandService<Integer> commandService = new SecKillCommandService<>(coupons, numberOfCoupons);
+  private final BlockingQueue<Integer> coupons = new ArrayBlockingQueue<>(numberOfCoupons);
+  private final Promotion promotion = new Promotion(new Date(), numberOfCoupons, 0.7f);
+  private final AtomicInteger claimedCoupons = new AtomicInteger();
+
+  private final SeckillRecoveryCheckResult recovery = new SeckillRecoveryCheckResult(numberOfCoupons);
+  private final SecKillCommandService<Integer> commandService = new SecKillCommandService<>(promotion, coupons,
+      claimedCoupons, recovery.getClaimedCustomers());
+
   private final AtomicInteger customerIdGenerator = new AtomicInteger();
   private final AtomicInteger numberOfSuccess = new AtomicInteger();
 
@@ -31,10 +54,8 @@ public class SecKillCommandServiceTest {
   public void putsAllCustomersInQueue() {
     for (int i = 0; i < 5; i++) {
       boolean success = commandService.addCouponTo(i);
-
       assertThat(success, is(true));
     }
-
     assertThat(coupons, contains(0, 1, 2, 3, 4));
   }
 
