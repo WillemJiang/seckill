@@ -17,6 +17,7 @@
 package io.servicecomb.poc.demo.seckill;
 
 import io.servicecomb.poc.demo.seckill.repositories.SpringBasedCouponEventRepository;
+import io.servicecomb.poc.demo.seckill.web.SecKillException;
 import java.util.Date;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
@@ -66,6 +67,11 @@ class SecKillConfig {
   @Bean
   BlockingQueue<String> couponQueue(Promotion promotion) {
     return new ArrayBlockingQueue<>(promotion.getNumberOfCoupons());
+  }
+
+  @Bean
+  SecKillException secKillException() {
+    return new SecKillException();
   }
 
 }
