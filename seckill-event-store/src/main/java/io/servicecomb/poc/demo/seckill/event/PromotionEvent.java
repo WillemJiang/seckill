@@ -22,6 +22,7 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import org.hibernate.annotations.Type;
 
 @Entity
 public class PromotionEvent<T> {
@@ -41,6 +42,7 @@ public class PromotionEvent<T> {
 
   private Float discount;
 
+  @Type(type = "java.lang.String")
   private T customerId;
 
   public int getId() {
@@ -74,7 +76,7 @@ public class PromotionEvent<T> {
   public PromotionEvent() { }
 
   public static PromotionEvent<String> genStartCouponEvent(Promotion info) {
-    PromotionEvent<String> event = new PromotionEvent<String>();
+    PromotionEvent<String> event = new PromotionEvent<>();
     event.type = PromotionEventType.Start;
     event.couponId = info.getId();
     event.time = new Date();
