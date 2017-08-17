@@ -20,6 +20,7 @@ import static org.springframework.http.HttpStatus.BAD_REQUEST;
 import static org.springframework.http.HttpStatus.OK;
 
 import io.servicecomb.poc.demo.seckill.Promotion;
+import io.servicecomb.poc.demo.seckill.dto.PromotionDto;
 import io.servicecomb.poc.demo.seckill.repositories.PromotionRepository;
 import java.util.Date;
 import org.slf4j.Logger;

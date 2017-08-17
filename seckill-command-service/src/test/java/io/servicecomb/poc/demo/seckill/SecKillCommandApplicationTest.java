@@ -27,7 +27,8 @@ import static org.springframework.test.web.servlet.setup.MockMvcBuilders.webAppC
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.servicecomb.poc.demo.seckill.dto.PromotionDto;
+import io.servicecomb.poc.demo.CommandServiceApplication;
+import io.servicecomb.poc.demo.seckill.dto.CouponDto;
 import io.servicecomb.poc.demo.seckill.repositories.PromotionRepository;
 import java.util.Date;
 import java.util.UUID;
@@ -43,9 +44,9 @@ import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.web.context.WebApplicationContext;
 
 @RunWith(SpringRunner.class)
-@SpringBootTest(classes = AdminServiceApplication.class)
+@SpringBootTest(classes = CommandServiceApplication.class)
 @WebAppConfiguration
-public class SecKillAdminApplicationTest {
+public class SecKillCommandApplicationTest {
 
   private final ObjectMapper objectMapper = new ObjectMapper();
   private MockMvc mockMvc;
@@ -53,56 +54,26 @@ public class SecKillAdminApplicationTest {
   @Autowired
   private WebApplicationContext webApplicationContext;
 
-  @Autowired
-  private PromotionRepository repository;
-
-
   @Before
   public void setup() throws Exception {
     this.mockMvc = webAppContextSetup(webApplicationContext).build();
-    repository.deleteAll();
   }
 
   @Test
-  public void createsPromotionSuccessfully() throws Exception {
-    MvcResult result = mockMvc.perform(post("/admin/promotions/").contentType(APPLICATION_JSON)
-        .content(toJson(new PromotionDto(5, 0.7f, timeFromNow(2000)))))
-        .andExpect(status().isOk()).andReturn();
-
-    UUID.fromString(result.getResponse().getContentAsString());
-
-    assertThat(repository.count(), is(1L));
+  public void grabCouponUseStringCustomeIdSuccessfully() throws Exception {
+    mockMvc.perform(post("/command/coupons/").contentType(APPLICATION_JSON)
+        .content(toJson(new CouponDto("zyy"))))
+        .andExpect(status().isOk()).andExpect(content().string("true"));
   }
 
   @Test
-  public void failsWhenNumberOfCouponsIsNotValid() throws Exception {
-    mockMvc.perform(post("/admin/promotions/").contentType(APPLICATION_JSON)
-        .content(toJson(new PromotionDto(0, 0.7f, timeFromNow(2000)))))
-        .andExpect(status().isBadRequest())
-        .andExpect(content().string(containsString("Invalid promotion {coupons=")));
+  public void grabCouponUseIntCustomeIdSuccessfully() throws Exception {
+    mockMvc.perform(post("/command/coupons/").contentType(APPLICATION_JSON)
+        .content(toJson(new CouponDto(10001))))
+        .andExpect(status().isOk()).andExpect(content().string("true"));
   }
 
-  @Test
-  public void failsWhenDiscountIsInvalid() throws Exception {
-    mockMvc.perform(post("/admin/promotions/").contentType(APPLICATION_JSON)
-        .content(toJson(new PromotionDto(5, -0.1f, timeFromNow(2000)))))
-        .andExpect(status().isBadRequest())
-        .andExpect(content().string(containsString("Invalid promotion {coupons=")));
-  }
-
-  @Test
-  public void failsWhenPublishTimeIsBeforeNow() throws Exception {
-    mockMvc.perform(post("/admin/promotions/").contentType(APPLICATION_JSON)
-        .content(toJson(new PromotionDto(5, 0.7f, timeFromNow(-2000)))))
-        .andExpect(status().isBadRequest())
-        .andExpect(content().string(containsString("Invalid promotion {coupons=")));
-  }
-
-  private String toJson(PromotionDto value) throws JsonProcessingException {
+  private String toJson(CouponDto value) throws JsonProcessingException {
     return objectMapper.writeValueAsString(value);
-  }
-
-  private Date timeFromNow(int offset) {
-    return new Date(System.currentTimeMillis() + offset);
   }
 }
