@@ -18,8 +18,7 @@ package io.servicecomb.poc.demo.seckill.web;
 
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
 
-import io.servicecomb.poc.demo.seckill.SecKillCommandService;
-import io.servicecomb.poc.demo.seckill.SecKillPersistentRunner;
+import io.servicecomb.poc.demo.seckill.SecKillRunner;
 import io.servicecomb.poc.demo.seckill.dto.CouponDto;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -37,19 +36,18 @@ public class SecKillCommandRestController {
 
   private static final Logger logger = LoggerFactory.getLogger(SecKillCommandRestController.class);
 
-  private final SecKillCommandService commandService;
+  private SecKillRunner runner;
 
   @Autowired
-  public SecKillCommandRestController(SecKillCommandService secKillCommandService) {
-    this.commandService = secKillCommandService;
+  public SecKillCommandRestController(SecKillRunner runner) {
+    this.runner = runner;
   }
-
 
   @RequestMapping(method = RequestMethod.POST, value = "/")
   public ResponseEntity<String> seckill(
       @RequestBody CouponDto couponDto) {
     if (isValidCoupon(couponDto)) {
-      boolean result = this.commandService.addCouponTo(couponDto.getCustomerId());
+      boolean result = this.runner.getCommandService().addCouponTo(couponDto.getCustomerId());
       logger.info("SecKill from = {}, result = {}", couponDto.getCustomerId(), result);
       if (result) {
         return new ResponseEntity<>("Request accepted", HttpStatus.OK);
