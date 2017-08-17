@@ -25,7 +25,7 @@ import static org.mockito.Mockito.when;
 import io.servicecomb.poc.demo.seckill.event.PromotionEvent;
 import io.servicecomb.poc.demo.seckill.event.PromotionEventType;
 import io.servicecomb.poc.demo.seckill.event.PromotionFinishEvent;
-import io.servicecomb.poc.demo.seckill.event.PromotionGrabEvent;
+import io.servicecomb.poc.demo.seckill.event.PromotionGrabbedEvent;
 import io.servicecomb.poc.demo.seckill.event.PromotionStartEvent;
 import io.servicecomb.poc.demo.seckill.repositories.SpringBasedCouponEventRepository;
 import java.util.ArrayList;
@@ -57,13 +57,13 @@ public class SecKillRecoveryServiceTest {
         .thenReturn(new ArrayList<>());
 
     List<PromotionEvent<String>> needRecoverPromotionEvents = new ArrayList<>();
-    needRecoverPromotionEvents.add(new PromotionGrabEvent<>(needRecoverPromotion, "zyy"));
+    needRecoverPromotionEvents.add(new PromotionGrabbedEvent<>(needRecoverPromotion, "zyy"));
     when(repository.findByCouponIdAndIdGreaterThan(needRecoverPromotion.getId(), 0))
         .thenReturn(needRecoverPromotionEvents);
 
     List<PromotionEvent<String>> finishPromotionEvents = new ArrayList<>();
     for (int i = 0; i < finishPromotion.getNumberOfCoupons(); i++) {
-      finishPromotionEvents.add(new PromotionGrabEvent<>(finishPromotion, String.valueOf(i)));
+      finishPromotionEvents.add(new PromotionGrabbedEvent<>(finishPromotion, String.valueOf(i)));
     }
     finishPromotionEvents.add(new PromotionFinishEvent<>(finishPromotion));
     when(repository.findByCouponIdAndIdGreaterThan(finishPromotion.getId(), 0))

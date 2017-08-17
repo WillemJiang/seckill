@@ -16,12 +16,16 @@
 
 package io.servicecomb.poc.demo.seckill.web;
 
+import static org.springframework.http.HttpStatus.BAD_REQUEST;
+
 import io.servicecomb.poc.demo.seckill.SecKillCommandService;
 import io.servicecomb.poc.demo.seckill.SecKillPersistentRunner;
 import io.servicecomb.poc.demo.seckill.dto.CouponDto;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -46,14 +50,18 @@ public class SecKillCommandRestController {
 
 
   @RequestMapping(method = RequestMethod.POST, value = "/")
-  public boolean seckill(
+  public ResponseEntity<String> seckill(
       @RequestBody CouponDto couponDto) {
     if (isValidCoupon(couponDto)) {
       boolean result = this.commandService.addCouponTo(couponDto.getCustomerId());
       logger.info("SecKill from = {}, result = {}", couponDto.getCustomerId(), result);
-      return result;
+      if (result) {
+        return new ResponseEntity<>("Request accepted", HttpStatus.OK);
+      } else {
+        return new ResponseEntity<>("Request rejected due to coupon out of stock", HttpStatus.OK);
+      }
     } else {
-      return false;
+      return new ResponseEntity<>("Invalid coupon {customerId is null}", BAD_REQUEST);
     }
   }
 
