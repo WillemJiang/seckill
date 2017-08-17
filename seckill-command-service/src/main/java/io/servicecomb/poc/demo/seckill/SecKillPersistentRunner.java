@@ -16,9 +16,8 @@
 
 package io.servicecomb.poc.demo.seckill;
 
-import io.servicecomb.poc.demo.seckill.event.PromotionEvent;
 import io.servicecomb.poc.demo.seckill.event.PromotionFinishEvent;
-import io.servicecomb.poc.demo.seckill.event.PromotionGrabEvent;
+import io.servicecomb.poc.demo.seckill.event.PromotionGrabbedEvent;
 import io.servicecomb.poc.demo.seckill.event.PromotionStartEvent;
 import io.servicecomb.poc.demo.seckill.repositories.CouponEventRepository;
 import java.util.concurrent.BlockingQueue;
@@ -70,7 +69,7 @@ public class SecKillPersistentRunner<T> {
   private boolean consumeCoupon() throws InterruptedException {
     T customerId = coupons.poll(promotion.getFinishTime().getTime() - System.currentTimeMillis(), TimeUnit.MILLISECONDS);
     if (customerId != null) {
-      repository.save(new PromotionGrabEvent<>(promotion, customerId.toString()));
+      repository.save(new PromotionGrabbedEvent<>(promotion, customerId.toString()));
     }
     return customerId == null;
   }

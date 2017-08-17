@@ -20,14 +20,14 @@ import io.servicecomb.poc.demo.seckill.Promotion;
 import javax.persistence.Entity;
 
 @Entity
-public class PromotionGrabEvent<T> extends PromotionEvent<T> {
+public class PromotionGrabbedEvent<T> extends PromotionEvent<T> {
 
-  public PromotionGrabEvent() {
+  public PromotionGrabbedEvent() {
     super();
     this.type = PromotionEventType.Grab;
   }
 
-  public PromotionGrabEvent(Promotion info, T customerId) {
+  public PromotionGrabbedEvent(Promotion info, T customerId) {
     this();
     this.type = PromotionEventType.Grab;
     this.couponId = info.getId();

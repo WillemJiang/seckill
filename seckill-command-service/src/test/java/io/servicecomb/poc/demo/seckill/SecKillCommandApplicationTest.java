@@ -63,14 +63,21 @@ public class SecKillCommandApplicationTest {
   public void grabCouponUseStringCustomeIdSuccessfully() throws Exception {
     mockMvc.perform(post("/command/coupons/").contentType(APPLICATION_JSON)
         .content(toJson(new CouponDto("zyy"))))
-        .andExpect(status().isOk()).andExpect(content().string("true"));
+        .andExpect(status().isOk()).andExpect(content().string("Request accepted"));
   }
 
   @Test
   public void grabCouponUseIntCustomeIdSuccessfully() throws Exception {
     mockMvc.perform(post("/command/coupons/").contentType(APPLICATION_JSON)
         .content(toJson(new CouponDto(10001))))
-        .andExpect(status().isOk()).andExpect(content().string("true"));
+        .andExpect(status().isOk()).andExpect(content().string("Request accepted"));
+  }
+
+  @Test
+  public void failsGrabCouponWhenCustomeIdIsInvalid() throws Exception {
+    mockMvc.perform(post("/command/coupons/").contentType(APPLICATION_JSON)
+        .content(toJson(new CouponDto())))
+        .andExpect(status().isBadRequest()).andExpect(content().string(containsString("Invalid coupon")));
   }
 
   private String toJson(CouponDto value) throws JsonProcessingException {
