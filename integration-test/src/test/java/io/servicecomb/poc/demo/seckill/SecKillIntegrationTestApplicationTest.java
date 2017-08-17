@@ -16,9 +16,6 @@
 
 package io.servicecomb.poc.demo.seckill;
 
-import static org.hamcrest.CoreMatchers.containsString;
-import static org.hamcrest.core.Is.is;
-import static org.junit.Assert.assertThat;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
@@ -27,70 +24,61 @@ import static org.springframework.test.web.servlet.setup.MockMvcBuilders.webAppC
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.servicecomb.poc.demo.seckill.dto.CouponDto;
 import io.servicecomb.poc.demo.seckill.dto.PromotionDto;
 import io.servicecomb.poc.demo.seckill.repositories.PromotionRepository;
 import java.util.Date;
-import java.util.UUID;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.context.web.WebAppConfiguration;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.web.context.WebApplicationContext;
 
 @RunWith(SpringRunner.class)
-@SpringBootTest(classes = AdminServiceApplication.class)
+@SpringBootTest(classes = IntegrationTestApplication.class)
 @WebAppConfiguration
-@AutoConfigureMockMvc
-public class SecKillAdminApplicationTest {
+public class SecKillIntegrationTestApplicationTest {
 
   private final ObjectMapper objectMapper = new ObjectMapper();
-
-  @Autowired
   private MockMvc mockMvc;
 
   @Autowired
-  private PromotionRepository repository;
+  private WebApplicationContext webApplicationContext;
+
+  @Autowired
+  private PromotionRepository promotionRepository;
+
+  @Autowired
+  private SecKillRunner secKillRunner;
 
 
   @Before
   public void setup() throws Exception {
-    repository.deleteAll();
+    this.mockMvc = webAppContextSetup(webApplicationContext).build();
+    this.promotionRepository.deleteAll();
+    this.secKillRunner.run();
   }
 
   @Test
-  public void createsPromotionSuccessfully() throws Exception {
-    MvcResult result = mockMvc.perform(post("/admin/promotions/").contentType(APPLICATION_JSON)
-        .content(toJson(new PromotionDto(5, 0.7f, timeFromNow(2000)))))
-        .andExpect(status().isOk()).andReturn();
-
-    UUID.fromString(result.getResponse().getContentAsString());
-
-    assertThat(repository.count(), is(1L));
-  }
-
-  @Test
-  public void failsWhenNumberOfCouponsIsNotValid() throws Exception {
+  public void createPromotionAndGrabSuccessfully() throws Exception {
     mockMvc.perform(post("/admin/promotions/").contentType(APPLICATION_JSON)
-        .content(toJson(new PromotionDto(0, 0.7f, timeFromNow(2000)))))
-        .andExpect(status().isBadRequest())
-        .andExpect(content().string(containsString("Invalid promotion {coupons=")));
+        .content(toJson(new PromotionDto(5, 0.7f, new Date()))))
+        .andExpect(status().isOk());
+
+    Thread.sleep(2000);
+
+    mockMvc.perform(post("/command/coupons/").contentType(APPLICATION_JSON)
+        .content(toJson(new CouponDto("zyy"))))
+        .andExpect(status().isOk()).andExpect(content().string("Request accepted"));
+
+    Thread.sleep(2000);
   }
 
-  @Test
-  public void failsWhenDiscountIsInvalid() throws Exception {
-    mockMvc.perform(post("/admin/promotions/").contentType(APPLICATION_JSON)
-        .content(toJson(new PromotionDto(5, -0.1f, timeFromNow(2000)))))
-        .andExpect(status().isBadRequest())
-        .andExpect(content().string(containsString("Invalid promotion {coupons=")));
-  }
-
-  private String toJson(PromotionDto value) throws JsonProcessingException {
+  private String toJson(Object value) throws JsonProcessingException {
     return objectMapper.writeValueAsString(value);
   }
 

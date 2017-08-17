@@ -16,6 +16,7 @@
 
 package io.servicecomb.poc.demo.seckill;
 
+import io.servicecomb.poc.demo.seckill.repositories.CouponEventRepository;
 import io.servicecomb.poc.demo.seckill.repositories.PromotionRepository;
 import io.servicecomb.poc.demo.seckill.repositories.SpringBasedCouponEventRepository;
 import java.util.Date;
@@ -34,8 +35,8 @@ class SecKillConfig {
   private SecKillRunner secKillRunner = null;
 
   @Bean()
-  SecKillRunner secKillRunner(PromotionRepository repository) {
-    secKillRunner = new SecKillRunner(repository);
+  SecKillRunner secKillRunner(PromotionRepository promotionRepository, CouponEventRepository eventRepository) {
+    secKillRunner = new SecKillRunner(promotionRepository, eventRepository);
     return secKillRunner;
   }
 
@@ -70,7 +71,12 @@ class SecKillConfig {
       SeckillRecoveryCheckResult recoveryInfo,
       BlockingQueue<String> couponQueue) {
 
-    return new SecKillCommandService<>(promotion, couponQueue, claimedCoupons, recoveryInfo.getClaimedCustomers());
+    SecKillCommandService commandService = new SecKillCommandService<>(promotion,
+        couponQueue,
+        claimedCoupons,
+        recoveryInfo.getClaimedCustomers());
+    secKillRunner.setCommandService(commandService);
+    return commandService;
   }
 
   @Bean

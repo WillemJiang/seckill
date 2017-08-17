@@ -73,7 +73,6 @@ public class SecKillAdminRestController {
     return create.getNumberOfCoupons() > 0
         && create.getDiscount() > 0
         && create.getDiscount() <= 1
-        && create.getPublishTime() != null
-        && create.getPublishTime().after(new Date());
+        && create.getPublishTime() != null;
   }
 }

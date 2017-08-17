@@ -16,6 +16,8 @@
 
 package io.servicecomb.poc.demo.seckill;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.servicecomb.poc.demo.seckill.event.PromotionFinishEvent;
 import io.servicecomb.poc.demo.seckill.event.PromotionGrabbedEvent;
 import io.servicecomb.poc.demo.seckill.event.PromotionStartEvent;
@@ -24,15 +26,19 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class SecKillPersistentRunner<T> {
+
+  private static final Logger logger = LoggerFactory.getLogger(SecKillPersistentRunner.class);
 
   private final BlockingQueue<T> coupons;
   private final CouponEventRepository repository;
   private final AtomicInteger claimedCoupons;
   private final Promotion promotion;
-
   private final SeckillRecoveryCheckResult recoveryInfo;
+  private final ObjectMapper jsonMapper;
 
   public SecKillPersistentRunner(Promotion promotion,
       BlockingQueue<T> couponQueue,
@@ -45,6 +51,7 @@ public class SecKillPersistentRunner<T> {
     this.repository = repository;
     this.claimedCoupons = claimedCoupons;
     this.recoveryInfo = recoveryInfo;
+    this.jsonMapper = new ObjectMapper();
   }
 
   public void run() {
@@ -59,6 +66,8 @@ public class SecKillPersistentRunner<T> {
           promotionEnded = consumeCoupon();
         } catch (InterruptedException e) {
           Thread.currentThread().interrupt();
+        } catch (JsonProcessingException e) {
+          e.printStackTrace();
         }
       }
 
@@ -66,10 +75,11 @@ public class SecKillPersistentRunner<T> {
     });
   }
 
-  private boolean consumeCoupon() throws InterruptedException {
+  private boolean consumeCoupon() throws InterruptedException, JsonProcessingException {
     T customerId = coupons.poll(promotion.getFinishTime().getTime() - System.currentTimeMillis(), TimeUnit.MILLISECONDS);
     if (customerId != null) {
       repository.save(new PromotionGrabbedEvent<>(promotion, customerId.toString()));
+      logger.info("Persisten content = {}", this.jsonMapper.writeValueAsString(promotion));
     }
     return customerId == null;
   }
