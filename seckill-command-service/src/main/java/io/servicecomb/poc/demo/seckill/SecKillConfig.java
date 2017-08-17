@@ -16,6 +16,7 @@
 
 package io.servicecomb.poc.demo.seckill;
 
+import io.servicecomb.poc.demo.seckill.repositories.PromotionRepository;
 import io.servicecomb.poc.demo.seckill.repositories.SpringBasedCouponEventRepository;
 import java.util.Date;
 import java.util.concurrent.ArrayBlockingQueue;
@@ -23,16 +24,25 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.atomic.AtomicInteger;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.DependsOn;
 
 @Configuration
 class SecKillConfig {
 
   private final AtomicInteger claimedCoupons = new AtomicInteger();
   private final int remainingCoupons = 10;
+  private SecKillRunner secKillRunner = null;
+
+  @Bean()
+  SecKillRunner secKillRunner(PromotionRepository repository) {
+    secKillRunner = new SecKillRunner(repository);
+    return secKillRunner;
+  }
 
   @Bean
+  @DependsOn("secKillRunner")
   Promotion promotion() {
-    return new Promotion(new Date(), remainingCoupons, 0.7f);
+    return secKillRunner.startUpPromotion(new Promotion(new Date(),remainingCoupons,0.7f));
   }
 
   @Bean
@@ -67,4 +77,6 @@ class SecKillConfig {
   BlockingQueue<String> couponQueue(Promotion promotion) {
     return new ArrayBlockingQueue<>(promotion.getNumberOfCoupons());
   }
+
+
 }
