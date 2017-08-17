@@ -12,6 +12,7 @@
   <modules>
     <module>seckill-event-store</module>
     <module>seckill-command-service</module>
+    <module>seckill-admin-service</module>
     <!--<module>seckill-query-service</module>-->
 
 

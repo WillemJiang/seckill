@@ -14,11 +14,14 @@
  *   limitations under the License.
  */
 
-package io.servicecomb.poc.demo.seckill.web;
+package io.servicecomb.poc.demo.seckill;
 
-import org.springframework.http.HttpStatus;
-import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
 
-@ResponseStatus(value= HttpStatus.PRECONDITION_FAILED,reason = "bad request data")
-public class SecKillException extends RuntimeException {
+@SpringBootApplication
+public class AdminServiceApplication {
+  public static void main(String[] args) {
+    SpringApplication.run(AdminServiceApplication.class, args);
+  }
 }

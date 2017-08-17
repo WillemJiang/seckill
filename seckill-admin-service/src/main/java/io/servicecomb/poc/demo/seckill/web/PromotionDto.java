@@ -18,19 +18,28 @@ package io.servicecomb.poc.demo.seckill.web;
 
 import java.util.Date;
 
-public class PromotionCreate {
+public class PromotionDto {
 
+  private String id;
   private int numberOfCoupons = 0;
   private float discount = 1;
   private Date publishTime;
 
-  public PromotionCreate() {
+  public PromotionDto() {
   }
 
-  public PromotionCreate(int number, float discount, Date publishTime) {
-    this.numberOfCoupons = number;
+  public PromotionDto(int numberOfCoupons, float discount, Date publishTime) {
+    this.numberOfCoupons = numberOfCoupons;
     this.discount = discount;
     this.publishTime = publishTime;
+  }
+
+  public String getId() {
+    return id;
+  }
+
+  public void setId(String id) {
+    this.id = id;
   }
 
   public int getNumberOfCoupons() {
