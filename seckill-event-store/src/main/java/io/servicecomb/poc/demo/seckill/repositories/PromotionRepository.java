@@ -19,5 +19,5 @@ package io.servicecomb.poc.demo.seckill.repositories;
 import io.servicecomb.poc.demo.seckill.Promotion;
 import org.springframework.data.repository.PagingAndSortingRepository;
 
-public interface SpringBasedPromotionRepository extends PagingAndSortingRepository<Promotion, String> {
+public interface PromotionRepository extends PagingAndSortingRepository<Promotion, String> {
 }
