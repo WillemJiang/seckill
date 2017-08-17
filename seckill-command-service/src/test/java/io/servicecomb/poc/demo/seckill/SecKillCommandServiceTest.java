@@ -97,6 +97,14 @@ public class SecKillCommandServiceTest {
     assertThat(coupons, contains(0, 1, 2, 3, 4, 5, 6, 7, 8, 9));
   }
 
+  @Test
+  public void failsDuplicateAddCustomer() {
+    boolean success = commandService.addCouponTo(1);
+    assertThat(success, is(true));
+    success = commandService.addCouponTo(1);
+    assertThat(success, is(false));
+  }
+
   private void addCouponsAsync(int threads, Supplier<Boolean> supplier, Consumer<Boolean> consumer) {
     ExecutorService executorService = Executors.newFixedThreadPool(threads);
 

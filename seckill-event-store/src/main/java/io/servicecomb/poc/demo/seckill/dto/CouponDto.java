@@ -14,24 +14,23 @@
  *   limitations under the License.
  */
 
-package io.servicecomb.poc.demo.seckill.event;
+package io.servicecomb.poc.demo.seckill.dto;
 
-import io.servicecomb.poc.demo.seckill.Promotion;
-import javax.persistence.Entity;
+public class CouponDto<T> {
 
-@Entity
-public class PromotionGrabEvent<T> extends PromotionEvent<T> {
+  private T customerId;
 
-  public PromotionGrabEvent() {
-    super();
-    this.type = PromotionEventType.Grab;
+  public T getCustomerId() {
+    return customerId;
   }
 
-  public PromotionGrabEvent(Promotion info, T customerId) {
-    this();
-    this.type = PromotionEventType.Grab;
-    this.couponId = info.getId();
-    this.discount = info.getDiscount();
+  public void setCustomerId(T customerId) {
+    this.customerId = customerId;
+  }
+
+  public CouponDto() { }
+
+  public CouponDto(T customerId) {
     this.customerId = customerId;
   }
 }

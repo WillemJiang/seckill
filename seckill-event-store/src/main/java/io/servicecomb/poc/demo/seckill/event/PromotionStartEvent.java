@@ -17,7 +17,9 @@
 package io.servicecomb.poc.demo.seckill.event;
 
 import io.servicecomb.poc.demo.seckill.Promotion;
+import javax.persistence.Entity;
 
+@Entity
 public class PromotionStartEvent<T> extends PromotionEvent<T> {
 
   public PromotionStartEvent() {

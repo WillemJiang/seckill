@@ -14,7 +14,7 @@
  *   limitations under the License.
  */
 
-package io.servicecomb.poc.demo.seckill.web;
+package io.servicecomb.poc.demo.seckill.dto;
 
 import java.util.Date;
 
