@@ -20,6 +20,7 @@ import io.servicecomb.poc.demo.seckill.event.PromotionEvent;
 import io.servicecomb.poc.demo.seckill.event.PromotionEventType;
 import io.servicecomb.poc.demo.seckill.repositories.SpringBasedCouponEventRepository;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 public class SecKillRecoveryService {
@@ -31,20 +32,21 @@ public class SecKillRecoveryService {
   }
 
   public SeckillRecoveryCheckResult check(Promotion promotion) {
-    SeckillRecoveryCheckResult result = new SeckillRecoveryCheckResult(promotion.getNumberOfCoupons());
-    PromotionEvent<String> lastStart = this.repository.findTopByCouponIdAndTypeOrderByIdDesc(promotion.getId(),
-        PromotionEventType.Start);
-    if (lastStart != null) {
-      result.setStartEventAvailable(true);
-      List<PromotionEvent<String>> allEvents = this.repository.findByCouponIdAndIdGreaterThan(promotion.getId(), lastStart.getId());
-      if (allEvents.size() != 0) {
-        result.setFinishEventAvailable(allEvents.stream().anyMatch(event -> PromotionEventType.Finish.equals(event.getType())));
-        long count = allEvents.stream().filter(event -> PromotionEventType.Grab.equals(event.getType())).count();
-        result.setRemainingCoupons(promotion.getNumberOfCoupons() - (int) count);
-        result.getClaimedCustomers().addAll(allEvents.stream().filter(event -> !PromotionEventType.Finish.equals(event.getType()))
-            .map(PromotionEvent::getCustomerId).collect(Collectors.toSet()));
-      }
+    List<PromotionEvent<String>> events = this.repository.findByCouponId(promotion.getId());
+    if (!events.isEmpty()) {
+      long count = events.stream()
+          .filter(event -> PromotionEventType.Grab.equals(event.getType()))
+          .count();
+
+      Set<String> claimedCustomers = events.stream()
+          .filter(event -> PromotionEventType.Grab.equals(event.getType()))
+          .map(PromotionEvent::getCustomerId)
+          .collect(Collectors.toSet());
+
+      boolean isFinished = events.stream().anyMatch(event -> PromotionEventType.Finish.equals(event.getType()));
+      return new SeckillRecoveryCheckResult(true, isFinished,
+          promotion.getNumberOfCoupons() - (int) count, claimedCustomers);
     }
-    return result;
+    return new SeckillRecoveryCheckResult(promotion.getNumberOfCoupons());
   }
 }

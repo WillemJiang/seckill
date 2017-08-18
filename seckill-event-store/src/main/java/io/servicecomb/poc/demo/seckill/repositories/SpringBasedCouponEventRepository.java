@@ -21,8 +21,5 @@ import java.util.List;
 import org.springframework.data.repository.PagingAndSortingRepository;
 
 public interface SpringBasedCouponEventRepository extends PagingAndSortingRepository<PromotionEvent<String>, Integer>, CouponEventRepository {
-
-  PromotionEvent<String> findTopByCouponIdAndTypeOrderByIdDesc(String couponId, String type);
-  List<PromotionEvent<String>> findByCouponIdAndIdGreaterThan(String couponId, int id);
-
+  List<PromotionEvent<String>> findByCouponId(String couponId);
 }

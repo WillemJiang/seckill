@@ -48,7 +48,7 @@ public class SecKillPersistentRunner<T> {
   }
 
   public void run() {
-    if (!recoveryInfo.isStartEventAvailable()) {
+    if (!recoveryInfo.isStarted()) {
       repository.save(new PromotionStartEvent<>(promotion));
     }
 

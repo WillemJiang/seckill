@@ -23,78 +23,71 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import io.servicecomb.poc.demo.seckill.event.PromotionEvent;
-import io.servicecomb.poc.demo.seckill.event.PromotionEventType;
 import io.servicecomb.poc.demo.seckill.event.PromotionFinishEvent;
 import io.servicecomb.poc.demo.seckill.event.PromotionGrabbedEvent;
 import io.servicecomb.poc.demo.seckill.event.PromotionStartEvent;
 import io.servicecomb.poc.demo.seckill.repositories.SpringBasedCouponEventRepository;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
+import org.junit.Before;
 import org.junit.Test;
 
 public class SecKillRecoveryServiceTest {
 
-  private final Promotion unstartPromotion = new Promotion(new Date(), 5, 0.7f);
-  private final Promotion needRecoverPromotion = new Promotion(new Date(), 5, 0.7f);
-  private final Promotion finishPromotion = new Promotion(new Date(), 5, 0.7f);
+  private final Promotion unpublishedPromotion = new Promotion(new Date(), 5, 0.7f);
+  private final Promotion runningPromotion = new Promotion(new Date(), 5, 0.7f);
+  private final Promotion endedPromotion = new Promotion(new Date(), 5, 0.7f);
 
-  private SpringBasedCouponEventRepository repository = null;
+  private SpringBasedCouponEventRepository repository = mock(SpringBasedCouponEventRepository.class);
 
-  private SecKillRecoveryService recoveryService = null;
+  private SecKillRecoveryService recoveryService = new SecKillRecoveryService(repository);
 
-  public SecKillRecoveryServiceTest() {
-    repository = mock(SpringBasedCouponEventRepository.class);
+  @Before
+  public void setup() {
+    when(repository.findByCouponId(unpublishedPromotion.getId()))
+        .thenReturn(Collections.emptyList());
 
-    when(repository.findTopByCouponIdAndTypeOrderByIdDesc(unstartPromotion.getId(), PromotionEventType.Start))
-        .thenReturn(null);
-    when(repository.findTopByCouponIdAndTypeOrderByIdDesc(needRecoverPromotion.getId(), PromotionEventType.Start))
-        .thenReturn(new PromotionStartEvent<>(needRecoverPromotion));
-    when(repository.findTopByCouponIdAndTypeOrderByIdDesc(finishPromotion.getId(), PromotionEventType.Start))
-        .thenReturn(new PromotionStartEvent<>(finishPromotion));
+    List<PromotionEvent<String>> runningPromotionEvents = new ArrayList<>();
+    runningPromotionEvents.add(new PromotionStartEvent<>(runningPromotion));
+    runningPromotionEvents.add(new PromotionGrabbedEvent<>(runningPromotion, "zyy"));
+    when(repository.findByCouponId(runningPromotion.getId()))
+        .thenReturn(runningPromotionEvents);
 
-    when(repository.findByCouponIdAndIdGreaterThan(unstartPromotion.getId(), 0))
-        .thenReturn(new ArrayList<>());
-
-    List<PromotionEvent<String>> needRecoverPromotionEvents = new ArrayList<>();
-    needRecoverPromotionEvents.add(new PromotionGrabbedEvent<>(needRecoverPromotion, "zyy"));
-    when(repository.findByCouponIdAndIdGreaterThan(needRecoverPromotion.getId(), 0))
-        .thenReturn(needRecoverPromotionEvents);
-
-    List<PromotionEvent<String>> finishPromotionEvents = new ArrayList<>();
-    for (int i = 0; i < finishPromotion.getNumberOfCoupons(); i++) {
-      finishPromotionEvents.add(new PromotionGrabbedEvent<>(finishPromotion, String.valueOf(i)));
+    List<PromotionEvent<String>> endedPromotionEvents = new ArrayList<>();
+    endedPromotionEvents.add(new PromotionStartEvent<>(endedPromotion));
+    for (int i = 0; i < endedPromotion.getNumberOfCoupons(); i++) {
+      endedPromotionEvents.add(new PromotionGrabbedEvent<>(endedPromotion, String.valueOf(i)));
     }
-    finishPromotionEvents.add(new PromotionFinishEvent<>(finishPromotion));
-    when(repository.findByCouponIdAndIdGreaterThan(finishPromotion.getId(), 0))
-        .thenReturn(finishPromotionEvents);
-
-    recoveryService = new SecKillRecoveryService(repository);
+    endedPromotionEvents.add(new PromotionFinishEvent<>(endedPromotion));
+    when(repository.findByCouponId(endedPromotion.getId()))
+        .thenReturn(endedPromotionEvents);
   }
 
   @Test
   public void unstartPromotionCheck() {
-    SeckillRecoveryCheckResult result = recoveryService.check(unstartPromotion);
-    assertThat(result.isStartEventAvailable(), is(false));
-    assertThat(result.isFinishEventAvailable(), is(false));
-    assertThat(result.remainingCoupons(), is(unstartPromotion.getNumberOfCoupons()));
+    SeckillRecoveryCheckResult result = recoveryService.check(unpublishedPromotion);
+    assertThat(result.isStarted(), is(false));
+    assertThat(result.isFinished(), is(false));
+    assertThat(result.remainingCoupons(), is(unpublishedPromotion.getNumberOfCoupons()));
     assertThat(result.getClaimedCustomers().isEmpty(), is(true));
   }
 
   @Test
   public void recoverPromotionCheck() {
-    SeckillRecoveryCheckResult result = recoveryService.check(needRecoverPromotion);
-    assertThat(result.isStartEventAvailable(), is(true));
-    assertThat(result.isFinishEventAvailable(), is(false));
-    assertThat(result.remainingCoupons(), is(needRecoverPromotion.getNumberOfCoupons() - 1));
+    SeckillRecoveryCheckResult result = recoveryService.check(runningPromotion);
+    assertThat(result.isStarted(), is(true));
+    assertThat(result.isFinished(), is(false));
+    assertThat(result.remainingCoupons(), is(runningPromotion.getNumberOfCoupons() - 1));
     assertThat(result.getClaimedCustomers(), contains("zyy"));
   }
 
   @Test
   public void finishPromotionCheck() {
-    SeckillRecoveryCheckResult result = recoveryService.check(finishPromotion);
-    assertThat(result.isStartEventAvailable(), is(true));
-    assertThat(result.isFinishEventAvailable(), is(true));
+    SeckillRecoveryCheckResult result = recoveryService.check(endedPromotion);
+    assertThat(result.isStarted(), is(true));
+    assertThat(result.isFinished(), is(true));
     assertThat(result.remainingCoupons(), is(0));
     assertThat(result.getClaimedCustomers(), contains("0","1", "2", "3", "4"));
   }

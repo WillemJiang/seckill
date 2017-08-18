@@ -20,12 +20,12 @@ import java.util.HashSet;
 import java.util.Set;
 
 public class SeckillRecoveryCheckResult {
-  private boolean startEventAvailable;
-  private boolean finishEventAvailable;
-  private int remainingCoupons;
-  private Set<String> claimedCustomers;
+  private final boolean startEventAvailable;
+  private final boolean finishEventAvailable;
+  private final int remainingCoupons;
+  private final Set<String> claimedCustomers;
 
-  public boolean isStartEventAvailable() {
+  public boolean isStarted() {
     return startEventAvailable;
   }
 
@@ -33,20 +33,8 @@ public class SeckillRecoveryCheckResult {
     return remainingCoupons;
   }
 
-  public void setStartEventAvailable(boolean startEventAvailable) {
-    this.startEventAvailable = startEventAvailable;
-  }
-
-  public void setRemainingCoupons(int remainingCoupons) {
-    this.remainingCoupons = remainingCoupons;
-  }
-
-  public boolean isFinishEventAvailable() {
+  public boolean isFinished() {
     return finishEventAvailable;
-  }
-
-  public void setFinishEventAvailable(boolean finishEventAvailable) {
-    this.finishEventAvailable = finishEventAvailable;
   }
 
   public Set<String> getClaimedCustomers() {
@@ -58,5 +46,13 @@ public class SeckillRecoveryCheckResult {
     finishEventAvailable = false;
     this.remainingCoupons = remainingCoupons;
     this.claimedCustomers = new HashSet<>();
+  }
+
+  public SeckillRecoveryCheckResult(boolean startEventAvailable, boolean finishEventAvailable, int remainingCoupons,
+      Set<String> claimedCustomers) {
+    this.startEventAvailable = startEventAvailable;
+    this.finishEventAvailable = finishEventAvailable;
+    this.remainingCoupons = remainingCoupons;
+    this.claimedCustomers = claimedCustomers;
   }
 }

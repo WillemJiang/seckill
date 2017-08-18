@@ -110,7 +110,6 @@ public class SecKillPersistentRunnerTest {
     assertThat(isPromotionEnded.get(), is(true));
   }
 
-
   private Date dateOf(ZonedDateTime publishTime) {
     return Date.from(publishTime.toInstant());
   }
