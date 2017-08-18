@@ -32,6 +32,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.context.web.WebAppConfiguration;
@@ -41,13 +42,13 @@ import org.springframework.web.context.WebApplicationContext;
 @RunWith(SpringRunner.class)
 @SpringBootTest(classes = IntegrationTestApplication.class)
 @WebAppConfiguration
+@AutoConfigureMockMvc
 public class SecKillIntegrationTestApplicationTest {
 
   private final ObjectMapper objectMapper = new ObjectMapper();
-  private MockMvc mockMvc;
 
   @Autowired
-  private WebApplicationContext webApplicationContext;
+  private MockMvc mockMvc;
 
   @Autowired
   private PromotionRepository promotionRepository;
@@ -58,7 +59,6 @@ public class SecKillIntegrationTestApplicationTest {
 
   @Before
   public void setup() throws Exception {
-    this.mockMvc = webAppContextSetup(webApplicationContext).build();
     this.promotionRepository.deleteAll();
     this.secKillRunner.run();
   }
@@ -80,9 +80,5 @@ public class SecKillIntegrationTestApplicationTest {
 
   private String toJson(Object value) throws JsonProcessingException {
     return objectMapper.writeValueAsString(value);
-  }
-
-  private Date timeFromNow(int offset) {
-    return new Date(System.currentTimeMillis() + offset);
   }
 }
