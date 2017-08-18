@@ -17,66 +17,53 @@
 package io.servicecomb.poc.demo.seckill;
 
 import static org.hamcrest.CoreMatchers.containsString;
-import static org.hamcrest.core.Is.is;
-import static org.junit.Assert.assertThat;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-import static org.springframework.test.web.servlet.setup.MockMvcBuilders.webAppContextSetup;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.servicecomb.poc.demo.CommandServiceApplication;
 import io.servicecomb.poc.demo.seckill.dto.CouponDto;
-import io.servicecomb.poc.demo.seckill.repositories.PromotionRepository;
-import java.util.Date;
-import java.util.UUID;
-import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.context.web.WebAppConfiguration;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.MvcResult;
-import org.springframework.web.context.WebApplicationContext;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(classes = CommandServiceApplication.class)
 @WebAppConfiguration
+@AutoConfigureMockMvc
 public class SecKillCommandApplicationTest {
 
   private final ObjectMapper objectMapper = new ObjectMapper();
-  private MockMvc mockMvc;
 
   @Autowired
-  private WebApplicationContext webApplicationContext;
-
-  @Before
-  public void setup() throws Exception {
-    this.mockMvc = webAppContextSetup(webApplicationContext).build();
-  }
+  private MockMvc mockMvc;
 
   @Test
   public void grabCouponUseStringCustomeIdSuccessfully() throws Exception {
     mockMvc.perform(post("/command/coupons/").contentType(APPLICATION_JSON)
-        .content(toJson(new CouponDto("zyy"))))
+        .content(toJson(new CouponDto<>("zyy"))))
         .andExpect(status().isOk()).andExpect(content().string("Request accepted"));
   }
 
   @Test
   public void grabCouponUseIntCustomeIdSuccessfully() throws Exception {
     mockMvc.perform(post("/command/coupons/").contentType(APPLICATION_JSON)
-        .content(toJson(new CouponDto(10001))))
+        .content(toJson(new CouponDto<>(10001))))
         .andExpect(status().isOk()).andExpect(content().string("Request accepted"));
   }
 
   @Test
   public void failsGrabCouponWhenCustomeIdIsInvalid() throws Exception {
     mockMvc.perform(post("/command/coupons/").contentType(APPLICATION_JSON)
-        .content(toJson(new CouponDto())))
+        .content(toJson(new CouponDto<>())))
         .andExpect(status().isBadRequest()).andExpect(content().string(containsString("Invalid coupon")));
   }
 

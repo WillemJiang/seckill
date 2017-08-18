@@ -38,14 +38,10 @@ public class SecKillCommandRestController {
   private static final Logger logger = LoggerFactory.getLogger(SecKillCommandRestController.class);
 
   private final SecKillCommandService commandService;
-  private final SecKillPersistentRunner persistentRunner;
 
   @Autowired
-  public SecKillCommandRestController(SecKillCommandService secKillCommandService,
-      SecKillPersistentRunner secKillPersistentRunner) {
+  public SecKillCommandRestController(SecKillCommandService secKillCommandService) {
     this.commandService = secKillCommandService;
-    this.persistentRunner = secKillPersistentRunner;
-    this.persistentRunner.run();
   }
 
 
