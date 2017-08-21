@@ -45,10 +45,6 @@ public class SecKillRunner {
     return commandService;
   }
 
-  protected void setCommandService(SecKillCommandService commandService) {
-    this.commandService = commandService;
-  }
-
   public SecKillRunner(PromotionRepository promotionRepository, CouponEventRepository eventRepository) {
     this.promotionRepository = promotionRepository;
     this.eventRepository = eventRepository;
@@ -71,7 +67,9 @@ public class SecKillRunner {
     return promotion != null ? promotion : defaultIfMissing;
   }
 
-  public void run() {
+  public void run(SecKillCommandService commandService) {
+    this.commandService = commandService;
+
     CompletableFuture.runAsync(() -> {
       boolean promotionLoaded = false;
       while (!Thread.currentThread().isInterrupted() && !promotionLoaded) {

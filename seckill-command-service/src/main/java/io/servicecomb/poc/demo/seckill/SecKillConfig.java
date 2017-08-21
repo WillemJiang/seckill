@@ -57,13 +57,13 @@ class SecKillConfig {
       SeckillRecoveryCheckResult recoveryInfo,
       BlockingQueue<String> couponQueue) {
 
-    SecKillPersistentRunner<String> runner = new SecKillPersistentRunner<>(promotion,
+    SecKillPersistentRunner<String> persistentRunner = new SecKillPersistentRunner<>(promotion,
         couponQueue,
         claimedCoupons,
         repository,
         recoveryInfo);
-    runner.run();
-    return runner;
+    persistentRunner.run();
+    return persistentRunner;
   }
 
   @Bean
@@ -75,7 +75,7 @@ class SecKillConfig {
         couponQueue,
         claimedCoupons,
         recoveryInfo.getClaimedCustomers());
-    secKillRunner.setCommandService(commandService);
+    secKillRunner.run(commandService);
     return commandService;
   }
 
@@ -83,6 +83,4 @@ class SecKillConfig {
   BlockingQueue<String> couponQueue(Promotion promotion) {
     return new ArrayBlockingQueue<>(promotion.getNumberOfCoupons());
   }
-
-
 }
