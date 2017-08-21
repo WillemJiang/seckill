@@ -26,13 +26,17 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.servicecomb.poc.demo.CommandServiceApplication;
 import io.servicecomb.poc.demo.seckill.dto.CouponDto;
-import io.servicecomb.poc.demo.seckill.repositories.PromotionEventRepository;
+import io.servicecomb.poc.demo.seckill.event.PromotionEvent;
+import io.servicecomb.poc.demo.seckill.event.PromotionGrabbedEvent;
+import io.servicecomb.poc.demo.seckill.event.PromotionStartEvent;
+import io.servicecomb.poc.demo.seckill.repositories.PromotionRepository;
+import io.servicecomb.poc.demo.seckill.repositories.SpringBasedPromotionEventRepository;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.atomic.AtomicInteger;
-import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -50,6 +54,7 @@ public class SecKillCommandApplicationTest {
 
   private final ObjectMapper objectMapper = new ObjectMapper();
   private final int remainingCoupons = 10;
+  private final Promotion promotion = new Promotion(new Date(), remainingCoupons, 0.7f);
 
   @Autowired
   private MockMvc mockMvc;
@@ -61,16 +66,22 @@ public class SecKillCommandApplicationTest {
   private List<SecKillCommandService<String>> commandServices;
 
   @Autowired
-  private PromotionEventRepository eventRepository;
+  private SpringBasedPromotionEventRepository eventRepository;
 
-  @Before
-  public void setUp() throws Exception {
+  @Autowired
+  private PromotionRepository promotionRepository;
 
-    SeckillRecoveryCheckResult recoveryInfo = new SeckillRecoveryCheckResult(remainingCoupons);
+  @Autowired
+  private SecKillRecoveryService recoveryService;
 
+  private void setUp() throws Exception {
+    persistentRunners.clear();
+    commandServices.clear();
+
+    SeckillRecoveryCheckResult recoveryInfo = recoveryService.check(promotion);
     AtomicInteger claimedCoupons = new AtomicInteger();
-    BlockingQueue<String> couponQueue = new ArrayBlockingQueue<>(remainingCoupons);
-    Promotion promotion = new Promotion(new Date(), remainingCoupons, 0.7f);
+    BlockingQueue<String> couponQueue = new ArrayBlockingQueue<>(recoveryInfo.remainingCoupons());
+
     SecKillPersistentRunner<String> persistentRunner = new SecKillPersistentRunner<>(promotion,
         couponQueue,
         claimedCoupons,
@@ -79,15 +90,12 @@ public class SecKillCommandApplicationTest {
     persistentRunner.run();
     persistentRunners.add(persistentRunner);
 
-    commandServices.add(new SecKillCommandService<>(promotion,
-        couponQueue,
-        claimedCoupons,
-        recoveryInfo.getClaimedCustomers()));
-
+    commandServices.add(new SecKillCommandService<>(couponQueue, claimedCoupons, recoveryInfo));
   }
 
   @Test
   public void grabCouponUseStringCustomeIdSuccessfully() throws Exception {
+    this.setUp();
     mockMvc.perform(post("/command/coupons/").contentType(APPLICATION_JSON)
         .content(toJson(new CouponDto<>("zyy"))))
         .andExpect(status().isOk()).andExpect(content().string("Request accepted"));
@@ -95,6 +103,7 @@ public class SecKillCommandApplicationTest {
 
   @Test
   public void grabCouponUseIntCustomeIdSuccessfully() throws Exception {
+    this.setUp();
     mockMvc.perform(post("/command/coupons/").contentType(APPLICATION_JSON)
         .content(toJson(new CouponDto<>(10001))))
         .andExpect(status().isOk()).andExpect(content().string("Request accepted"));
@@ -102,10 +111,48 @@ public class SecKillCommandApplicationTest {
 
   @Test
   public void failsGrabCouponWhenCustomeIdIsInvalid() throws Exception {
+    this.setUp();
     mockMvc.perform(post("/command/coupons/").contentType(APPLICATION_JSON)
         .content(toJson(new CouponDto<>())))
         .andExpect(status().isBadRequest()).andExpect(content().string(containsString("Invalid coupon")));
   }
+
+  @Test
+  public void recoveryServiceSuccessfully() throws Exception {
+    //init failed promotion status
+    promotionRepository.save(promotion);
+    List<PromotionEvent> events = new ArrayList<>();
+    events.add(new PromotionStartEvent(promotion));
+    events.add(new PromotionGrabbedEvent<>(promotion, "0"));
+    events.add(new PromotionGrabbedEvent<>(promotion, "2"));
+    events.add(new PromotionGrabbedEvent<>(promotion, "4"));
+    events.add(new PromotionGrabbedEvent<>(promotion, "6"));
+    events.add(new PromotionGrabbedEvent<>(promotion, "8"));
+    eventRepository.save(events);
+
+    this.setUp();
+
+    for (int i = 0; i < 11; i++) {
+      if (i == 10) {
+        mockMvc.perform(post("/command/coupons/").contentType(APPLICATION_JSON)
+            .content(toJson(new CouponDto<>(i))))
+            .andExpect(status().isOk())
+            .andExpect(content().string(containsString("out of stock")));
+      } else if (i % 2 == 0) {
+        mockMvc.perform(post("/command/coupons/").contentType(APPLICATION_JSON)
+            .content(toJson(new CouponDto<>(i))))
+            .andExpect(status().isOk())
+            .andExpect(content().string(containsString("duplicate order")));
+      } else {
+        mockMvc.perform(post("/command/coupons/").contentType(APPLICATION_JSON)
+            .content(toJson(new CouponDto<>(i))))
+            .andExpect(status().isOk());
+      }
+    }
+
+
+  }
+
 
   private String toJson(CouponDto value) throws JsonProcessingException {
     return objectMapper.writeValueAsString(value);

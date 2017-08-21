@@ -48,12 +48,14 @@ public class SecKillCommandRestController {
   public ResponseEntity<String> seckill(
       @RequestBody CouponDto<String> couponDto) {
     if (isValidCoupon(couponDto)) {
-      boolean result = commandServices.get(0).addCouponTo(couponDto.getCustomerId());
+      int result = commandServices.get(0).addCouponTo(couponDto.getCustomerId());
       logger.info("SecKill from = {}, result = {}", couponDto.getCustomerId(), result);
-      if (result) {
+      if (result == 0) {
         return new ResponseEntity<>("Request accepted", HttpStatus.OK);
-      } else {
+      } else if (result == 1) {
         return new ResponseEntity<>("Request rejected due to coupon out of stock", HttpStatus.OK);
+      } else {
+        return new ResponseEntity<>("Request rejected duplicate order", HttpStatus.OK);
       }
     } else {
       return new ResponseEntity<>("Invalid coupon {customerId is null}", BAD_REQUEST);

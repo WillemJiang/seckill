@@ -40,12 +40,10 @@ public class SecKillCommandServiceTest {
   private final int numberOfCoupons = 10;
 
   private final BlockingQueue<Integer> coupons = new ArrayBlockingQueue<>(numberOfCoupons);
-  private final Promotion promotion = new Promotion(new Date(), numberOfCoupons, 0.7f);
   private final AtomicInteger claimedCoupons = new AtomicInteger();
 
   private final SeckillRecoveryCheckResult recovery = new SeckillRecoveryCheckResult(numberOfCoupons);
-  private final SecKillCommandService<Integer> commandService = new SecKillCommandService<>(promotion, coupons,
-      claimedCoupons, recovery.getClaimedCustomers());
+  private final SecKillCommandService<Integer> commandService = new SecKillCommandService<>(coupons, claimedCoupons, recovery);
 
   private final AtomicInteger customerIdGenerator = new AtomicInteger();
   private final AtomicInteger numberOfSuccess = new AtomicInteger();
@@ -53,8 +51,8 @@ public class SecKillCommandServiceTest {
   @Test
   public void putsAllCustomersInQueue() {
     for (int i = 0; i < 5; i++) {
-      boolean success = commandService.addCouponTo(i);
-      assertThat(success, is(true));
+      int success = commandService.addCouponTo(i);
+      assertThat(success, is(0));
     }
     assertThat(coupons, contains(0, 1, 2, 3, 4));
   }
@@ -70,7 +68,7 @@ public class SecKillCommandServiceTest {
         , () -> {
           try {
             barrier.await();
-            return commandService.addCouponTo(customerIdGenerator.incrementAndGet());
+            return commandService.addCouponTo(customerIdGenerator.incrementAndGet()) == 0;
           } catch (InterruptedException | BrokenBarrierException e) {
             throw new RuntimeException(e);
           }
@@ -86,23 +84,23 @@ public class SecKillCommandServiceTest {
   @Test
   public void failsToAddCustomerIfQueueIsFull() {
     for (int i = 0; i < numberOfCoupons; i++) {
-      boolean success = commandService.addCouponTo(i);
-      assertThat(success, is(true));
+      int success = commandService.addCouponTo(i);
+      assertThat(success, is(0));
     }
 
     assertThat(coupons.size(), is(numberOfCoupons));
 
-    boolean success = commandService.addCouponTo(100);
-    assertThat(success, is(false));
+    int success = commandService.addCouponTo(100);
+    assertThat(success, is(1));
     assertThat(coupons, contains(0, 1, 2, 3, 4, 5, 6, 7, 8, 9));
   }
 
   @Test
   public void failsDuplicateAddCustomer() {
-    boolean success = commandService.addCouponTo(1);
-    assertThat(success, is(true));
+    int success = commandService.addCouponTo(1);
+    assertThat(success, is(0));
     success = commandService.addCouponTo(1);
-    assertThat(success, is(false));
+    assertThat(success, is(2));
   }
 
   private void addCouponsAsync(int threads, Supplier<Boolean> supplier, Consumer<Boolean> consumer) {
