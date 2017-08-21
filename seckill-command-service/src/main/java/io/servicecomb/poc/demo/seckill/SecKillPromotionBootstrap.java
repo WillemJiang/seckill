@@ -65,20 +65,22 @@ public class SecKillPromotionBootstrap<T> {
   }
 
   private void startUpPromotion(Promotion promotion) {
-    BlockingQueue<T> couponQueue = new ArrayBlockingQueue<>(promotion.getNumberOfCoupons());
-    AtomicInteger claimedCoupons = new AtomicInteger();
     SeckillRecoveryCheckResult recoveryInfo = new SeckillRecoveryCheckResult(promotion.getNumberOfCoupons());
-    SecKillPersistentRunner<T> persistentRunner = new SecKillPersistentRunner<>(promotion,
-        couponQueue,
-        claimedCoupons,
-        eventRepository,
-        recoveryInfo);
-    persistentRunners.add(persistentRunner);
-    persistentRunner.run();
+    if (!recoveryInfo.isFinished()) {
+      BlockingQueue<T> couponQueue = new ArrayBlockingQueue<>(promotion.getNumberOfCoupons());
+      AtomicInteger claimedCoupons = new AtomicInteger();
+      SecKillPersistentRunner<T> persistentRunner = new SecKillPersistentRunner<>(promotion,
+          couponQueue,
+          claimedCoupons,
+          eventRepository,
+          recoveryInfo);
+      persistentRunners.add(persistentRunner);
+      persistentRunner.run();
 
-    commandServices.add(new SecKillCommandService<>(promotion,
-        couponQueue,
-        claimedCoupons,
-        recoveryInfo.getClaimedCustomers()));
+      commandServices.add(new SecKillCommandService<>(promotion,
+          couponQueue,
+          claimedCoupons,
+          recoveryInfo.getClaimedCustomers()));
+    }
   }
 }
