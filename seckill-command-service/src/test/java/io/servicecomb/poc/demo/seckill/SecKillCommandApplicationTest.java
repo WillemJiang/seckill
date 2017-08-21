@@ -26,6 +26,13 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.servicecomb.poc.demo.CommandServiceApplication;
 import io.servicecomb.poc.demo.seckill.dto.CouponDto;
+import io.servicecomb.poc.demo.seckill.repositories.CouponEventRepository;
+import java.util.Date;
+import java.util.List;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.atomic.AtomicInteger;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -42,9 +49,42 @@ import org.springframework.test.web.servlet.MockMvc;
 public class SecKillCommandApplicationTest {
 
   private final ObjectMapper objectMapper = new ObjectMapper();
+  private final int remainingCoupons = 10;
 
   @Autowired
   private MockMvc mockMvc;
+
+  @Autowired
+  private List<SecKillPersistentRunner<String>> persistentRunners;
+
+  @Autowired
+  private List<SecKillCommandService<String>> commandServices;
+
+  @Autowired
+  private CouponEventRepository couponEventRepository;
+
+  @Before
+  public void setUp() throws Exception {
+
+    SeckillRecoveryCheckResult recoveryInfo = new SeckillRecoveryCheckResult(remainingCoupons);
+
+    AtomicInteger claimedCoupons = new AtomicInteger();
+    BlockingQueue<String> couponQueue = new ArrayBlockingQueue<>(remainingCoupons);
+    Promotion promotion = new Promotion(new Date(), remainingCoupons, 0.7f);
+    SecKillPersistentRunner<String> persistentRunner = new SecKillPersistentRunner<>(promotion,
+        couponQueue,
+        claimedCoupons,
+        couponEventRepository,
+        recoveryInfo);
+    persistentRunner.run();
+    persistentRunners.add(persistentRunner);
+
+    commandServices.add(new SecKillCommandService<>(promotion,
+        couponQueue,
+        claimedCoupons,
+        recoveryInfo.getClaimedCustomers()));
+
+  }
 
   @Test
   public void grabCouponUseStringCustomeIdSuccessfully() throws Exception {

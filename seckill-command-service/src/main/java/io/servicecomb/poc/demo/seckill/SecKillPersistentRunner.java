@@ -16,14 +16,13 @@
 
 package io.servicecomb.poc.demo.seckill;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import io.servicecomb.poc.demo.seckill.event.PromotionFinishEvent;
 import io.servicecomb.poc.demo.seckill.event.PromotionGrabbedEvent;
 import io.servicecomb.poc.demo.seckill.event.PromotionStartEvent;
 import io.servicecomb.poc.demo.seckill.repositories.CouponEventRepository;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import org.slf4j.Logger;
@@ -38,7 +37,6 @@ public class SecKillPersistentRunner<T> {
   private final AtomicInteger claimedCoupons;
   private final Promotion promotion;
   private final SeckillRecoveryCheckResult recoveryInfo;
-  private final ObjectMapper jsonMapper;
 
   public SecKillPersistentRunner(Promotion promotion,
       BlockingQueue<T> couponQueue,
@@ -51,14 +49,15 @@ public class SecKillPersistentRunner<T> {
     this.repository = repository;
     this.claimedCoupons = claimedCoupons;
     this.recoveryInfo = recoveryInfo;
-    this.jsonMapper = new ObjectMapper();
   }
 
   public void run() {
     if (!recoveryInfo.isStarted()) {
+      logger.info("Promotion {} is not started", promotion);
       repository.save(new PromotionStartEvent<>(promotion));
     }
 
+    logger.info("Starting to consume user requests for promotion {}", promotion);
     CompletableFuture.runAsync(() -> {
       boolean promotionEnded = false;
       while (!Thread.currentThread().isInterrupted() && !hasConsumedAllCoupons() && !promotionEnded) {
@@ -66,20 +65,19 @@ public class SecKillPersistentRunner<T> {
           promotionEnded = consumeCoupon();
         } catch (InterruptedException e) {
           Thread.currentThread().interrupt();
-        } catch (JsonProcessingException e) {
-          e.printStackTrace();
         }
       }
 
+      logger.info("Consumed all user requests for promotion {}", promotion);
       repository.save(new PromotionFinishEvent<>(promotion));
-    });
+    }, Executors.newFixedThreadPool(2));
   }
 
-  private boolean consumeCoupon() throws InterruptedException, JsonProcessingException {
+  private boolean consumeCoupon() throws InterruptedException {
     T customerId = coupons.poll(promotion.getFinishTime().getTime() - System.currentTimeMillis(), TimeUnit.MILLISECONDS);
     if (customerId != null) {
       repository.save(new PromotionGrabbedEvent<>(promotion, customerId.toString()));
-      logger.info("Persisten content = {}", this.jsonMapper.writeValueAsString(promotion));
+      logger.info("Assigned promotion coupon {} to customer {}", promotion, customerId);
     }
     return customerId == null;
   }

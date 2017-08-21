@@ -16,11 +16,10 @@
 
 package io.servicecomb.poc.demo.seckill;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import io.servicecomb.poc.demo.seckill.repositories.CouponEventRepository;
 import io.servicecomb.poc.demo.seckill.repositories.PromotionRepository;
 import java.util.Date;
+import java.util.List;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.CompletableFuture;
@@ -34,21 +33,18 @@ public class SecKillRunner {
 
   private final PromotionRepository promotionRepository;
   private final CouponEventRepository eventRepository;
+  private final List<SecKillCommandService<String>> commandServices;
+  private final List<SecKillPersistentRunner<String>> persistentRunners;
   private final AtomicInteger claimedCoupons = new AtomicInteger();
-  private final ObjectMapper jsonMapper;
 
-  private SecKillPersistentRunner persistentRunner;
-  private SecKillCommandService commandService;
-  private BlockingQueue<String> couponQueue;
-
-  public SecKillCommandService getCommandService() {
-    return commandService;
-  }
-
-  public SecKillRunner(PromotionRepository promotionRepository, CouponEventRepository eventRepository) {
+  public SecKillRunner(
+      PromotionRepository promotionRepository,
+      CouponEventRepository eventRepository,
+      List<SecKillCommandService<String>> commandServices, List<SecKillPersistentRunner<String>> persistentRunners) {
     this.promotionRepository = promotionRepository;
     this.eventRepository = eventRepository;
-    this.jsonMapper = new ObjectMapper();
+    this.commandServices = commandServices;
+    this.persistentRunners = persistentRunners;
   }
 
   public Promotion startUpPromotion() {
@@ -61,44 +57,35 @@ public class SecKillRunner {
     return null;
   }
 
-  @Deprecated
-  public Promotion startUpPromotion(Promotion defaultIfMissing) {
-    Promotion promotion = startUpPromotion();
-    return promotion != null ? promotion : defaultIfMissing;
-  }
-
-  public void run(SecKillCommandService commandService) {
-    this.commandService = commandService;
-
+  public void run() {
     CompletableFuture.runAsync(() -> {
       boolean promotionLoaded = false;
       while (!Thread.currentThread().isInterrupted() && !promotionLoaded) {
         try {
           Promotion promotion = startUpPromotion();
           if (promotion != null) {
-            this.couponQueue = new ArrayBlockingQueue<>(promotion.getNumberOfCoupons());
+            BlockingQueue<String> couponQueue = new ArrayBlockingQueue<>(promotion.getNumberOfCoupons());
 
             SeckillRecoveryCheckResult recoveryInfo = new SeckillRecoveryCheckResult(promotion.getNumberOfCoupons());
-            this.persistentRunner = new SecKillPersistentRunner(promotion,
+            SecKillPersistentRunner<String> persistentRunner = new SecKillPersistentRunner<>(promotion,
                 couponQueue,
                 claimedCoupons,
                 eventRepository,
                 recoveryInfo);
-            this.persistentRunner.run();
+            persistentRunners.add(persistentRunner);
+            persistentRunner.run();
 
-            this.commandService = new SecKillCommandService(promotion,
+            commandServices.add(new SecKillCommandService<>(promotion,
                 couponQueue,
                 claimedCoupons,
-                recoveryInfo.getClaimedCustomers());
+                recoveryInfo.getClaimedCustomers()));
             promotionLoaded = true;
 
-            logger.info("Promotion started = {}", this.jsonMapper.writeValueAsString(promotion));
+            logger.info("Promotion started = {}", promotion);
           }
           Thread.sleep(500);
         } catch (InterruptedException e) {
           Thread.currentThread().interrupt();
-        } catch (JsonProcessingException e) {
-          e.printStackTrace();
         }
       }
     });

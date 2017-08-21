@@ -30,7 +30,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import org.junit.Test;
 
@@ -39,12 +38,11 @@ public class SecKillPersistentRunnerTest {
   private final int numberOfCoupons = 5;
 
   private final List<String> customerIds = new LinkedList<>();
-  private AtomicBoolean isPromotionEnded = new AtomicBoolean(false);
+  private volatile boolean isPromotionEnded;
   private final CouponEventRepository repository = couponEvent -> {
     if (PromotionEventType.Finish.equals(couponEvent.getType())) {
-      isPromotionEnded.set(true);
-    } else if (PromotionEventType.Start.equals(couponEvent.getType())) {
-    } else {
+      isPromotionEnded = true;
+    } else if (PromotionEventType.Grab.equals(couponEvent.getType())) {
       customerIds.add(couponEvent.getCustomerId());
     }
     return couponEvent;
@@ -68,7 +66,7 @@ public class SecKillPersistentRunnerTest {
     waitAtMost(2, SECONDS).until(coupons::isEmpty);
     assertThat(customerIds, contains("0", "1", "2", "3", "4"));
 
-    assertThat(isPromotionEnded.get(), is(true));
+    assertThat(isPromotionEnded, is(true));
   }
 
   @Test
@@ -84,7 +82,7 @@ public class SecKillPersistentRunnerTest {
     coupons.offer(String.valueOf(0));
     runner.run();
 
-    waitAtMost(delaySeconds * 2, SECONDS).untilTrue(isPromotionEnded);
+    waitAtMost(delaySeconds * 2, SECONDS).until(() -> isPromotionEnded);
 
     assertThat(customerIds, contains("0"));
   }
@@ -107,7 +105,7 @@ public class SecKillPersistentRunnerTest {
     waitAtMost(2, SECONDS).until(coupons::isEmpty);
     assertThat(customerIds, contains("0", "1", "2", "3", "4"));
 
-    assertThat(isPromotionEnded.get(), is(true));
+    assertThat(isPromotionEnded, is(true));
   }
 
   private Date dateOf(ZonedDateTime publishTime) {
