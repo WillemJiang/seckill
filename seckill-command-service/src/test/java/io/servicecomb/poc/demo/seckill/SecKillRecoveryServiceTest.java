@@ -46,13 +46,13 @@ public class SecKillRecoveryServiceTest {
 
   @Before
   public void setup() {
-    when(repository.findByCouponId(unpublishedPromotion.getId()))
+    when(repository.findByCouponId(unpublishedPromotion.getPromotionId()))
         .thenReturn(Collections.emptyList());
 
     List<PromotionEvent<String>> runningPromotionEvents = new ArrayList<>();
     runningPromotionEvents.add(new PromotionStartEvent<>(runningPromotion));
     runningPromotionEvents.add(new PromotionGrabbedEvent<>(runningPromotion, "zyy"));
-    when(repository.findByCouponId(runningPromotion.getId()))
+    when(repository.findByCouponId(runningPromotion.getPromotionId()))
         .thenReturn(runningPromotionEvents);
 
     List<PromotionEvent<String>> endedPromotionEvents = new ArrayList<>();
@@ -61,7 +61,7 @@ public class SecKillRecoveryServiceTest {
       endedPromotionEvents.add(new PromotionGrabbedEvent<>(endedPromotion, String.valueOf(i)));
     }
     endedPromotionEvents.add(new PromotionFinishEvent<>(endedPromotion));
-    when(repository.findByCouponId(endedPromotion.getId()))
+    when(repository.findByCouponId(endedPromotion.getPromotionId()))
         .thenReturn(endedPromotionEvents);
   }
 

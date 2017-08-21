@@ -32,7 +32,7 @@ public class SecKillRecoveryService {
   }
 
   public SeckillRecoveryCheckResult check(Promotion promotion) {
-    List<PromotionEvent<String>> events = this.repository.findByCouponId(promotion.getId());
+    List<PromotionEvent<String>> events = this.repository.findByCouponId(promotion.getPromotionId());
     if (!events.isEmpty()) {
       long count = events.stream()
           .filter(event -> PromotionEventType.Grab.equals(event.getType()))
