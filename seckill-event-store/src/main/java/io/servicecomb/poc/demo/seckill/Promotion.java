@@ -19,24 +19,33 @@ package io.servicecomb.poc.demo.seckill;
 import java.util.Date;
 import java.util.UUID;
 import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
 import javax.persistence.Id;
 
 @Entity
 public class Promotion {
 
   @Id
-  private String id;
+  @GeneratedValue(strategy = GenerationType.AUTO)
+  private int id;
+
+  private String promotionId;
   private Date publishTime;
   private Date finishTime;
   private int numberOfCoupons;
   private float discount;
 
-  public String getId() {
+  public int getId() {
     return id;
   }
 
-  public void setId(String id) {
-    this.id = id;
+  public String getPromotionId() {
+    return promotionId;
+  }
+
+  public void setPromotionId(String promotionId) {
+    this.promotionId = promotionId;
   }
 
   public Date getPublishTime() {
@@ -79,7 +88,7 @@ public class Promotion {
   }
 
   public Promotion(Date publishTime,Date finishTime, int numberOfCoupons, float discount) {
-    this.id = UUID.randomUUID().toString();
+    this.promotionId = UUID.randomUUID().toString();
     this.publishTime = publishTime;
     this.finishTime = finishTime;
     this.numberOfCoupons = numberOfCoupons;
@@ -89,7 +98,7 @@ public class Promotion {
   @Override
   public String toString() {
     return "Promotion{" +
-        "id='" + id + '\'' +
+        "promotionId='" + promotionId + '\'' +
         ", publishTime=" + publishTime +
         ", finishTime=" + finishTime +
         ", numberOfCoupons=" + numberOfCoupons +

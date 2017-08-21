@@ -18,7 +18,6 @@ package io.servicecomb.poc.demo.seckill;
 
 import io.servicecomb.poc.demo.seckill.repositories.CouponEventRepository;
 import io.servicecomb.poc.demo.seckill.repositories.PromotionRepository;
-import java.util.Date;
 import java.util.List;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
@@ -46,25 +45,15 @@ public class SecKillPromotionBootstrap<T> {
     this.persistentRunners = persistentRunners;
   }
 
-  private Promotion findPromotion() {
-    Iterable<Promotion> promotions = promotionRepository.findAll();
-    for (Promotion promotion : promotions) {
-      if (promotion.getPublishTime().before(new Date())) {
-        return promotion;
-      }
-    }
-    return null;
-  }
-
   public void run() {
     CompletableFuture.runAsync(() -> {
-      boolean promotionLoaded = false;
-      while (!Thread.currentThread().isInterrupted() && !promotionLoaded) {
+      int startedPromotionId = 0;
+      while (!Thread.currentThread().isInterrupted()) {
         try {
-          Promotion promotion = findPromotion();
-          if (promotion != null) {
+          Iterable<Promotion> promotions = promotionRepository.findByIdGreaterThan(startedPromotionId);
+          for (Promotion promotion : promotions) {
             startUpPromotion(promotion);
-            promotionLoaded = true;
+            startedPromotionId = promotion.getId();
             logger.info("Promotion started = {}", promotion);
           }
           Thread.sleep(500);

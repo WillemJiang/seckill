@@ -22,7 +22,6 @@ import static org.springframework.http.HttpStatus.OK;
 import io.servicecomb.poc.demo.seckill.Promotion;
 import io.servicecomb.poc.demo.seckill.dto.PromotionDto;
 import io.servicecomb.poc.demo.seckill.repositories.PromotionRepository;
-import java.util.Date;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -53,12 +52,12 @@ public class SecKillAdminRestController {
       promotionRepository.save(promotion);
       logger.info(
           "Created a new promotion id = {}, number = {}, discount = {}, publishTime = {}",
-          promotion.getId(),
+          promotion.getPromotionId(),
           promotion.getNumberOfCoupons(),
           promotion.getDiscount(),
           promotion.getPublishTime());
 
-      return new ResponseEntity<>(promotion.getId(), OK);
+      return new ResponseEntity<>(promotion.getPromotionId(), OK);
     }
 
     return new ResponseEntity<>(String.format(
