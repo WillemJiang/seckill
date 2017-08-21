@@ -70,7 +70,7 @@ public class SecKillPersistentRunner<T> {
 
       logger.info("Consumed all user requests for promotion {}", promotion);
       repository.save(new PromotionFinishEvent<>(promotion));
-    }, Executors.newFixedThreadPool(2));
+    }, Executors.newFixedThreadPool(4));
   }
 
   private boolean consumeCoupon() throws InterruptedException {

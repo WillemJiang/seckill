@@ -39,7 +39,7 @@ import org.springframework.test.web.servlet.MockMvc;
 @SpringBootTest(classes = IntegrationTestApplication.class)
 @WebAppConfiguration
 @AutoConfigureMockMvc
-public class SecKillIntegrationTestApplicationTest {
+public class SecKillIntegrationTest {
 
   private final ObjectMapper objectMapper = new ObjectMapper();
 
