@@ -18,69 +18,32 @@ package io.servicecomb.poc.demo.seckill;
 
 import io.servicecomb.poc.demo.seckill.repositories.CouponEventRepository;
 import io.servicecomb.poc.demo.seckill.repositories.PromotionRepository;
-import io.servicecomb.poc.demo.seckill.repositories.SpringBasedCouponEventRepository;
-import java.util.Date;
-import java.util.concurrent.ArrayBlockingQueue;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.LinkedList;
+import java.util.List;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.DependsOn;
 
 @Configuration
 class SecKillConfig {
 
-  private final AtomicInteger claimedCoupons = new AtomicInteger();
-  private final int remainingCoupons = 10;
-  private SecKillRunner secKillRunner = null;
+  @Bean
+  List<SecKillCommandService<String>> commandServices() {
+    return new LinkedList<>();
+  }
 
-  @Bean()
-  SecKillRunner secKillRunner(PromotionRepository promotionRepository, CouponEventRepository eventRepository) {
-    secKillRunner = new SecKillRunner(promotionRepository, eventRepository);
+  @Bean
+  List<SecKillPersistentRunner<String>> persistentRunners() {
+    return new LinkedList<>();
+  }
+
+  @Bean
+  SecKillRunner secKillRunner(PromotionRepository promotionRepository,
+      CouponEventRepository eventRepository,
+      List<SecKillCommandService<String>> commandServices,
+      List<SecKillPersistentRunner<String>> persistentRunners) {
+    SecKillRunner secKillRunner = new SecKillRunner(promotionRepository, eventRepository, commandServices,
+        persistentRunners);
+    secKillRunner.run();
     return secKillRunner;
-  }
-
-  @Bean
-  @DependsOn("secKillRunner")
-  Promotion promotion() {
-    return secKillRunner.startUpPromotion(new Promotion(new Date(),remainingCoupons,0.7f));
-  }
-
-  @Bean
-  SeckillRecoveryCheckResult recoveryCheckResult() {
-    return new SeckillRecoveryCheckResult(remainingCoupons);
-  }
-
-  @Bean
-  SecKillPersistentRunner<String> secKillPersistentRunner(Promotion promotion,
-      SpringBasedCouponEventRepository repository,
-      SeckillRecoveryCheckResult recoveryInfo,
-      BlockingQueue<String> couponQueue) {
-
-    SecKillPersistentRunner<String> persistentRunner = new SecKillPersistentRunner<>(promotion,
-        couponQueue,
-        claimedCoupons,
-        repository,
-        recoveryInfo);
-    persistentRunner.run();
-    return persistentRunner;
-  }
-
-  @Bean
-  SecKillCommandService<String> secKillCommandService(Promotion promotion,
-      SeckillRecoveryCheckResult recoveryInfo,
-      BlockingQueue<String> couponQueue) {
-
-    SecKillCommandService commandService = new SecKillCommandService<>(promotion,
-        couponQueue,
-        claimedCoupons,
-        recoveryInfo.getClaimedCustomers());
-    secKillRunner.run(commandService);
-    return commandService;
-  }
-
-  @Bean
-  BlockingQueue<String> couponQueue(Promotion promotion) {
-    return new ArrayBlockingQueue<>(promotion.getNumberOfCoupons());
   }
 }

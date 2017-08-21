@@ -20,15 +20,12 @@ import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-import static org.springframework.test.web.servlet.setup.MockMvcBuilders.webAppContextSetup;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.servicecomb.poc.demo.seckill.dto.CouponDto;
 import io.servicecomb.poc.demo.seckill.dto.PromotionDto;
-import io.servicecomb.poc.demo.seckill.repositories.PromotionRepository;
 import java.util.Date;
-import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -37,7 +34,6 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.context.web.WebAppConfiguration;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.web.context.WebApplicationContext;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(classes = IntegrationTestApplication.class)
@@ -59,10 +55,9 @@ public class SecKillIntegrationTestApplicationTest {
     Thread.sleep(2000);
 
     mockMvc.perform(post("/command/coupons/").contentType(APPLICATION_JSON)
-        .content(toJson(new CouponDto("zyy"))))
+        .content(toJson(new CouponDto<>("zyy"))))
         .andExpect(status().isOk()).andExpect(content().string("Request accepted"));
 
-    Thread.sleep(2000);
   }
 
   private String toJson(Object value) throws JsonProcessingException {

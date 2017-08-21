@@ -85,4 +85,15 @@ public class Promotion {
     this.numberOfCoupons = numberOfCoupons;
     this.discount = discount;
   }
+
+  @Override
+  public String toString() {
+    return "Promotion{" +
+        "id='" + id + '\'' +
+        ", publishTime=" + publishTime +
+        ", finishTime=" + finishTime +
+        ", numberOfCoupons=" + numberOfCoupons +
+        ", discount=" + discount +
+        '}';
+  }
 }
