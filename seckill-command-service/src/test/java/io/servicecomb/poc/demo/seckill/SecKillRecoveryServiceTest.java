@@ -26,7 +26,7 @@ import io.servicecomb.poc.demo.seckill.event.PromotionEvent;
 import io.servicecomb.poc.demo.seckill.event.PromotionFinishEvent;
 import io.servicecomb.poc.demo.seckill.event.PromotionGrabbedEvent;
 import io.servicecomb.poc.demo.seckill.event.PromotionStartEvent;
-import io.servicecomb.poc.demo.seckill.repositories.SpringBasedCouponEventRepository;
+import io.servicecomb.poc.demo.seckill.repositories.SpringBasedPromotionEventRepository;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
@@ -40,7 +40,7 @@ public class SecKillRecoveryServiceTest {
   private final Promotion runningPromotion = new Promotion(new Date(), 5, 0.7f);
   private final Promotion endedPromotion = new Promotion(new Date(), 5, 0.7f);
 
-  private SpringBasedCouponEventRepository repository = mock(SpringBasedCouponEventRepository.class);
+  private SpringBasedPromotionEventRepository repository = mock(SpringBasedPromotionEventRepository.class);
 
   private SecKillRecoveryService recoveryService = new SecKillRecoveryService(repository);
 

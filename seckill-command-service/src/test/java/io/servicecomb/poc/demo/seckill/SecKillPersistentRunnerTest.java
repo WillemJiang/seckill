@@ -23,7 +23,7 @@ import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.assertThat;
 
 import io.servicecomb.poc.demo.seckill.event.PromotionEventType;
-import io.servicecomb.poc.demo.seckill.repositories.CouponEventRepository;
+import io.servicecomb.poc.demo.seckill.repositories.PromotionEventRepository;
 import java.time.ZonedDateTime;
 import java.util.Date;
 import java.util.LinkedList;
@@ -39,7 +39,7 @@ public class SecKillPersistentRunnerTest {
 
   private final List<String> customerIds = new LinkedList<>();
   private volatile boolean isPromotionEnded;
-  private final CouponEventRepository repository = couponEvent -> {
+  private final PromotionEventRepository repository = couponEvent -> {
     if (PromotionEventType.Finish.equals(couponEvent.getType())) {
       isPromotionEnded = true;
     } else if (PromotionEventType.Grab.equals(couponEvent.getType())) {
