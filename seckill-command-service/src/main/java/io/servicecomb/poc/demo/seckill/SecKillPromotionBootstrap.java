@@ -27,27 +27,26 @@ import java.util.concurrent.atomic.AtomicInteger;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class SecKillRunner {
+public class SecKillPromotionBootstrap<T> {
 
-  private static final Logger logger = LoggerFactory.getLogger(SecKillRunner.class);
+  private static final Logger logger = LoggerFactory.getLogger(SecKillPromotionBootstrap.class);
 
   private final PromotionRepository promotionRepository;
   private final CouponEventRepository eventRepository;
-  private final List<SecKillCommandService<String>> commandServices;
-  private final List<SecKillPersistentRunner<String>> persistentRunners;
-  private final AtomicInteger claimedCoupons = new AtomicInteger();
+  private final List<SecKillCommandService<T>> commandServices;
+  private final List<SecKillPersistentRunner<T>> persistentRunners;
 
-  public SecKillRunner(
+  public SecKillPromotionBootstrap(
       PromotionRepository promotionRepository,
       CouponEventRepository eventRepository,
-      List<SecKillCommandService<String>> commandServices, List<SecKillPersistentRunner<String>> persistentRunners) {
+      List<SecKillCommandService<T>> commandServices, List<SecKillPersistentRunner<T>> persistentRunners) {
     this.promotionRepository = promotionRepository;
     this.eventRepository = eventRepository;
     this.commandServices = commandServices;
     this.persistentRunners = persistentRunners;
   }
 
-  public Promotion startUpPromotion() {
+  private Promotion findPromotion() {
     Iterable<Promotion> promotions = promotionRepository.findAll();
     for (Promotion promotion : promotions) {
       if (promotion.getPublishTime().before(new Date())) {
@@ -62,25 +61,10 @@ public class SecKillRunner {
       boolean promotionLoaded = false;
       while (!Thread.currentThread().isInterrupted() && !promotionLoaded) {
         try {
-          Promotion promotion = startUpPromotion();
+          Promotion promotion = findPromotion();
           if (promotion != null) {
-            BlockingQueue<String> couponQueue = new ArrayBlockingQueue<>(promotion.getNumberOfCoupons());
-
-            SeckillRecoveryCheckResult recoveryInfo = new SeckillRecoveryCheckResult(promotion.getNumberOfCoupons());
-            SecKillPersistentRunner<String> persistentRunner = new SecKillPersistentRunner<>(promotion,
-                couponQueue,
-                claimedCoupons,
-                eventRepository,
-                recoveryInfo);
-            persistentRunners.add(persistentRunner);
-            persistentRunner.run();
-
-            commandServices.add(new SecKillCommandService<>(promotion,
-                couponQueue,
-                claimedCoupons,
-                recoveryInfo.getClaimedCustomers()));
+            startUpPromotion(promotion);
             promotionLoaded = true;
-
             logger.info("Promotion started = {}", promotion);
           }
           Thread.sleep(500);
@@ -89,5 +73,23 @@ public class SecKillRunner {
         }
       }
     });
+  }
+
+  private void startUpPromotion(Promotion promotion) {
+    BlockingQueue<T> couponQueue = new ArrayBlockingQueue<>(promotion.getNumberOfCoupons());
+    AtomicInteger claimedCoupons = new AtomicInteger();
+    SeckillRecoveryCheckResult recoveryInfo = new SeckillRecoveryCheckResult(promotion.getNumberOfCoupons());
+    SecKillPersistentRunner<T> persistentRunner = new SecKillPersistentRunner<>(promotion,
+        couponQueue,
+        claimedCoupons,
+        eventRepository,
+        recoveryInfo);
+    persistentRunners.add(persistentRunner);
+    persistentRunner.run();
+
+    commandServices.add(new SecKillCommandService<>(promotion,
+        couponQueue,
+        claimedCoupons,
+        recoveryInfo.getClaimedCustomers()));
   }
 }
