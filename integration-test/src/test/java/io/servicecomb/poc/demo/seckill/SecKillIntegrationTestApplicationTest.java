@@ -50,19 +50,6 @@ public class SecKillIntegrationTestApplicationTest {
   @Autowired
   private MockMvc mockMvc;
 
-  @Autowired
-  private PromotionRepository promotionRepository;
-
-  @Autowired
-  private SecKillRunner secKillRunner;
-
-
-  @Before
-  public void setup() throws Exception {
-    this.promotionRepository.deleteAll();
-    this.secKillRunner.run();
-  }
-
   @Test
   public void createPromotionAndGrabSuccessfully() throws Exception {
     mockMvc.perform(post("/admin/promotions/").contentType(APPLICATION_JSON)
