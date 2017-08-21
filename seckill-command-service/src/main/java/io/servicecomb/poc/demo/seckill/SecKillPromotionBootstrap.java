@@ -35,16 +35,19 @@ public class SecKillRunner {
   private final PromotionEventRepository eventRepository;
   private final List<SecKillCommandService<String>> commandServices;
   private final List<SecKillPersistentRunner<String>> persistentRunners;
+  private final SecKillRecoveryService recoveryService;
   private final AtomicInteger claimedCoupons = new AtomicInteger();
 
   public SecKillRunner(
       PromotionRepository promotionRepository,
       PromotionEventRepository eventRepository,
-      List<SecKillCommandService<String>> commandServices, List<SecKillPersistentRunner<String>> persistentRunners) {
+      List<SecKillCommandService<String>> commandServices, List<SecKillPersistentRunner<String>> persistentRunners,
+      SecKillRecoveryService recoveryService) {
     this.promotionRepository = promotionRepository;
     this.eventRepository = eventRepository;
     this.commandServices = commandServices;
     this.persistentRunners = persistentRunners;
+    this.recoveryService = recoveryService;
   }
 
   public Promotion startUpPromotion() {
@@ -66,7 +69,7 @@ public class SecKillRunner {
           if (promotion != null) {
             BlockingQueue<String> couponQueue = new ArrayBlockingQueue<>(promotion.getNumberOfCoupons());
 
-            SeckillRecoveryCheckResult recoveryInfo = new SeckillRecoveryCheckResult(promotion.getNumberOfCoupons());
+            SeckillRecoveryCheckResult recoveryInfo = recoveryService.check(promotion);
             SecKillPersistentRunner<String> persistentRunner = new SecKillPersistentRunner<>(promotion,
                 couponQueue,
                 claimedCoupons,
@@ -75,10 +78,9 @@ public class SecKillRunner {
             persistentRunners.add(persistentRunner);
             persistentRunner.run();
 
-            commandServices.add(new SecKillCommandService<>(promotion,
-                couponQueue,
+            commandServices.add(new SecKillCommandService<>(couponQueue,
                 claimedCoupons,
-                recoveryInfo.getClaimedCustomers()));
+                recoveryInfo));
             promotionLoaded = true;
 
             logger.info("Promotion started = {}", promotion);

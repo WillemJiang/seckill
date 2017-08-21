@@ -17,34 +17,29 @@
 package io.servicecomb.poc.demo.seckill;
 
 import java.util.Queue;
-import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class SecKillCommandService<T> {
 
   private final Queue<T> couponQueue;
   private final AtomicInteger claimedCoupons;
-  private final Promotion promotion;
-  private final Set<String> claimedCustomers;
+  private final SeckillRecoveryCheckResult recoveryInfo;
 
-
-  public SecKillCommandService(Promotion promotion,
-      Queue<T> couponQueue,
+  public SecKillCommandService(Queue<T> couponQueue,
       AtomicInteger claimedCoupons,
-      Set<String> claimedCustomers) {
-
-    this.promotion = promotion;
+      SeckillRecoveryCheckResult recoveryInfo) {
     this.couponQueue = couponQueue;
     this.claimedCoupons = claimedCoupons;
-    this.claimedCustomers = claimedCustomers;
+    this.recoveryInfo = recoveryInfo;
   }
 
-  public boolean addCouponTo(T customerId) {
-    if (claimedCustomers.add(customerId.toString())) {
-      if (claimedCoupons.getAndIncrement() < promotion.getNumberOfCoupons()) {
-        return couponQueue.offer(customerId);
+  public int addCouponTo(T customerId) {
+    if (recoveryInfo.getClaimedCustomers().add(customerId.toString())) {
+      if (claimedCoupons.getAndIncrement() < recoveryInfo.remainingCoupons()) {
+        return couponQueue.offer(customerId) ? 0 : 1;
       }
+      return 1;
     }
-    return false;
+    return 2;
   }
 }

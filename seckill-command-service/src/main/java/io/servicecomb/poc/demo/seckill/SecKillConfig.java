@@ -18,6 +18,7 @@ package io.servicecomb.poc.demo.seckill;
 
 import io.servicecomb.poc.demo.seckill.repositories.PromotionEventRepository;
 import io.servicecomb.poc.demo.seckill.repositories.PromotionRepository;
+import io.servicecomb.poc.demo.seckill.repositories.SpringBasedPromotionEventRepository;
 import java.util.LinkedList;
 import java.util.List;
 import org.springframework.context.annotation.Bean;
@@ -40,10 +41,16 @@ class SecKillConfig {
   SecKillRunner secKillRunner(PromotionRepository promotionRepository,
       PromotionEventRepository eventRepository,
       List<SecKillCommandService<String>> commandServices,
-      List<SecKillPersistentRunner<String>> persistentRunners) {
+      List<SecKillPersistentRunner<String>> persistentRunners,
+      SecKillRecoveryService recoveryService) {
     SecKillRunner secKillRunner = new SecKillRunner(promotionRepository, eventRepository, commandServices,
-        persistentRunners);
+        persistentRunners, recoveryService);
     secKillRunner.run();
     return secKillRunner;
+  }
+
+  @Bean
+  SecKillRecoveryService secKillRecoveryService(SpringBasedPromotionEventRepository promotionEventRepository) {
+    return new SecKillRecoveryService(promotionEventRepository);
   }
 }
