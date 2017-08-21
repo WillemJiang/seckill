@@ -17,7 +17,10 @@
 package io.servicecomb.poc.demo.seckill.repositories;
 
 import io.servicecomb.poc.demo.seckill.event.PromotionEvent;
+import java.util.List;
+import org.springframework.data.repository.PagingAndSortingRepository;
 
-public interface CouponEventRepository {
-  PromotionEvent<String> save(PromotionEvent<String> item);
+public interface SpringBasedPromotionEventRepository extends PagingAndSortingRepository<PromotionEvent<String>, Integer>,
+    PromotionEventRepository {
+  List<PromotionEvent<String>> findByCouponId(String couponId);
 }

@@ -19,7 +19,7 @@ package io.servicecomb.poc.demo.seckill;
 import io.servicecomb.poc.demo.seckill.event.PromotionFinishEvent;
 import io.servicecomb.poc.demo.seckill.event.PromotionGrabbedEvent;
 import io.servicecomb.poc.demo.seckill.event.PromotionStartEvent;
-import io.servicecomb.poc.demo.seckill.repositories.CouponEventRepository;
+import io.servicecomb.poc.demo.seckill.repositories.PromotionEventRepository;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executors;
@@ -33,7 +33,7 @@ public class SecKillPersistentRunner<T> {
   private static final Logger logger = LoggerFactory.getLogger(SecKillPersistentRunner.class);
 
   private final BlockingQueue<T> coupons;
-  private final CouponEventRepository repository;
+  private final PromotionEventRepository repository;
   private final AtomicInteger claimedCoupons;
   private final Promotion promotion;
   private final SeckillRecoveryCheckResult recoveryInfo;
@@ -41,7 +41,7 @@ public class SecKillPersistentRunner<T> {
   public SecKillPersistentRunner(Promotion promotion,
       BlockingQueue<T> couponQueue,
       AtomicInteger claimedCoupons,
-      CouponEventRepository repository,
+      PromotionEventRepository repository,
       SeckillRecoveryCheckResult recoveryInfo) {
 
     this.promotion = promotion;

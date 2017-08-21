@@ -16,7 +16,7 @@
 
 package io.servicecomb.poc.demo.seckill;
 
-import io.servicecomb.poc.demo.seckill.repositories.CouponEventRepository;
+import io.servicecomb.poc.demo.seckill.repositories.PromotionEventRepository;
 import io.servicecomb.poc.demo.seckill.repositories.PromotionRepository;
 import java.util.LinkedList;
 import java.util.List;
@@ -37,14 +37,13 @@ class SecKillConfig {
   }
 
   @Bean
-  SecKillPromotionBootstrap<String> secKillRunner(PromotionRepository promotionRepository,
-      CouponEventRepository eventRepository,
+  SecKillRunner secKillRunner(PromotionRepository promotionRepository,
+      PromotionEventRepository eventRepository,
       List<SecKillCommandService<String>> commandServices,
       List<SecKillPersistentRunner<String>> persistentRunners) {
-    SecKillPromotionBootstrap<String> promotionBootstrap = new SecKillPromotionBootstrap<>(promotionRepository, eventRepository,
-        commandServices,
+    SecKillRunner secKillRunner = new SecKillRunner(promotionRepository, eventRepository, commandServices,
         persistentRunners);
-    promotionBootstrap.run();
-    return promotionBootstrap;
+    secKillRunner.run();
+    return secKillRunner;
   }
 }

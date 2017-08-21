@@ -18,16 +18,16 @@ package io.servicecomb.poc.demo.seckill;
 
 import io.servicecomb.poc.demo.seckill.event.PromotionEvent;
 import io.servicecomb.poc.demo.seckill.event.PromotionEventType;
-import io.servicecomb.poc.demo.seckill.repositories.SpringBasedCouponEventRepository;
+import io.servicecomb.poc.demo.seckill.repositories.SpringBasedPromotionEventRepository;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 public class SecKillRecoveryService {
 
-  private final SpringBasedCouponEventRepository repository;
+  private final SpringBasedPromotionEventRepository repository;
 
-  public SecKillRecoveryService(SpringBasedCouponEventRepository repository) {
+  public SecKillRecoveryService(SpringBasedPromotionEventRepository repository) {
     this.repository = repository;
   }
 

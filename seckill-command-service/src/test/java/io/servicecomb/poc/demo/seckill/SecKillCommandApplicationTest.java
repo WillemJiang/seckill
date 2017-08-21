@@ -26,7 +26,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.servicecomb.poc.demo.CommandServiceApplication;
 import io.servicecomb.poc.demo.seckill.dto.CouponDto;
-import io.servicecomb.poc.demo.seckill.repositories.CouponEventRepository;
+import io.servicecomb.poc.demo.seckill.repositories.PromotionEventRepository;
 import java.util.Date;
 import java.util.List;
 import java.util.concurrent.ArrayBlockingQueue;
@@ -61,7 +61,7 @@ public class SecKillCommandApplicationTest {
   private List<SecKillCommandService<String>> commandServices;
 
   @Autowired
-  private CouponEventRepository couponEventRepository;
+  private PromotionEventRepository eventRepository;
 
   @Before
   public void setUp() throws Exception {
@@ -74,7 +74,7 @@ public class SecKillCommandApplicationTest {
     SecKillPersistentRunner<String> persistentRunner = new SecKillPersistentRunner<>(promotion,
         couponQueue,
         claimedCoupons,
-        couponEventRepository,
+        eventRepository,
         recoveryInfo);
     persistentRunner.run();
     persistentRunners.add(persistentRunner);
