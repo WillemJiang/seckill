@@ -20,6 +20,7 @@ import io.servicecomb.poc.demo.seckill.repositories.PromotionEventRepository;
 import io.servicecomb.poc.demo.seckill.repositories.PromotionRepository;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.CompletableFuture;
@@ -33,7 +34,7 @@ public class SecKillPromotionBootstrap {
 
   private final PromotionRepository promotionRepository;
   private final PromotionEventRepository eventRepository;
-  private final List<SecKillCommandService<String>> commandServices;
+  private final Map<String, SecKillCommandService<String>> commandServices;
   private final List<SecKillPersistentRunner<String>> persistentRunners;
   private final SecKillRecoveryService recoveryService;
   private final AtomicInteger claimedCoupons = new AtomicInteger();
@@ -41,7 +42,8 @@ public class SecKillPromotionBootstrap {
   public SecKillPromotionBootstrap(
       PromotionRepository promotionRepository,
       PromotionEventRepository eventRepository,
-      List<SecKillCommandService<String>> commandServices, List<SecKillPersistentRunner<String>> persistentRunners,
+      Map<String, SecKillCommandService<String>> commandServices,
+      List<SecKillPersistentRunner<String>> persistentRunners,
       SecKillRecoveryService recoveryService) {
     this.promotionRepository = promotionRepository;
     this.eventRepository = eventRepository;
@@ -78,7 +80,7 @@ public class SecKillPromotionBootstrap {
             persistentRunners.add(persistentRunner);
             persistentRunner.run();
 
-            commandServices.add(new SecKillCommandService<>(couponQueue,
+            commandServices.put(promotion.getPromotionId(), new SecKillCommandService<>(couponQueue,
                 claimedCoupons,
                 recoveryInfo));
             promotionLoaded = true;

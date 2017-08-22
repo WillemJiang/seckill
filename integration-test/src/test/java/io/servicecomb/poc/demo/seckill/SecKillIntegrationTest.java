@@ -34,6 +34,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.context.web.WebAppConfiguration;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.MvcResult;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(classes = IntegrationTestApplication.class)
@@ -48,14 +49,16 @@ public class SecKillIntegrationTest {
 
   @Test
   public void createPromotionAndGrabSuccessfully() throws Exception {
-    mockMvc.perform(post("/admin/promotions/").contentType(APPLICATION_JSON)
+    MvcResult result = mockMvc.perform(post("/admin/promotions/").contentType(APPLICATION_JSON)
         .content(toJson(new PromotionDto(5, 0.7f, new Date()))))
-        .andExpect(status().isOk());
+        .andExpect(status().isOk()).andReturn();
 
     Thread.sleep(2000);
 
+    String promotionId = result.getResponse().getContentAsString();
+
     mockMvc.perform(post("/command/coupons/").contentType(APPLICATION_JSON)
-        .content(toJson(new CouponDto<>("zyy"))))
+        .content(toJson(new CouponDto<>(promotionId, "zyy"))))
         .andExpect(status().isOk()).andExpect(content().string("Request accepted"));
 
   }
