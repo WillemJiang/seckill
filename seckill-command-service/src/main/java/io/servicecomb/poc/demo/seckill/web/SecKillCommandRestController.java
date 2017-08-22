@@ -20,7 +20,7 @@ import static org.springframework.http.HttpStatus.BAD_REQUEST;
 
 import io.servicecomb.poc.demo.seckill.SecKillCommandService;
 import io.servicecomb.poc.demo.seckill.dto.CouponDto;
-import java.util.List;
+import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -37,10 +37,10 @@ public class SecKillCommandRestController {
 
   private static final Logger logger = LoggerFactory.getLogger(SecKillCommandRestController.class);
 
-  private final List<SecKillCommandService<String>> commandServices;
+  private final Map<String, SecKillCommandService<String>> commandServices;
 
   @Autowired
-  public SecKillCommandRestController(List<SecKillCommandService<String>> commandServices) {
+  public SecKillCommandRestController(Map<String, SecKillCommandService<String>> commandServices) {
     this.commandServices = commandServices;
   }
 
@@ -48,14 +48,18 @@ public class SecKillCommandRestController {
   public ResponseEntity<String> seckill(
       @RequestBody CouponDto<String> couponDto) {
     if (isValidCoupon(couponDto)) {
-      int result = commandServices.get(0).addCouponTo(couponDto.getCustomerId());
-      logger.info("SecKill from = {}, result = {}", couponDto.getCustomerId(), result);
-      if (result == 0) {
-        return new ResponseEntity<>("Request accepted", HttpStatus.OK);
-      } else if (result == 1) {
-        return new ResponseEntity<>("Request rejected due to coupon out of stock", HttpStatus.OK);
+      if (commandServices.containsKey(couponDto.getPromotionId())) {
+        int result = commandServices.get(couponDto.getPromotionId()).addCouponTo(couponDto.getCustomerId());
+        logger.info("SecKill from = {}, result = {}", couponDto.getCustomerId(), result);
+        if (result == 0) {
+          return new ResponseEntity<>("Request accepted", HttpStatus.OK);
+        } else if (result == 1) {
+          return new ResponseEntity<>("Request rejected due to coupon out of stock", HttpStatus.OK);
+        } else {
+          return new ResponseEntity<>("Request rejected duplicate order", HttpStatus.OK);
+        }
       } else {
-        return new ResponseEntity<>("Request rejected duplicate order", HttpStatus.OK);
+        return new ResponseEntity<>(String.format("Invalid promotion {promotion=%s}", couponDto.getPromotionId()), BAD_REQUEST);
       }
     } else {
       return new ResponseEntity<>("Invalid coupon {customerId is null}", BAD_REQUEST);

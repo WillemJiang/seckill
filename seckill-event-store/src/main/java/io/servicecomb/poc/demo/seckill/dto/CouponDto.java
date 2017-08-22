@@ -18,7 +18,17 @@ package io.servicecomb.poc.demo.seckill.dto;
 
 public class CouponDto<T> {
 
+  private String promotionId;
+
   private T customerId;
+
+  public String getPromotionId() {
+    return promotionId;
+  }
+
+  public void setPromotionId(String promotionId) {
+    this.promotionId = promotionId;
+  }
 
   public T getCustomerId() {
     return customerId;
@@ -30,7 +40,8 @@ public class CouponDto<T> {
 
   public CouponDto() { }
 
-  public CouponDto(T customerId) {
+  public CouponDto(String promotionId, T customerId) {
+    this.promotionId = promotionId;
     this.customerId = customerId;
   }
 }

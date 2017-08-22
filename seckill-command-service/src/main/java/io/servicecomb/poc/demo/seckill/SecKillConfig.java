@@ -19,8 +19,10 @@ package io.servicecomb.poc.demo.seckill;
 import io.servicecomb.poc.demo.seckill.repositories.PromotionEventRepository;
 import io.servicecomb.poc.demo.seckill.repositories.PromotionRepository;
 import io.servicecomb.poc.demo.seckill.repositories.SpringBasedPromotionEventRepository;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -28,8 +30,8 @@ import org.springframework.context.annotation.Configuration;
 class SecKillConfig {
 
   @Bean
-  List<SecKillCommandService<String>> commandServices() {
-    return new LinkedList<>();
+  Map<String, SecKillCommandService<String>> commandServices() {
+    return new HashMap<>();
   }
 
   @Bean
@@ -40,7 +42,7 @@ class SecKillConfig {
   @Bean
   SecKillPromotionBootstrap secKillPromotionBootstrap(PromotionRepository promotionRepository,
       PromotionEventRepository eventRepository,
-      List<SecKillCommandService<String>> commandServices,
+      Map<String, SecKillCommandService<String>> commandServices,
       List<SecKillPersistentRunner<String>> persistentRunners,
       SecKillRecoveryService recoveryService) {
     SecKillPromotionBootstrap promotionBootstrap = new SecKillPromotionBootstrap(promotionRepository, eventRepository,
