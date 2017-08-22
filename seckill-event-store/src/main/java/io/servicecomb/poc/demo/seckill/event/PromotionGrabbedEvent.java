@@ -30,7 +30,7 @@ public class PromotionGrabbedEvent<T> extends PromotionEvent<T> {
   public PromotionGrabbedEvent(Promotion info, T customerId) {
     this();
     this.type = PromotionEventType.Grab;
-    this.couponId = info.getPromotionId();
+    this.promotionId = info.getPromotionId();
     this.discount = info.getDiscount();
     this.customerId = customerId;
   }

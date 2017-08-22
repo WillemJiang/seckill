@@ -22,5 +22,6 @@ import org.springframework.data.repository.PagingAndSortingRepository;
 
 public interface SpringBasedPromotionEventRepository extends PagingAndSortingRepository<PromotionEvent<String>, Integer>,
     PromotionEventRepository {
-  List<PromotionEvent<String>> findByCouponId(String couponId);
+
+  List<PromotionEvent<String>> findByPromotionId(String promotionId);
 }

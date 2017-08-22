@@ -30,7 +30,7 @@ public class PromotionStartEvent<T> extends PromotionEvent<T> {
   public PromotionStartEvent(Promotion info) {
     this();
     this.type = PromotionEventType.Start;
-    this.couponId = info.getPromotionId();
+    this.promotionId = info.getPromotionId();
     this.discount = info.getDiscount();
   }
 }

@@ -23,11 +23,11 @@ public class SecKillCommandService<T> {
 
   private final Queue<T> couponQueue;
   private final AtomicInteger claimedCoupons;
-  private final SeckillRecoveryCheckResult recoveryInfo;
+  private final SecKillRecoveryCheckResult recoveryInfo;
 
   public SecKillCommandService(Queue<T> couponQueue,
       AtomicInteger claimedCoupons,
-      SeckillRecoveryCheckResult recoveryInfo) {
+      SecKillRecoveryCheckResult recoveryInfo) {
     this.couponQueue = couponQueue;
     this.claimedCoupons = claimedCoupons;
     this.recoveryInfo = recoveryInfo;

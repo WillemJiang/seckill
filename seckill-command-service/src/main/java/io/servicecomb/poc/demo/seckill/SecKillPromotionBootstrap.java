@@ -27,9 +27,9 @@ import java.util.concurrent.atomic.AtomicInteger;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class SecKillRunner {
+public class SecKillPromotionBootstrap {
 
-  private static final Logger logger = LoggerFactory.getLogger(SecKillRunner.class);
+  private static final Logger logger = LoggerFactory.getLogger(SecKillPromotionBootstrap.class);
 
   private final PromotionRepository promotionRepository;
   private final PromotionEventRepository eventRepository;
@@ -38,7 +38,7 @@ public class SecKillRunner {
   private final SecKillRecoveryService recoveryService;
   private final AtomicInteger claimedCoupons = new AtomicInteger();
 
-  public SecKillRunner(
+  public SecKillPromotionBootstrap(
       PromotionRepository promotionRepository,
       PromotionEventRepository eventRepository,
       List<SecKillCommandService<String>> commandServices, List<SecKillPersistentRunner<String>> persistentRunners,
@@ -69,7 +69,7 @@ public class SecKillRunner {
           if (promotion != null) {
             BlockingQueue<String> couponQueue = new ArrayBlockingQueue<>(promotion.getNumberOfCoupons());
 
-            SeckillRecoveryCheckResult recoveryInfo = recoveryService.check(promotion);
+            SecKillRecoveryCheckResult recoveryInfo = recoveryService.check(promotion);
             SecKillPersistentRunner<String> persistentRunner = new SecKillPersistentRunner<>(promotion,
                 couponQueue,
                 claimedCoupons,
