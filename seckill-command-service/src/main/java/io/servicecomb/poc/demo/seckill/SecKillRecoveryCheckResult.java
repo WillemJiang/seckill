@@ -16,8 +16,8 @@
 
 package io.servicecomb.poc.demo.seckill;
 
-import java.util.HashSet;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class SecKillRecoveryCheckResult {
   private final boolean startEventAvailable;
@@ -45,7 +45,7 @@ public class SecKillRecoveryCheckResult {
     startEventAvailable = false;
     finishEventAvailable = false;
     this.remainingCoupons = remainingCoupons;
-    this.claimedCustomers = new HashSet<>();
+    this.claimedCustomers = ConcurrentHashMap.newKeySet();
   }
 
   public SecKillRecoveryCheckResult(boolean startEventAvailable, boolean finishEventAvailable, int remainingCoupons,

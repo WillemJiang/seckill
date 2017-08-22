@@ -33,13 +33,13 @@ public class SecKillCommandService<T> {
     this.recoveryInfo = recoveryInfo;
   }
 
-  public int addCouponTo(T customerId) {
+  public SecKillGrabResult addCouponTo(T customerId) {
     if (recoveryInfo.getClaimedCustomers().add(customerId.toString())) {
       if (claimedCoupons.getAndIncrement() < recoveryInfo.remainingCoupons()) {
-        return couponQueue.offer(customerId) ? 0 : 1;
+        return couponQueue.offer(customerId) ? SecKillGrabResult.Success : SecKillGrabResult.Failed;
       }
-      return 1;
+      return SecKillGrabResult.Failed;
     }
-    return 2;
+    return SecKillGrabResult.Duplicate;
   }
 }

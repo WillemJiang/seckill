@@ -21,6 +21,7 @@ import io.servicecomb.poc.demo.seckill.event.PromotionEventType;
 import io.servicecomb.poc.demo.seckill.repositories.SpringBasedPromotionEventRepository;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 public class SecKillRecoveryService {
@@ -38,10 +39,12 @@ public class SecKillRecoveryService {
           .filter(event -> PromotionEventType.Grab.equals(event.getType()))
           .count();
 
-      Set<String> claimedCustomers = events.stream()
+      Set<String> claimedCustomers = ConcurrentHashMap.newKeySet();
+      claimedCustomers.addAll(events.stream()
           .filter(event -> PromotionEventType.Grab.equals(event.getType()))
           .map(PromotionEvent::getCustomerId)
-          .collect(Collectors.toSet());
+          .collect(Collectors.toSet()));
+
 
       boolean isFinished = events.stream().anyMatch(event -> PromotionEventType.Finish.equals(event.getType()));
       return new SecKillRecoveryCheckResult(true, isFinished,
