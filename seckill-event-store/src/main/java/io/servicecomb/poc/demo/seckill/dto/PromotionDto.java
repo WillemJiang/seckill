@@ -30,10 +30,15 @@ public class PromotionDto {
   }
 
   public PromotionDto(int numberOfCoupons, float discount, Date publishTime) {
-    this(numberOfCoupons, discount, publishTime, new Date(Long.MAX_VALUE));
+    this(null, numberOfCoupons, discount, publishTime);
   }
 
-  public PromotionDto(int numberOfCoupons, float discount, Date publishTime, Date finishTime) {
+  public PromotionDto(String id, int numberOfCoupons, float discount, Date publishTime) {
+    this(id, numberOfCoupons, discount, publishTime, new Date(Long.MAX_VALUE));
+  }
+
+  public PromotionDto(String id, int numberOfCoupons, float discount, Date publishTime, Date finishTime) {
+    this.id = id;
     this.numberOfCoupons = numberOfCoupons;
     this.discount = discount;
     this.publishTime = publishTime;
