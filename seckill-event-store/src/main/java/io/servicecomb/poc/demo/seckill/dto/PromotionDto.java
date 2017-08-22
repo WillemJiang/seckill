@@ -24,14 +24,20 @@ public class PromotionDto {
   private int numberOfCoupons = 0;
   private float discount = 1;
   private Date publishTime;
+  private Date finishTime;
 
   public PromotionDto() {
   }
 
   public PromotionDto(int numberOfCoupons, float discount, Date publishTime) {
+    this(numberOfCoupons, discount, publishTime, new Date(Long.MAX_VALUE));
+  }
+
+  public PromotionDto(int numberOfCoupons, float discount, Date publishTime, Date finishTime) {
     this.numberOfCoupons = numberOfCoupons;
     this.discount = discount;
     this.publishTime = publishTime;
+    this.finishTime = finishTime;
   }
 
   public String getId() {
@@ -64,5 +70,13 @@ public class PromotionDto {
 
   public void setPublishTime(Date publishTime) {
     this.publishTime = publishTime;
+  }
+
+  public Date getFinishTime() {
+    return finishTime;
+  }
+
+  public void setFinishTime(Date finishTime) {
+    this.finishTime = finishTime;
   }
 }
