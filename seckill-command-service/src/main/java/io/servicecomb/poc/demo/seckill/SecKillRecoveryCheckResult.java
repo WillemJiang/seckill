@@ -19,7 +19,7 @@ package io.servicecomb.poc.demo.seckill;
 import java.util.HashSet;
 import java.util.Set;
 
-public class SeckillRecoveryCheckResult {
+public class SecKillRecoveryCheckResult {
   private final boolean startEventAvailable;
   private final boolean finishEventAvailable;
   private final int remainingCoupons;
@@ -41,14 +41,14 @@ public class SeckillRecoveryCheckResult {
     return claimedCustomers;
   }
 
-  public SeckillRecoveryCheckResult(int remainingCoupons) {
+  public SecKillRecoveryCheckResult(int remainingCoupons) {
     startEventAvailable = false;
     finishEventAvailable = false;
     this.remainingCoupons = remainingCoupons;
     this.claimedCustomers = new HashSet<>();
   }
 
-  public SeckillRecoveryCheckResult(boolean startEventAvailable, boolean finishEventAvailable, int remainingCoupons,
+  public SecKillRecoveryCheckResult(boolean startEventAvailable, boolean finishEventAvailable, int remainingCoupons,
       Set<String> claimedCustomers) {
     this.startEventAvailable = startEventAvailable;
     this.finishEventAvailable = finishEventAvailable;

@@ -21,7 +21,6 @@ import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.assertThat;
 
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
@@ -42,7 +41,7 @@ public class SecKillCommandServiceTest {
   private final BlockingQueue<Integer> coupons = new ArrayBlockingQueue<>(numberOfCoupons);
   private final AtomicInteger claimedCoupons = new AtomicInteger();
 
-  private final SeckillRecoveryCheckResult recovery = new SeckillRecoveryCheckResult(numberOfCoupons);
+  private final SecKillRecoveryCheckResult recovery = new SecKillRecoveryCheckResult(numberOfCoupons);
   private final SecKillCommandService<Integer> commandService = new SecKillCommandService<>(coupons, claimedCoupons, recovery);
 
   private final AtomicInteger customerIdGenerator = new AtomicInteger();

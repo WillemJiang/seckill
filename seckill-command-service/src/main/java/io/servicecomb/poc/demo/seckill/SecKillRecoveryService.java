@@ -31,8 +31,8 @@ public class SecKillRecoveryService {
     this.repository = repository;
   }
 
-  public SeckillRecoveryCheckResult check(Promotion promotion) {
-    List<PromotionEvent<String>> events = this.repository.findByCouponId(promotion.getPromotionId());
+  public SecKillRecoveryCheckResult check(Promotion promotion) {
+    List<PromotionEvent<String>> events = this.repository.findByPromotionId(promotion.getPromotionId());
     if (!events.isEmpty()) {
       long count = events.stream()
           .filter(event -> PromotionEventType.Grab.equals(event.getType()))
@@ -44,9 +44,9 @@ public class SecKillRecoveryService {
           .collect(Collectors.toSet());
 
       boolean isFinished = events.stream().anyMatch(event -> PromotionEventType.Finish.equals(event.getType()));
-      return new SeckillRecoveryCheckResult(true, isFinished,
+      return new SecKillRecoveryCheckResult(true, isFinished,
           promotion.getNumberOfCoupons() - (int) count, claimedCustomers);
     }
-    return new SeckillRecoveryCheckResult(promotion.getNumberOfCoupons());
+    return new SecKillRecoveryCheckResult(promotion.getNumberOfCoupons());
   }
 }

@@ -29,7 +29,7 @@ public class PromotionFinishEvent<T> extends PromotionEvent<T> {
 
   public PromotionFinishEvent(Promotion info) {
     this();
-    this.couponId = info.getPromotionId();
+    this.promotionId = info.getPromotionId();
     this.discount = info.getDiscount();
   }
 }

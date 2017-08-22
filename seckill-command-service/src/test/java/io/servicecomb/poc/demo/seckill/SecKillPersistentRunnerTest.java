@@ -54,7 +54,7 @@ public class SecKillPersistentRunnerTest {
   @Test
   public void persistsCouponUsingRepo() {
     Promotion promotion = new Promotion(new Date(), numberOfCoupons, 0.7f);
-    SeckillRecoveryCheckResult recovery = new SeckillRecoveryCheckResult(numberOfCoupons);
+    SecKillRecoveryCheckResult recovery = new SecKillRecoveryCheckResult(numberOfCoupons);
     SecKillPersistentRunner<String> runner = new SecKillPersistentRunner<>(promotion, coupons, claimedCoupons,
         repository, recovery);
 
@@ -75,7 +75,7 @@ public class SecKillPersistentRunnerTest {
     ZonedDateTime publishTime = ZonedDateTime.now();
 
     Promotion promotion = new Promotion(dateOf(publishTime), dateOf(publishTime.plusSeconds(delaySeconds)), numberOfCoupons, 0.7f);
-    SeckillRecoveryCheckResult recovery = new SeckillRecoveryCheckResult(numberOfCoupons);
+    SecKillRecoveryCheckResult recovery = new SecKillRecoveryCheckResult(numberOfCoupons);
     SecKillPersistentRunner<String> runner = new SecKillPersistentRunner<>(promotion, coupons, claimedCoupons,
         repository, recovery);
 
@@ -90,7 +90,7 @@ public class SecKillPersistentRunnerTest {
   @Test
   public void exitsWhenAllCouponsConsumed() throws Exception {
     Promotion promotion = new Promotion(new Date(), numberOfCoupons, 0.7f);
-    SeckillRecoveryCheckResult recovery = new SeckillRecoveryCheckResult(numberOfCoupons);
+    SecKillRecoveryCheckResult recovery = new SecKillRecoveryCheckResult(numberOfCoupons);
     SecKillPersistentRunner<String> runner = new SecKillPersistentRunner<>(promotion, coupons, claimedCoupons,
         repository, recovery);
     runner.run();

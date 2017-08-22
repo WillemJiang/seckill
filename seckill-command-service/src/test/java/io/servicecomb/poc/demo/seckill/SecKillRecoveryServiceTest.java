@@ -46,13 +46,13 @@ public class SecKillRecoveryServiceTest {
 
   @Before
   public void setup() {
-    when(repository.findByCouponId(unpublishedPromotion.getPromotionId()))
+    when(repository.findByPromotionId(unpublishedPromotion.getPromotionId()))
         .thenReturn(Collections.emptyList());
 
     List<PromotionEvent<String>> runningPromotionEvents = new ArrayList<>();
     runningPromotionEvents.add(new PromotionStartEvent<>(runningPromotion));
     runningPromotionEvents.add(new PromotionGrabbedEvent<>(runningPromotion, "zyy"));
-    when(repository.findByCouponId(runningPromotion.getPromotionId()))
+    when(repository.findByPromotionId(runningPromotion.getPromotionId()))
         .thenReturn(runningPromotionEvents);
 
     List<PromotionEvent<String>> endedPromotionEvents = new ArrayList<>();
@@ -61,13 +61,13 @@ public class SecKillRecoveryServiceTest {
       endedPromotionEvents.add(new PromotionGrabbedEvent<>(endedPromotion, String.valueOf(i)));
     }
     endedPromotionEvents.add(new PromotionFinishEvent<>(endedPromotion));
-    when(repository.findByCouponId(endedPromotion.getPromotionId()))
+    when(repository.findByPromotionId(endedPromotion.getPromotionId()))
         .thenReturn(endedPromotionEvents);
   }
 
   @Test
   public void unstartPromotionCheck() {
-    SeckillRecoveryCheckResult result = recoveryService.check(unpublishedPromotion);
+    SecKillRecoveryCheckResult result = recoveryService.check(unpublishedPromotion);
     assertThat(result.isStarted(), is(false));
     assertThat(result.isFinished(), is(false));
     assertThat(result.remainingCoupons(), is(unpublishedPromotion.getNumberOfCoupons()));
@@ -76,7 +76,7 @@ public class SecKillRecoveryServiceTest {
 
   @Test
   public void recoverPromotionCheck() {
-    SeckillRecoveryCheckResult result = recoveryService.check(runningPromotion);
+    SecKillRecoveryCheckResult result = recoveryService.check(runningPromotion);
     assertThat(result.isStarted(), is(true));
     assertThat(result.isFinished(), is(false));
     assertThat(result.remainingCoupons(), is(runningPromotion.getNumberOfCoupons() - 1));
@@ -85,7 +85,7 @@ public class SecKillRecoveryServiceTest {
 
   @Test
   public void finishPromotionCheck() {
-    SeckillRecoveryCheckResult result = recoveryService.check(endedPromotion);
+    SecKillRecoveryCheckResult result = recoveryService.check(endedPromotion);
     assertThat(result.isStarted(), is(true));
     assertThat(result.isFinished(), is(true));
     assertThat(result.remainingCoupons(), is(0));

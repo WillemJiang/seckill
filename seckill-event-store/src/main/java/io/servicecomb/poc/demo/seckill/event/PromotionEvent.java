@@ -30,7 +30,7 @@ public class PromotionEvent<T> {
   @GeneratedValue(strategy = GenerationType.AUTO)
   private int id;
 
-  protected String couponId;
+  protected String promotionId;
 
   //PromotionEventType
   protected String type;
@@ -46,8 +46,8 @@ public class PromotionEvent<T> {
     return id;
   }
 
-  public String getCouponId() {
-    return couponId;
+  public String getPromotionId() {
+    return promotionId;
   }
 
   public String getType() {

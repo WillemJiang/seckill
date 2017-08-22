@@ -36,13 +36,13 @@ public class SecKillPersistentRunner<T> {
   private final PromotionEventRepository repository;
   private final AtomicInteger claimedCoupons;
   private final Promotion promotion;
-  private final SeckillRecoveryCheckResult recoveryInfo;
+  private final SecKillRecoveryCheckResult recoveryInfo;
 
   public SecKillPersistentRunner(Promotion promotion,
       BlockingQueue<T> couponQueue,
       AtomicInteger claimedCoupons,
       PromotionEventRepository repository,
-      SeckillRecoveryCheckResult recoveryInfo) {
+      SecKillRecoveryCheckResult recoveryInfo) {
 
     this.promotion = promotion;
     this.coupons = couponQueue;

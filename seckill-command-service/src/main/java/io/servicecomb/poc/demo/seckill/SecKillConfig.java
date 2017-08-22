@@ -38,15 +38,16 @@ class SecKillConfig {
   }
 
   @Bean
-  SecKillRunner secKillRunner(PromotionRepository promotionRepository,
+  SecKillPromotionBootstrap secKillPromotionBootstrap(PromotionRepository promotionRepository,
       PromotionEventRepository eventRepository,
       List<SecKillCommandService<String>> commandServices,
       List<SecKillPersistentRunner<String>> persistentRunners,
       SecKillRecoveryService recoveryService) {
-    SecKillRunner secKillRunner = new SecKillRunner(promotionRepository, eventRepository, commandServices,
+    SecKillPromotionBootstrap promotionBootstrap = new SecKillPromotionBootstrap(promotionRepository, eventRepository,
+        commandServices,
         persistentRunners, recoveryService);
-    secKillRunner.run();
-    return secKillRunner;
+    promotionBootstrap.run();
+    return promotionBootstrap;
   }
 
   @Bean

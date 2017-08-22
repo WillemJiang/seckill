@@ -78,7 +78,7 @@ public class SecKillCommandApplicationTest {
     persistentRunners.clear();
     commandServices.clear();
 
-    SeckillRecoveryCheckResult recoveryInfo = recoveryService.check(promotion);
+    SecKillRecoveryCheckResult recoveryInfo = recoveryService.check(promotion);
     AtomicInteger claimedCoupons = new AtomicInteger();
     BlockingQueue<String> couponQueue = new ArrayBlockingQueue<>(recoveryInfo.remainingCoupons());
 
