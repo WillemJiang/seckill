@@ -30,7 +30,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -79,13 +78,12 @@ public class SecKillAdminRestController {
         BAD_REQUEST);
   }
 
-  @RequestMapping(method = RequestMethod.POST, value = "/{promotionId}/")
-  public ResponseEntity<String> modify(@PathVariable String promotionId,
-      @RequestBody PromotionDto promotionDto) {
-    if (isValidPromotion(promotionDto)) {
-      Promotion promotion = promotionRepository.findTopByPromotionId(promotionId);
+  @RequestMapping(method = RequestMethod.PUT, value = "/")
+  public ResponseEntity<String> modify(@RequestBody PromotionDto promotionDto) {
+    if (!promotionDto.getId().isEmpty() && isValidPromotion(promotionDto)) {
+      Promotion promotion = promotionRepository.findTopByPromotionId(promotionDto.getId());
       if (promotion != null) {
-        List<PromotionEvent<String>> events = eventRepository.findByPromotionId(promotionId);
+        List<PromotionEvent<String>> events = eventRepository.findByPromotionId(promotionDto.getId());
         if (events.isEmpty() || events.stream().noneMatch(event -> PromotionEventType.Start.equals(event.getType()))) {
           promotion.setDiscount(promotionDto.getDiscount());
           promotion.setNumberOfCoupons(promotionDto.getNumberOfCoupons());
@@ -95,9 +93,11 @@ public class SecKillAdminRestController {
           return new ResponseEntity<>(promotion.getPromotionId(), OK);
         }
         return new ResponseEntity<>(
-            String.format("Promotion had started and changes is rejected {promotionId=%s}", promotionId), BAD_REQUEST);
+            String.format("Promotion had started and changes is rejected {promotionId=%s}", promotionDto.getId()),
+            BAD_REQUEST);
       }
-      return new ResponseEntity<>(String.format("Promotion not exists {promotionId=%s}", promotionId), BAD_REQUEST);
+      return new ResponseEntity<>(String.format("Promotion not exists {promotionId=%s}", promotionDto.getId()),
+          BAD_REQUEST);
     }
 
     return new ResponseEntity<>(String.format(

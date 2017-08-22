@@ -19,6 +19,7 @@ package io.servicecomb.poc.demo.seckill;
 import static org.hamcrest.CoreMatchers.containsString;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -74,8 +75,8 @@ public class SecKillIntegrationTest {
 
     String promotionId = result.getResponse().getContentAsString();
 
-    mockMvc.perform(post("/admin/promotions/" + promotionId + "/").contentType(APPLICATION_JSON)
-        .content(toJson(new PromotionDto(5, 0.7f, new Date()))))
+    mockMvc.perform(put("/admin/promotions/").contentType(APPLICATION_JSON)
+        .content(toJson(new PromotionDto(promotionId, 5, 0.7f, new Date()))))
         .andExpect(status().isBadRequest())
         .andExpect(content().string(containsString("Promotion had started and changes is rejected")));
   }
