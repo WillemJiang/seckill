@@ -16,6 +16,7 @@
 
 package io.servicecomb.poc.demo.seckill;
 
+import static org.hamcrest.CoreMatchers.containsString;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
@@ -61,6 +62,22 @@ public class SecKillIntegrationTest {
         .content(toJson(new CouponDto<>(promotionId, "zyy"))))
         .andExpect(status().isOk()).andExpect(content().string("Request accepted"));
 
+  }
+
+  @Test
+  public void failsUpdatePromotionWhenPromotionHadStarted() throws Exception {
+    MvcResult result = mockMvc.perform(post("/admin/promotions/").contentType(APPLICATION_JSON)
+        .content(toJson(new PromotionDto(5, 0.7f, new Date()))))
+        .andExpect(status().isOk()).andReturn();
+
+    Thread.sleep(2000);
+
+    String promotionId = result.getResponse().getContentAsString();
+
+    mockMvc.perform(post("/admin/promotions/" + promotionId + "/").contentType(APPLICATION_JSON)
+        .content(toJson(new PromotionDto(5, 0.7f, new Date()))))
+        .andExpect(status().isBadRequest())
+        .andExpect(content().string(containsString("Promotion had started and changes is rejected")));
   }
 
   private String toJson(Object value) throws JsonProcessingException {

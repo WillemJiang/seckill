@@ -23,7 +23,6 @@ import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-import static org.springframework.test.web.servlet.setup.MockMvcBuilders.webAppContextSetup;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -41,7 +40,6 @@ import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.context.web.WebAppConfiguration;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
-import org.springframework.web.context.WebApplicationContext;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(classes = AdminServiceApplication.class)
@@ -75,11 +73,11 @@ public class SecKillAdminApplicationTest {
   }
 
   @Test
-  public void failsWhenNumberOfCouponsIsNotValid() throws Exception {
+  public void failsWhenNumberOfCouponsIsInvalid() throws Exception {
     mockMvc.perform(post("/admin/promotions/").contentType(APPLICATION_JSON)
         .content(toJson(new PromotionDto(0, 0.7f, timeFromNow(2000)))))
         .andExpect(status().isBadRequest())
-        .andExpect(content().string(containsString("Invalid promotion {coupons=")));
+        .andExpect(content().string(containsString("Invalid promotion {numberOfCoupons=")));
   }
 
   @Test
@@ -87,7 +85,56 @@ public class SecKillAdminApplicationTest {
     mockMvc.perform(post("/admin/promotions/").contentType(APPLICATION_JSON)
         .content(toJson(new PromotionDto(5, -0.1f, timeFromNow(2000)))))
         .andExpect(status().isBadRequest())
-        .andExpect(content().string(containsString("Invalid promotion {coupons=")));
+        .andExpect(content().string(containsString("Invalid promotion {numberOfCoupons=")));
+  }
+
+  @Test
+  public void updatePromotionSuccessfully() throws Exception {
+    MvcResult result = mockMvc.perform(post("/admin/promotions/").contentType(APPLICATION_JSON)
+        .content(toJson(new PromotionDto(5, 0.7f, timeFromNow(2000)))))
+        .andExpect(status().isOk()).andReturn();
+
+    String promotionId = result.getResponse().getContentAsString();
+    int numberOfCoupons = 10;
+    float discount = 0.8f;
+    Date publishTime = dropMilliseconds(new Date());
+    Date finishTime = dropMilliseconds(new Date(System.currentTimeMillis() + 300000));
+
+    mockMvc.perform(post("/admin/promotions/" + promotionId + "/").contentType(APPLICATION_JSON)
+        .content(toJson(new PromotionDto(numberOfCoupons, discount, publishTime, finishTime))))
+        .andExpect(status().isOk());
+
+    Promotion promotion = repository.findTopByPromotionId(promotionId);
+    assertThat(promotion.getDiscount(), is(discount));
+    assertThat(promotion.getNumberOfCoupons(), is(numberOfCoupons));
+    assertThat(promotion.getPublishTime().getTime(), is(publishTime.getTime()));
+    assertThat(promotion.getFinishTime().getTime(), is(finishTime.getTime()));
+  }
+
+  @Test
+  public void failsUpdatePromotionWhenPromotionDoesNotExist() throws Exception {
+    mockMvc.perform(post("/admin/promotions/" + UUID.randomUUID().toString() + "/").contentType(APPLICATION_JSON)
+        .content(toJson(new PromotionDto(5, 0.7f, timeFromNow(2000)))))
+        .andExpect(status().isBadRequest())
+        .andExpect(content().string(containsString("Promotion not exists")));
+  }
+
+  @Test
+  public void failsUpdatePromotionWhenDtoIsInvalid() throws Exception {
+    MvcResult result = mockMvc.perform(post("/admin/promotions/").contentType(APPLICATION_JSON)
+        .content(toJson(new PromotionDto(5, 0.7f, timeFromNow(2000)))))
+        .andExpect(status().isOk()).andReturn();
+
+    String promotionId = result.getResponse().getContentAsString();
+    int numberOfCoupons = 0;
+    float discount = -0.8f;
+    Date publishTime = dropMilliseconds(new Date());
+    Date finishTime = dropMilliseconds(new Date(System.currentTimeMillis() + 300000));
+
+    mockMvc.perform(post("/admin/promotions/" + promotionId + "/").contentType(APPLICATION_JSON)
+        .content(toJson(new PromotionDto(numberOfCoupons, discount, publishTime, finishTime))))
+        .andExpect(status().isBadRequest())
+        .andExpect(content().string(containsString("Invalid promotion {numberOfCoupons=")));
   }
 
   private String toJson(PromotionDto value) throws JsonProcessingException {
@@ -96,5 +143,9 @@ public class SecKillAdminApplicationTest {
 
   private Date timeFromNow(int offset) {
     return new Date(System.currentTimeMillis() + offset);
+  }
+
+  private Date dropMilliseconds(Date date) {
+    return new Date((date.getTime() / 1000) * 1000);
   }
 }
