@@ -66,6 +66,29 @@ public class SecKillIntegrationTest {
   }
 
   @Test
+  public void createANdPublishMutiPromotionAndGrabSuccessfully() throws Exception {
+    MvcResult result = mockMvc.perform(post("/admin/promotions/").contentType(APPLICATION_JSON)
+        .content(toJson(new PromotionDto(5, 0.7f, new Date()))))
+        .andExpect(status().isOk()).andReturn();
+    String promotionId1 = result.getResponse().getContentAsString();
+
+    result = mockMvc.perform(post("/admin/promotions/").contentType(APPLICATION_JSON)
+        .content(toJson(new PromotionDto(10, 0.8f, new Date()))))
+        .andExpect(status().isOk()).andReturn();
+    String promotionId2 = result.getResponse().getContentAsString();
+
+    Thread.sleep(2000);
+
+    mockMvc.perform(post("/command/coupons/").contentType(APPLICATION_JSON)
+        .content(toJson(new CouponDto<>(promotionId1, "zyy"))))
+        .andExpect(status().isOk()).andExpect(content().string("Request accepted"));
+
+    mockMvc.perform(post("/command/coupons/").contentType(APPLICATION_JSON)
+        .content(toJson(new CouponDto<>(promotionId2, "zyy"))))
+        .andExpect(status().isOk()).andExpect(content().string("Request accepted"));
+  }
+
+  @Test
   public void failsUpdatePromotionWhenPromotionHadStarted() throws Exception {
     MvcResult result = mockMvc.perform(post("/admin/promotions/").contentType(APPLICATION_JSON)
         .content(toJson(new PromotionDto(5, 0.7f, new Date()))))
