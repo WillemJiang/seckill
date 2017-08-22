@@ -45,7 +45,8 @@ class SecKillConfig {
       Map<String, SecKillCommandService<String>> commandServices,
       List<SecKillPersistentRunner<String>> persistentRunners,
       SecKillRecoveryService recoveryService) {
-    SecKillPromotionBootstrap promotionBootstrap = new SecKillPromotionBootstrap(promotionRepository, eventRepository,
+    SecKillPromotionBootstrap<String> promotionBootstrap = new SecKillPromotionBootstrap<>(promotionRepository,
+        eventRepository,
         commandServices,
         persistentRunners, recoveryService);
     promotionBootstrap.run();

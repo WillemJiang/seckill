@@ -142,12 +142,12 @@ public class SecKillCommandApplicationTest {
       if (i == 10) {
         mockMvc.perform(post("/command/coupons/").contentType(APPLICATION_JSON)
             .content(toJson(new CouponDto<>(promotion.getPromotionId(), i))))
-            .andExpect(status().isOk())
+            .andExpect(status().is(429))
             .andExpect(content().string(containsString("out of stock")));
       } else if (i % 2 == 0) {
         mockMvc.perform(post("/command/coupons/").contentType(APPLICATION_JSON)
             .content(toJson(new CouponDto<>(promotion.getPromotionId(), i))))
-            .andExpect(status().isOk())
+            .andExpect(status().is(429))
             .andExpect(content().string(containsString("duplicate order")));
       } else {
         mockMvc.perform(post("/command/coupons/").contentType(APPLICATION_JSON)

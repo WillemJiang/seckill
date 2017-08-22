@@ -50,8 +50,8 @@ public class SecKillCommandServiceTest {
   @Test
   public void putsAllCustomersInQueue() {
     for (int i = 0; i < 5; i++) {
-      int success = commandService.addCouponTo(i);
-      assertThat(success, is(0));
+      SecKillGrabResult success = commandService.addCouponTo(i);
+      assertThat(success, is(SecKillGrabResult.Success));
     }
     assertThat(coupons, contains(0, 1, 2, 3, 4));
   }
@@ -67,7 +67,7 @@ public class SecKillCommandServiceTest {
         , () -> {
           try {
             barrier.await();
-            return commandService.addCouponTo(customerIdGenerator.incrementAndGet()) == 0;
+            return commandService.addCouponTo(customerIdGenerator.incrementAndGet()) == SecKillGrabResult.Success;
           } catch (InterruptedException | BrokenBarrierException e) {
             throw new RuntimeException(e);
           }
@@ -83,23 +83,23 @@ public class SecKillCommandServiceTest {
   @Test
   public void failsToAddCustomerIfQueueIsFull() {
     for (int i = 0; i < numberOfCoupons; i++) {
-      int success = commandService.addCouponTo(i);
-      assertThat(success, is(0));
+      SecKillGrabResult success = commandService.addCouponTo(i);
+      assertThat(success, is(SecKillGrabResult.Success));
     }
 
     assertThat(coupons.size(), is(numberOfCoupons));
 
-    int success = commandService.addCouponTo(100);
-    assertThat(success, is(1));
+    SecKillGrabResult success = commandService.addCouponTo(100);
+    assertThat(success, is(SecKillGrabResult.Failed));
     assertThat(coupons, contains(0, 1, 2, 3, 4, 5, 6, 7, 8, 9));
   }
 
   @Test
   public void failsDuplicateAddCustomer() {
-    int success = commandService.addCouponTo(1);
-    assertThat(success, is(0));
+    SecKillGrabResult success = commandService.addCouponTo(1);
+    assertThat(success, is(SecKillGrabResult.Success));
     success = commandService.addCouponTo(1);
-    assertThat(success, is(2));
+    assertThat(success, is(SecKillGrabResult.Duplicate));
   }
 
   private void addCouponsAsync(int threads, Supplier<Boolean> supplier, Consumer<Boolean> consumer) {

@@ -19,6 +19,7 @@ package io.servicecomb.poc.demo.seckill.web;
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
 
 import io.servicecomb.poc.demo.seckill.SecKillCommandService;
+import io.servicecomb.poc.demo.seckill.SecKillGrabResult;
 import io.servicecomb.poc.demo.seckill.dto.CouponDto;
 import java.util.Map;
 import org.slf4j.Logger;
@@ -49,14 +50,15 @@ public class SecKillCommandRestController {
       @RequestBody CouponDto<String> couponDto) {
     if (isValidCoupon(couponDto)) {
       if (commandServices.containsKey(couponDto.getPromotionId())) {
-        int result = commandServices.get(couponDto.getPromotionId()).addCouponTo(couponDto.getCustomerId());
+        SecKillGrabResult result = commandServices.get(couponDto.getPromotionId())
+            .addCouponTo(couponDto.getCustomerId());
         logger.info("SecKill from = {}, result = {}", couponDto.getCustomerId(), result);
-        if (result == 0) {
+        if (result == SecKillGrabResult.Success) {
           return new ResponseEntity<>("Request accepted", HttpStatus.OK);
-        } else if (result == 1) {
-          return new ResponseEntity<>("Request rejected due to coupon out of stock", HttpStatus.OK);
+        } else if (result == SecKillGrabResult.Failed) {
+          return new ResponseEntity<>("Request rejected due to coupon out of stock", HttpStatus.TOO_MANY_REQUESTS);
         } else {
-          return new ResponseEntity<>("Request rejected duplicate order", HttpStatus.OK);
+          return new ResponseEntity<>("Request rejected duplicate order", HttpStatus.TOO_MANY_REQUESTS);
         }
       } else {
         return new ResponseEntity<>(String.format("Invalid promotion {promotion=%s}", couponDto.getPromotionId()), BAD_REQUEST);
