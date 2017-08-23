@@ -18,6 +18,7 @@ package io.servicecomb.poc.demo.seckill;
 
 import io.servicecomb.poc.demo.seckill.repositories.PromotionEventRepository;
 import io.servicecomb.poc.demo.seckill.repositories.PromotionRepository;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ArrayBlockingQueue;
@@ -36,7 +37,6 @@ public class SecKillPromotionBootstrap<T> {
   private final Map<String, SecKillCommandService<T>> commandServices;
   private final List<SecKillPersistentRunner<T>> persistentRunners;
   private final SecKillRecoveryService recoveryService;
-  private final AtomicInteger claimedCoupons = new AtomicInteger();
 
   public SecKillPromotionBootstrap(
       PromotionRepository promotionRepository,
@@ -53,15 +53,30 @@ public class SecKillPromotionBootstrap<T> {
 
   public void run() {
     CompletableFuture.runAsync(() -> {
-      int startedPromotionId = 0;
+      int loadedPromotionId = 0;
+      Map<String, Promotion> waitingPromotions = new HashMap<>();
       while (!Thread.currentThread().isInterrupted()) {
         try {
-          Iterable<Promotion> promotions = promotionRepository.findByIdGreaterThan(startedPromotionId);
+          Iterable<Promotion> promotions = promotionRepository.findByIdGreaterThan(loadedPromotionId);
           for (Promotion promotion : promotions) {
-            startUpPromotion(promotion);
-            startedPromotionId = promotion.getId();
-            logger.info("Promotion started = {}", promotion);
+            if (promotion.getPublishTime().getTime() <= System.currentTimeMillis()) {
+              startUpPromotion(promotion);
+              logger.info("Promotion started = {}", promotion);
+            } else {
+              waitingPromotions.put(promotion.getPromotionId(), promotion);
+            }
+            loadedPromotionId = promotion.getId();
           }
+
+          for (String promotionId : waitingPromotions.keySet()) {
+            Promotion promotion = waitingPromotions.get(promotionId);
+            if (promotion.getPublishTime().getTime() <= System.currentTimeMillis()) {
+              startUpPromotion(promotion);
+              logger.info("Promotion started = {}", promotion);
+              waitingPromotions.remove(promotionId);
+            }
+          }
+
           Thread.sleep(500);
         } catch (InterruptedException e) {
           Thread.currentThread().interrupt();
@@ -71,6 +86,7 @@ public class SecKillPromotionBootstrap<T> {
   }
 
   private void startUpPromotion(Promotion promotion) {
+    AtomicInteger claimedCoupons = new AtomicInteger();
     BlockingQueue<T> couponQueue = new ArrayBlockingQueue<>(promotion.getNumberOfCoupons());
     SecKillRecoveryCheckResult recoveryInfo = recoveryService.check(promotion);
     SecKillPersistentRunner<T> persistentRunner = new SecKillPersistentRunner<>(promotion,
