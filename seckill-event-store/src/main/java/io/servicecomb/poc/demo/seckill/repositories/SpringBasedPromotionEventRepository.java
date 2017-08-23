@@ -24,4 +24,7 @@ public interface SpringBasedPromotionEventRepository extends PagingAndSortingRep
     PromotionEventRepository {
 
   List<PromotionEvent<String>> findByPromotionId(String promotionId);
+  PromotionEvent<String> findTopByPromotionIdAndTypeOrderByIdDesc(String couponId, String type);
+  List<PromotionEvent> findByCustomerId(String customerId);
+  List<PromotionEvent> findByTypeOrderByTimeDesc(String eventType);
 }
