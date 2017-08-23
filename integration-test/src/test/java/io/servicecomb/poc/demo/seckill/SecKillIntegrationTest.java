@@ -66,7 +66,7 @@ public class SecKillIntegrationTest {
   }
 
   @Test
-  public void createANdPublishMutiPromotionAndGrabSuccessfully() throws Exception {
+  public void createAndPublishMutiPromotionAndGrabSuccessfully() throws Exception {
     MvcResult result = mockMvc.perform(post("/admin/promotions/").contentType(APPLICATION_JSON)
         .content(toJson(new PromotionDto(5, 0.7f, new Date()))))
         .andExpect(status().isOk()).andReturn();
@@ -98,8 +98,8 @@ public class SecKillIntegrationTest {
 
     String promotionId = result.getResponse().getContentAsString();
 
-    mockMvc.perform(put("/admin/promotions/").contentType(APPLICATION_JSON)
-        .content(toJson(new PromotionDto(promotionId, 5, 0.7f, new Date()))))
+    mockMvc.perform(put("/admin/promotions/" + promotionId + "/").contentType(APPLICATION_JSON)
+        .content(toJson(new PromotionDto(5, 0.7f, new Date()))))
         .andExpect(status().isBadRequest())
         .andExpect(content().string(containsString("Promotion had started and changes is rejected")));
   }
