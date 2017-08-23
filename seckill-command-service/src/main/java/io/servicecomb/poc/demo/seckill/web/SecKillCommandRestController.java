@@ -64,11 +64,11 @@ public class SecKillCommandRestController {
         return new ResponseEntity<>(String.format("Invalid promotion {promotion=%s}", couponDto.getPromotionId()), BAD_REQUEST);
       }
     } else {
-      return new ResponseEntity<>("Invalid coupon {customerId is null}", BAD_REQUEST);
+      return new ResponseEntity<>("Invalid coupon {promotionId is null or customerId is null}", BAD_REQUEST);
     }
   }
 
   private boolean isValidCoupon(@RequestBody CouponDto couponDto) {
-    return couponDto.getCustomerId() != null;
+    return couponDto.getCustomerId() != null && couponDto.getPromotionId() != null;
   }
 }
