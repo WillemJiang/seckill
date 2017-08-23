@@ -26,15 +26,8 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.servicecomb.poc.demo.CommandServiceApplication;
 import io.servicecomb.poc.demo.seckill.dto.CouponDto;
-import io.servicecomb.poc.demo.seckill.repositories.SpringBasedPromotionEventRepository;
+import io.servicecomb.poc.demo.seckill.repositories.PromotionRepository;
 import java.util.Date;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
-import java.util.concurrent.ArrayBlockingQueue;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.atomic.AtomicInteger;
-import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -48,69 +41,38 @@ import org.springframework.test.web.servlet.MockMvc;
 @SpringBootTest(classes = CommandServiceApplication.class)
 @WebAppConfiguration
 @AutoConfigureMockMvc
-public class SecKillCommandApplicationTest {
+public class SecKillPromotionBootstrapTest {
 
   private final ObjectMapper objectMapper = new ObjectMapper();
-  private final Promotion promotion = new Promotion(new Date(), 10, 0.7f);
 
   @Autowired
   private MockMvc mockMvc;
 
   @Autowired
-  private List<SecKillPersistentRunner<String>> persistentRunners;
-
-  @Autowired
-  private Map<String, SecKillCommandService<String>> commandServices;
-
-  @Autowired
-  private SpringBasedPromotionEventRepository eventRepository;
-
-  @Autowired
-  private SecKillRecoveryService recoveryService;
-
-  @Before
-  public void setUp() throws Exception {
-    this.persistentRunners.clear();
-    this.commandServices.clear();
-
-    SecKillRecoveryCheckResult recoveryInfo = recoveryService.check(promotion);
-    AtomicInteger claimedCoupons = new AtomicInteger();
-    BlockingQueue<String> couponQueue = new ArrayBlockingQueue<>(recoveryInfo.remainingCoupons());
-
-    SecKillPersistentRunner<String> persistentRunner = new SecKillPersistentRunner<>(promotion,
-        couponQueue,
-        claimedCoupons,
-        eventRepository,
-        recoveryInfo);
-    persistentRunner.run();
-    persistentRunners.add(persistentRunner);
-
-    commandServices
-        .put(promotion.getPromotionId(), new SecKillCommandService<>(couponQueue, claimedCoupons, recoveryInfo));
-  }
+  private PromotionRepository promotionRepository;
 
   @Test
-  public void grabCouponUseStringCustomerIdSuccessfully() throws Exception {
-    mockMvc.perform(post("/command/coupons/").contentType(APPLICATION_JSON)
-        .content(toJson(new CouponDto<>(promotion.getPromotionId(), "zyy"))))
-        .andExpect(status().isOk()).andExpect(content().string("Request accepted"));
-  }
+  public void testPromotionStartedWhenPublishTimeReach() throws Exception {
+    int waitTime = 3000;
 
-  @Test
-  public void grabCouponUseIntCustomerIdSuccessfully() throws Exception {
-    mockMvc.perform(post("/command/coupons/").contentType(APPLICATION_JSON)
-        .content(toJson(new CouponDto<>(promotion.getPromotionId(), 10001))))
-        .andExpect(status().isOk()).andExpect(content().string("Request accepted"));
-  }
+    Promotion delayPromotion = new Promotion(new Date(System.currentTimeMillis() + waitTime), 5, 0.8f);
+    promotionRepository.save(delayPromotion);
 
-  @Test
-  public void failsGrabCouponWhenCustomerIdIsInvalid() throws Exception {
     mockMvc.perform(post("/command/coupons/").contentType(APPLICATION_JSON)
-        .content(toJson(new CouponDto<>(UUID.randomUUID().toString(), "zyy"))))
+        .content(toJson(new CouponDto<>(delayPromotion.getPromotionId(), "zyy"))))
         .andExpect(status().isBadRequest()).andExpect(content().string(containsString("Invalid promotion")));
+
+    Thread.sleep(waitTime + 1000);
+
+    mockMvc.perform(post("/command/coupons/").contentType(APPLICATION_JSON)
+        .content(toJson(new CouponDto<>(delayPromotion.getPromotionId(), "zyy"))))
+        .andExpect(status().isOk()).andExpect(content().string("Request accepted"));
+
+
   }
 
   private String toJson(CouponDto value) throws JsonProcessingException {
     return objectMapper.writeValueAsString(value);
   }
+
 }
