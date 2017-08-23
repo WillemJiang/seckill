@@ -15,8 +15,7 @@
     <module>seckill-admin-service</module>
     <module>integration-test</module>
     <module>coverage-aggregate</module>
-
-    <!--<module>seckill-query-service</module>-->
+    <module>seckill-query-service</module>
     <!--<module>docker-build-config</module>-->
   </modules>
 
