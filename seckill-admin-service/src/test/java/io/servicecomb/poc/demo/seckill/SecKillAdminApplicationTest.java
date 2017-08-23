@@ -98,11 +98,11 @@ public class SecKillAdminApplicationTest {
     String promotionId = result.getResponse().getContentAsString();
     int numberOfCoupons = 10;
     float discount = 0.8f;
-    Date publishTime = dropMilliseconds(new Date());
-    Date finishTime = dropMilliseconds(new Date(System.currentTimeMillis() + 300000));
+    Date publishTime = truncateToSeconds(new Date());
+    Date finishTime = truncateToSeconds(new Date(System.currentTimeMillis() + 300000));
 
-    mockMvc.perform(put("/admin/promotions/").contentType(APPLICATION_JSON)
-        .content(toJson(new PromotionDto(promotionId, numberOfCoupons, discount, publishTime, finishTime))))
+    mockMvc.perform(put("/admin/promotions/" + promotionId + "/").contentType(APPLICATION_JSON)
+        .content(toJson(new PromotionDto(numberOfCoupons, discount, publishTime, finishTime))))
         .andExpect(status().isOk());
 
     Promotion promotion = repository.findTopByPromotionId(promotionId);
@@ -114,8 +114,8 @@ public class SecKillAdminApplicationTest {
 
   @Test
   public void failsUpdatePromotionWhenPromotionDoesNotExist() throws Exception {
-    mockMvc.perform(put("/admin/promotions/").contentType(APPLICATION_JSON)
-        .content(toJson(new PromotionDto(UUID.randomUUID().toString(), 5, 0.7f, timeFromNow(2000)))))
+    mockMvc.perform(put("/admin/promotions/" + UUID.randomUUID().toString() + "/").contentType(APPLICATION_JSON)
+        .content(toJson(new PromotionDto(5, 0.7f, timeFromNow(2000)))))
         .andExpect(status().isBadRequest())
         .andExpect(content().string(containsString("Promotion not exists")));
   }
@@ -129,11 +129,11 @@ public class SecKillAdminApplicationTest {
     String promotionId = result.getResponse().getContentAsString();
     int numberOfCoupons = 0;
     float discount = -0.8f;
-    Date publishTime = dropMilliseconds(new Date());
-    Date finishTime = dropMilliseconds(new Date(System.currentTimeMillis() + 300000));
+    Date publishTime = truncateToSeconds(new Date());
+    Date finishTime = truncateToSeconds(new Date(System.currentTimeMillis() + 300000));
 
-    mockMvc.perform(put("/admin/promotions/").contentType(APPLICATION_JSON)
-        .content(toJson(new PromotionDto(promotionId, numberOfCoupons, discount, publishTime, finishTime))))
+    mockMvc.perform(put("/admin/promotions/" + promotionId + "/").contentType(APPLICATION_JSON)
+        .content(toJson(new PromotionDto(numberOfCoupons, discount, publishTime, finishTime))))
         .andExpect(status().isBadRequest())
         .andExpect(content().string(containsString("Invalid promotion {numberOfCoupons=")));
   }
@@ -146,7 +146,7 @@ public class SecKillAdminApplicationTest {
     return new Date(System.currentTimeMillis() + offset);
   }
 
-  private Date dropMilliseconds(Date date) {
+  private Date truncateToSeconds(Date date) {
     return new Date((date.getTime() / 1000) * 1000);
   }
 }

@@ -23,7 +23,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -37,6 +39,10 @@ public class SecKillPromotionBootstrap<T> {
   private final Map<String, SecKillCommandService<T>> commandServices;
   private final List<SecKillPersistentRunner<T>> persistentRunners;
   private final SecKillRecoveryService recoveryService;
+
+  private final ScheduledExecutorService executorService = Executors.newScheduledThreadPool(1);
+  private int loadedPromotionId = 0;
+  private final Map<String, Promotion> waitingPromotions = new HashMap<>();
 
   public SecKillPromotionBootstrap(
       PromotionRepository promotionRepository,
@@ -52,37 +58,29 @@ public class SecKillPromotionBootstrap<T> {
   }
 
   public void run() {
-    CompletableFuture.runAsync(() -> {
-      int loadedPromotionId = 0;
-      Map<String, Promotion> waitingPromotions = new HashMap<>();
-      while (!Thread.currentThread().isInterrupted()) {
-        try {
-          Iterable<Promotion> promotions = promotionRepository.findByIdGreaterThan(loadedPromotionId);
-          for (Promotion promotion : promotions) {
-            if (promotion.getPublishTime().getTime() <= System.currentTimeMillis()) {
-              startUpPromotion(promotion);
-              logger.info("Promotion started = {}", promotion);
-            } else {
-              waitingPromotions.put(promotion.getPromotionId(), promotion);
-            }
-            loadedPromotionId = promotion.getId();
-          }
+    final Runnable executor = () -> {
+      Iterable<Promotion> promotions = promotionRepository.findByIdGreaterThan(loadedPromotionId);
+      for (Promotion promotion : promotions) {
+        if (promotion.getPublishTime().getTime() <= System.currentTimeMillis()) {
+          startUpPromotion(promotion);
+          logger.info("Promotion started = {}", promotion);
+        } else {
+          waitingPromotions.put(promotion.getPromotionId(), promotion);
+        }
+        loadedPromotionId = promotion.getId();
+      }
 
-          for (String promotionId : waitingPromotions.keySet()) {
-            Promotion promotion = waitingPromotions.get(promotionId);
-            if (promotion.getPublishTime().getTime() <= System.currentTimeMillis()) {
-              startUpPromotion(promotion);
-              logger.info("Promotion started = {}", promotion);
-              waitingPromotions.remove(promotionId);
-            }
-          }
-
-          Thread.sleep(500);
-        } catch (InterruptedException e) {
-          Thread.currentThread().interrupt();
+      for (String promotionId : waitingPromotions.keySet()) {
+        Promotion promotion = waitingPromotions.get(promotionId);
+        if (promotion.getPublishTime().getTime() <= System.currentTimeMillis()) {
+          startUpPromotion(promotion);
+          logger.info("Promotion started = {}", promotion);
+          waitingPromotions.remove(promotionId);
         }
       }
-    });
+    };
+
+    executorService.scheduleAtFixedRate(executor, 0, 500, TimeUnit.MILLISECONDS);
   }
 
   private void startUpPromotion(Promotion promotion) {

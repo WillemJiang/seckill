@@ -19,8 +19,6 @@ package io.servicecomb.poc.demo.seckill.dto;
 import java.util.Date;
 
 public class PromotionDto {
-
-  private String id;
   private int numberOfCoupons = 0;
   private float discount = 1;
   private Date publishTime;
@@ -30,27 +28,14 @@ public class PromotionDto {
   }
 
   public PromotionDto(int numberOfCoupons, float discount, Date publishTime) {
-    this(null, numberOfCoupons, discount, publishTime);
+    this(numberOfCoupons, discount, publishTime, new Date(Long.MAX_VALUE));
   }
 
-  public PromotionDto(String id, int numberOfCoupons, float discount, Date publishTime) {
-    this(id, numberOfCoupons, discount, publishTime, new Date(Long.MAX_VALUE));
-  }
-
-  public PromotionDto(String id, int numberOfCoupons, float discount, Date publishTime, Date finishTime) {
-    this.id = id;
+  public PromotionDto(int numberOfCoupons, float discount, Date publishTime, Date finishTime) {
     this.numberOfCoupons = numberOfCoupons;
     this.discount = discount;
     this.publishTime = publishTime;
     this.finishTime = finishTime;
-  }
-
-  public String getId() {
-    return id;
-  }
-
-  public void setId(String id) {
-    this.id = id;
   }
 
   public int getNumberOfCoupons() {
