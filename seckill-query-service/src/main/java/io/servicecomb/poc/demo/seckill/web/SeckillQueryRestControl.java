@@ -21,7 +21,6 @@ public class SeckillQueryRestControl {
   @Autowired
   private SecKillEventSubscriber secKillEventSubscriber;
 
-
   @RequestMapping(method = RequestMethod.GET,value = "/coupons/{customerId}")
   public List<Coupon> querySuccess(@PathVariable String customerId) {
     logger.trace("Get request /query/coupons/%s",customerId);
