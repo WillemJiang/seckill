@@ -4,11 +4,6 @@ import java.util.List;
 
 public class SecKillEventSubscriber {
 
-/*
-  @Autowired
-  private SeckillEventLoader seckillEventLoader;
-*/
-
   SeckillEventLoader seckillEventLoader;
 
   public SecKillEventSubscriber(SeckillEventLoader seckillEventLoader){
@@ -16,10 +11,10 @@ public class SecKillEventSubscriber {
   }
 
   public List<Coupon> querySuccessCoupon(String customerId){
-    return (List<Coupon>) seckillEventLoader.getCustomerCoupons(customerId);
+    return seckillEventLoader.getCustomerCoupons(customerId);
   }
 
   public List<Promotion> queryCurrentPromotion(){
-    return (List<Promotion>) seckillEventLoader.getActivePromotions();
+    return seckillEventLoader.getActivePromotions();
   }
 }

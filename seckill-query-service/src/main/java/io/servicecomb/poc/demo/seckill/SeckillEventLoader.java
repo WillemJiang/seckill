@@ -4,10 +4,8 @@ import io.servicecomb.poc.demo.seckill.event.PromotionEvent;
 import io.servicecomb.poc.demo.seckill.event.PromotionEventType;
 import io.servicecomb.poc.demo.seckill.repositories.PromotionRepository;
 import io.servicecomb.poc.demo.seckill.repositories.SpringBasedPromotionEventRepository;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 
 public class SeckillEventLoader<T> {
@@ -15,23 +13,22 @@ public class SeckillEventLoader<T> {
   private PromotionRepository promotionRepository;
 
   public SeckillEventLoader(SpringBasedPromotionEventRepository promotionEventRepository,
-      PromotionRepository promotionRepository){
+                            PromotionRepository promotionRepository){
     this.promotionEventRepository = promotionEventRepository;
     this.promotionRepository = promotionRepository;
   }
 
-  public void run() {
+  public void reloadEvents() {
     CompletableFuture.runAsync(() -> {
-      int currentPromotionIndex = 0;
       int currentPromotionEventIndex = 0;
+      int currentPromotionIndex = 0;
 
       while (!Thread.currentThread().isInterrupted()) {
         try {
-          currentPromotionEventIndex = saveSuccessCoupons(currentPromotionEventIndex);
-          currentPromotionIndex = saveCurrentPromotions(currentPromotionIndex);
+          currentPromotionIndex = reloadActivePromotions(currentPromotionEventIndex, currentPromotionIndex);
+          currentPromotionEventIndex = reloadSuccessCoupons(currentPromotionEventIndex);
           Thread.sleep(1000);
         } catch (InterruptedException e) {
-          System.out.println();
           Thread.currentThread().interrupt();
         }
       }
@@ -39,31 +36,33 @@ public class SeckillEventLoader<T> {
   }
 
   private final Map<T,List<Coupon>> customerCoupons = new HashMap<>();
-  private final Map<String,List<Promotion>> activePromotions = new HashMap<>();
+  private final List<Promotion> activePromotions = new ArrayList<>();
 
   public List<Coupon> getCustomerCoupons(T customerId){
     return customerCoupons.get(customerId);
   }
 
   public List<Promotion> getActivePromotions(){
-    return activePromotions.get("CurrentPromotions");
+    return activePromotions;
   }
 
-  public int saveSuccessCoupons(int promotionEventIndex){
+  public int reloadSuccessCoupons(int promotionEventIndex){
+
     List<PromotionEvent> promotionEvents = promotionEventRepository.findByIdGreaterThan(promotionEventIndex);
+
     for (PromotionEvent promotionEvent : promotionEvents) {
-      T customerId = (T)promotionEvent.getCustomerId();
+      T customerId = (T) promotionEvent.getCustomerId();
 
       if(!customerCoupons.containsKey(customerId)) {
-        customerCoupons.put((T)customerId, new ArrayList<>());
+        customerCoupons.put(customerId, new ArrayList<>());
       }
 
       customerCoupons.get(customerId).add(
-          new Coupon(promotionEvent.getId(),
-              promotionEvent.getPromotionId(),
-              promotionEvent.getTime(),
-              promotionEvent.getDiscount(),
-              promotionEvent.getCustomerId())
+              new Coupon(promotionEvent.getId(),
+                      promotionEvent.getPromotionId(),
+                      promotionEvent.getTime(),
+                      promotionEvent.getDiscount(),
+                      promotionEvent.getCustomerId())
       );
 
       promotionEventIndex = promotionEvent.getId();
@@ -72,11 +71,11 @@ public class SeckillEventLoader<T> {
     return promotionEventIndex;
   }
 
-  public int saveCurrentPromotions(int promotionIndex) {
-    List<Promotion> promotions = promotionRepository.findByIdGreaterThan(promotionIndex);
+  public int reloadActivePromotions (int promotionEventIndex,int promotionIndex) {
+    List<PromotionEvent> promotionEvents = promotionEventRepository.findByIdGreaterThan(promotionEventIndex);
 
-    for (Promotion promotion : promotions) {
-      String currentPromotionId = promotion.getPromotionId();
+    for (PromotionEvent promotionEvent : promotionEvents) {
+      String currentPromotionId = promotionEvent.getPromotionId();
 
       PromotionEvent startEvent = promotionEventRepository.findTopByPromotionIdAndTypeOrderByIdDesc(
           currentPromotionId, PromotionEventType.Start);
@@ -84,15 +83,12 @@ public class SeckillEventLoader<T> {
         PromotionEvent finishEvent = promotionEventRepository.findTopByPromotionIdAndTypeOrderByIdDesc(
             currentPromotionId, PromotionEventType.Finish);
         if(finishEvent == null){
-          if(!activePromotions.containsKey("CurrentPromotions")){
-            activePromotions.put("CurrentPromotions", new ArrayList<>());
-          }
-
-          activePromotions.get("CurrentPromotions").add(promotion);
+          Promotion activepromotion = promotionRepository.findTopByPromotionId(currentPromotionId);
+          activePromotions.add(activepromotion);
         }
       }
 
-      promotionIndex = promotion.getId();
+      promotionEventIndex = promotionEvent.getId();
     }
 
     return promotionIndex;

@@ -16,8 +16,11 @@ public class SecKillQueryConfig {
   @Bean
   SeckillEventLoader seckillEventLoader(SpringBasedPromotionEventRepository promotionEventRepository,
       PromotionRepository promotionRepository) {
+
     SeckillEventLoader eventLoader = new SeckillEventLoader(promotionEventRepository,promotionRepository);
-    eventLoader.run();
+
+    eventLoader.reloadEvents();
+
     return eventLoader;
   }
 }
