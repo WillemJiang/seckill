@@ -19,7 +19,7 @@ public class SecKillQueryConfig {
 
     SeckillEventLoader eventLoader = new SeckillEventLoader(promotionEventRepository,promotionRepository);
 
-    eventLoader.reloadEvents();
+    eventLoader.reloadEventsScheduler();
 
     return eventLoader;
   }
