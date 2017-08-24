@@ -17,6 +17,7 @@
 package io.servicecomb.poc.demo.seckill;
 
 import io.servicecomb.poc.demo.CommandQueryApplication;
+import io.servicecomb.poc.demo.seckill.event.PromotionEvent;
 import io.servicecomb.poc.demo.seckill.event.PromotionFinishEvent;
 import io.servicecomb.poc.demo.seckill.event.PromotionGrabbedEvent;
 import io.servicecomb.poc.demo.seckill.event.PromotionStartEvent;
@@ -65,72 +66,83 @@ public class SecKillQueryServiceApplicationTest {
 
   @Test
   public void testQuerySuccess() throws Exception {
-    Date startTime = new Date();
-    Date finishTime = new Date(startTime.getTime() + 10*60*1000);
+    List<String> expectCouponList = new ArrayList<>();
 
-    Promotion promotionCouponsTest = new Promotion(startTime,finishTime,5,0.8f);
+    for (int i = 1; i <= 10; i++) {
+      Date startTime = new Date();
+      Date finishTime = new Date(startTime.getTime() + 60*1000);
 
-    PromotionStartEvent<String> startEvent = new PromotionStartEvent<String>(promotionCouponsTest);
-    promotionEventRepository.save(startEvent);
-    PromotionGrabbedEvent<String> grabbedEvent = new PromotionGrabbedEvent<String>(promotionCouponsTest,"customerOne");
-    promotionEventRepository.save(grabbedEvent);
-    PromotionFinishEvent<String> finishEvent = new PromotionFinishEvent<String>(promotionCouponsTest);
-    promotionEventRepository.save(finishEvent);
+      Promotion promotionTest = new Promotion(startTime,finishTime,i,0.8f);
+
+      PromotionStartEvent<String> startEvent = new PromotionStartEvent<>(promotionTest);
+      promotionEventRepository.save(startEvent);
+
+      if((i > 2) && (i < 6)) {
+        PromotionGrabbedEvent<String> grabbedEvent = new PromotionGrabbedEvent<>(
+            promotionTest,
+            "tester");
+        promotionEventRepository.save(grabbedEvent);
+        expectCouponList.add(promotionTest.getPromotionId());
+      }
+
+      if(i < 5) {
+        PromotionFinishEvent<String> finishEvent = new PromotionFinishEvent<>(promotionTest);
+        promotionEventRepository.save(finishEvent);
+      }
+    }
 
     Thread.sleep(2000);
-    this.mockMvc.perform(get("/query/coupons/customerOne").contentType(contentType))
-        .andExpect(status().isOk()).andExpect(content().string(containsString("customerOne")));
-
     this.mockMvc.perform(get("/query/coupons/nonCustomerId").contentType(contentType))
-            .andExpect(status().isOk()).andExpect(content().string(containsString("")));
+        .andExpect(status().isOk()).andExpect(content().string(containsString("")));
+
+    ResultActions resultFill = this.mockMvc.perform(get("/query/coupons/tester").contentType(contentType));
+    for (String s : expectCouponList) {
+      resultFill.andExpect(content().string(containsString(s)));
+    }
+
+//    numberOfCoupons in each promotion
+    for (int i = 3; i < 6; i++) {
+      resultFill.andExpect(content().string(containsString(Integer.toString(i))));
+    }
   }
 
   @Test
   public void testQueryCurrent() throws Exception {
-    //test null promotions
+//    test null promotions
     this.mockMvc.perform(get("/query/promotions").contentType(contentType))
         .andExpect(content().string(containsString("")));
 
-    //inject test promotion
-    List<Integer> expectCouponIdList = new ArrayList<>();
-    for (int i = 1; i <= 20; i++) {
-      long startTimes = new Date().getTime() + i*60*1000;
-      long finishTimes = startTimes + 10*60*1000;
+//    inject test promotion
+    List<Promotion> expectPromotionList = new ArrayList<>();
+    for (int i = 1; i <= 10; i++) {
+      Date startTime = new Date();
+      Date finishTime = new Date(startTime.getTime() + 60*1000);
 
-      Date startTime = new Date(startTimes);
-      Date finishTime = new Date(finishTimes);
-
-      Promotion promotionTest = new Promotion(startTime,finishTime,i+1,0.7f);
+      Promotion promotionTest = new Promotion(startTime, finishTime, i,0.7f);
       promotionRepository.save(promotionTest);
-      expectCouponIdList.add(promotionTest.getId());
+      expectPromotionList.add(promotionTest);
 
-      PromotionStartEvent<String> startEvent = new PromotionStartEvent<String>(promotionTest);
+      PromotionStartEvent<String> startEvent = new PromotionStartEvent<>(promotionTest);
       promotionEventRepository.save(startEvent);
     }
 
     Thread.sleep(2000);
-    //check the query result wether is matching
+//    check the query result wether is matching
     ResultActions resultFill = this.mockMvc.perform(get("/query/promotions").contentType(contentType));
-    resultFill.andReturn().getResponse().getContentLength();
-    for (Integer couponId : expectCouponIdList) {
-      resultFill.andExpect(content().string(containsString(Integer.toString(couponId))));
+    for (Promotion promotion : expectPromotionList) {
+      resultFill.andExpect(content().string(containsString(Integer.toString(promotion.getId()))));
     }
 /*
-    List<Integer> expectCouponIdList = new ArrayList<>();
-    for (int i = 6; i <= 10; i++) {
-      long startTimes = new Date().getTime() + i*60*1000;
-      long finishTimes = startTimes + 10*60*1000;
 
-      Date startTime = new Date(startTimes);
-      Date finishTime = new Date(finishTimes);
-
-      Promotion promotionTest = new Promotion(startTime,finishTime,i+1,0.7f);
-      promotionRepository.save(promotionTest);
-      expectCouponIdList.add(promotionTest.getId());
-
-      PromotionStartEvent<String> startEvent = new PromotionStartEvent<String>(promotionTest);
-      promotionEventRepository.save(startEvent);
+//    test expire promotion
+    for (Promotion promotion : expectPromotionList) {
+      PromotionFinishEvent<String> finishEvent = new PromotionFinishEvent<>(promotion);
+      promotionEventRepository.save(finishEvent);
     }
+
+    Thread.sleep(2000);
+    ResultActions result = this.mockMvc.perform(get("/query/promotions").contentType(contentType));
 */
   }
+
 }
