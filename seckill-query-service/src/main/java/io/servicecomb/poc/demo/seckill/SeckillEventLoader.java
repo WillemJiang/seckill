@@ -4,35 +4,39 @@ import io.servicecomb.poc.demo.seckill.event.PromotionEvent;
 import io.servicecomb.poc.demo.seckill.event.PromotionEventType;
 import io.servicecomb.poc.demo.seckill.repositories.PromotionRepository;
 import io.servicecomb.poc.demo.seckill.repositories.SpringBasedPromotionEventRepository;
-
-import java.util.*;
-import java.util.concurrent.CompletableFuture;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 public class SeckillEventLoader<T> {
   private SpringBasedPromotionEventRepository promotionEventRepository;
   private PromotionRepository promotionRepository;
 
   public SeckillEventLoader(SpringBasedPromotionEventRepository promotionEventRepository,
-                            PromotionRepository promotionRepository){
+      PromotionRepository promotionRepository){
     this.promotionEventRepository = promotionEventRepository;
     this.promotionRepository = promotionRepository;
   }
 
-  public void reloadEvents() {
-    CompletableFuture.runAsync(() -> {
-      int currentPromotionEventIndex = 0;
-      int currentPromotionIndex = 0;
+  public void reloadEventsScheduler() {
+    ScheduledExecutorService executor = Executors.newScheduledThreadPool(1);
+    executor.scheduleWithFixedDelay(new Runnable() {
+                                      int currentPromotionEventIndex = 0;
+                                      int currentPromotionIndex = 0;
 
-      while (!Thread.currentThread().isInterrupted()) {
-        try {
-          currentPromotionIndex = reloadActivePromotions(currentPromotionEventIndex, currentPromotionIndex);
-          currentPromotionEventIndex = reloadSuccessCoupons(currentPromotionEventIndex);
-          Thread.sleep(1000);
-        } catch (InterruptedException e) {
-          Thread.currentThread().interrupt();
-        }
-      }
-    });
+                                      @Override
+                                      public void run() {
+                                        currentPromotionIndex = reloadActivePromotions(currentPromotionEventIndex, currentPromotionIndex);
+                                        currentPromotionEventIndex = reloadSuccessCoupons(currentPromotionEventIndex);
+                                      }
+                                    },
+        0,
+        1000,
+        TimeUnit.MILLISECONDS);
   }
 
   private final Map<T,List<Coupon>> customerCoupons = new HashMap<>();
@@ -58,11 +62,11 @@ public class SeckillEventLoader<T> {
       }
 
       customerCoupons.get(customerId).add(
-              new Coupon(promotionEvent.getId(),
-                      promotionEvent.getPromotionId(),
-                      promotionEvent.getTime(),
-                      promotionEvent.getDiscount(),
-                      promotionEvent.getCustomerId())
+          new Coupon(promotionEvent.getId(),
+              promotionEvent.getPromotionId(),
+              promotionEvent.getTime(),
+              promotionEvent.getDiscount(),
+              promotionEvent.getCustomerId())
       );
 
       promotionEventIndex = promotionEvent.getId();
