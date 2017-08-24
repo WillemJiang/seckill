@@ -80,7 +80,7 @@ public class SecKillPromotionBootstrap<T> {
       }
     };
 
-    executorService.scheduleAtFixedRate(executor, 0, 500, TimeUnit.MILLISECONDS);
+    executorService.scheduleWithFixedDelay(executor, 0, 500, TimeUnit.MILLISECONDS);
   }
 
   private void startUpPromotion(Promotion promotion) {
