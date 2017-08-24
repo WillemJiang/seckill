@@ -23,14 +23,22 @@ public class SeckillEventLoader<T> {
   }
 
   public void reloadEventsScheduler() {
-    ScheduledExecutorService executor = Executors.newScheduledThreadPool(1);
+    ScheduledExecutorService executor = Executors.newScheduledThreadPool(2);
     executor.scheduleWithFixedDelay(new Runnable() {
                                       int currentPromotionEventIndex = 0;
-                                      int currentPromotionIndex = 0;
-
                                       @Override
                                       public void run() {
-                                        currentPromotionIndex = reloadActivePromotions(currentPromotionEventIndex, currentPromotionIndex);
+                                        currentPromotionEventIndex = reloadActivePromotions(currentPromotionEventIndex);
+                                      }
+                                    },
+        0,
+        1000,
+        TimeUnit.MILLISECONDS);
+
+    executor.scheduleWithFixedDelay(new Runnable() {
+                                      int currentPromotionEventIndex = 0;
+                                      @Override
+                                      public void run() {
                                         currentPromotionEventIndex = reloadSuccessCoupons(currentPromotionEventIndex);
                                       }
                                     },
@@ -45,13 +53,11 @@ public class SeckillEventLoader<T> {
   public List<Coupon> getCustomerCoupons(T customerId){
     return customerCoupons.get(customerId);
   }
-
   public List<Promotion> getActivePromotions(){
     return activePromotions;
   }
 
   public int reloadSuccessCoupons(int promotionEventIndex){
-
     List<PromotionEvent> promotionEvents = promotionEventRepository.findByIdGreaterThan(promotionEventIndex);
 
     for (PromotionEvent promotionEvent : promotionEvents) {
@@ -75,8 +81,17 @@ public class SeckillEventLoader<T> {
     return promotionEventIndex;
   }
 
-  public int reloadActivePromotions (int promotionEventIndex,int promotionIndex) {
+  public int reloadActivePromotions (int promotionEventIndex) {
     List<PromotionEvent> promotionEvents = promotionEventRepository.findByIdGreaterThan(promotionEventIndex);
+
+    for (Promotion activePromotion : activePromotions) {
+      for (PromotionEvent promotionEvent : promotionEvents) {
+        if((activePromotion.getPromotionId() == promotionEvent.getPromotionId())
+            && (promotionEvent.getType() == PromotionEventType.Finish)){
+          activePromotions.remove(activePromotion);
+        }
+      }
+    }
 
     for (PromotionEvent promotionEvent : promotionEvents) {
       String currentPromotionId = promotionEvent.getPromotionId();
@@ -95,6 +110,6 @@ public class SeckillEventLoader<T> {
       promotionEventIndex = promotionEvent.getId();
     }
 
-    return promotionIndex;
+    return promotionEventIndex;
   }
 }
