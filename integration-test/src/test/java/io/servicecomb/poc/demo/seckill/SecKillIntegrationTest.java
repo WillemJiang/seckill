@@ -66,7 +66,7 @@ public class SecKillIntegrationTest {
   }
 
   @Test
-  public void createAndPublishMutiPromotionAndGrabSuccessfully() throws Exception {
+  public void createAndPublishMultiPromotionAndGrabSuccessfully() throws Exception {
     MvcResult result = mockMvc.perform(post("/admin/promotions/").contentType(APPLICATION_JSON)
         .content(toJson(new PromotionDto(5, 0.7f, new Date()))))
         .andExpect(status().isOk()).andReturn();
