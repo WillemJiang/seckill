@@ -28,7 +28,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
-class SeckillEventLoader<T> {
+class SeckillEventLoader{
   private SpringBasedPromotionEventRepository promotionEventRepository;
   private PromotionRepository promotionRepository;
 
@@ -63,12 +63,13 @@ class SeckillEventLoader<T> {
         TimeUnit.MILLISECONDS);
   }
 
-  private final Map<T,List<Coupon>> customerCoupons = new HashMap<>();
+  private final Map<String,List<Coupon>> customerCoupons = new HashMap<>();
   private final List<Promotion> activePromotions = new ArrayList<>();
 
-  List<Coupon> getCustomerCoupons(T customerId){
+  List<Coupon> getCustomerCoupons(String customerId){
     return customerCoupons.get(customerId);
   }
+
   List<Promotion> getActivePromotions(){
     return activePromotions;
   }
@@ -77,14 +78,14 @@ class SeckillEventLoader<T> {
     List<PromotionEvent> promotionEvents = promotionEventRepository.findByIdGreaterThan(promotionEventIndex);
 
     for (PromotionEvent promotionEvent : promotionEvents) {
-      T customerId = (T) promotionEvent.getCustomerId();
+      String customerId = (String)promotionEvent.getCustomerId();
 
       if(!customerCoupons.containsKey(customerId)) {
         customerCoupons.put(customerId, new ArrayList<>());
       }
 
       customerCoupons.get(customerId).add(
-          new Coupon(promotionEvent.getId(),
+          new Coupon<>(promotionEvent.getId(),
               promotionEvent.getPromotionId(),
               promotionEvent.getTime(),
               promotionEvent.getDiscount(),
