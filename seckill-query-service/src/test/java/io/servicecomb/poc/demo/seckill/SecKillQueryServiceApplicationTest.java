@@ -16,13 +16,24 @@
 
 package io.servicecomb.poc.demo.seckill;
 
+import static org.hamcrest.CoreMatchers.containsString;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.core.Is.is;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
+import io.servicecomb.common.rest.codec.RestObjectMapper;
 import io.servicecomb.poc.demo.CommandQueryApplication;
-import io.servicecomb.poc.demo.seckill.event.PromotionEvent;
 import io.servicecomb.poc.demo.seckill.event.PromotionFinishEvent;
 import io.servicecomb.poc.demo.seckill.event.PromotionGrabbedEvent;
 import io.servicecomb.poc.demo.seckill.event.PromotionStartEvent;
 import io.servicecomb.poc.demo.seckill.repositories.PromotionEventRepository;
 import io.servicecomb.poc.demo.seckill.repositories.PromotionRepository;
+import java.nio.charset.Charset;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,17 +43,9 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.context.web.WebAppConfiguration;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.ResultActions;
-
-import java.nio.charset.Charset;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-
-import static org.hamcrest.CoreMatchers.containsString;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import org.springframework.test.web.servlet.ResultHandler;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(classes = CommandQueryApplication.class)
@@ -92,6 +95,7 @@ public class SecKillQueryServiceApplicationTest {
     }
 
     Thread.sleep(2000);
+
     this.mockMvc.perform(get("/query/coupons/nonCustomerId").contentType(contentType))
         .andExpect(status().isOk()).andExpect(content().string(containsString("")));
 
@@ -108,10 +112,6 @@ public class SecKillQueryServiceApplicationTest {
 
   @Test
   public void testQueryCurrent() throws Exception {
-//    test null promotions
-    this.mockMvc.perform(get("/query/promotions").contentType(contentType))
-        .andExpect(content().string(containsString("")));
-
 //    inject test promotion
     List<Promotion> expectPromotionList = new ArrayList<>();
     for (int i = 1; i <= 10; i++) {
@@ -120,19 +120,35 @@ public class SecKillQueryServiceApplicationTest {
 
       Promotion promotionTest = new Promotion(startTime, finishTime, i,0.7f);
       promotionRepository.save(promotionTest);
-      expectPromotionList.add(promotionTest);
 
       PromotionStartEvent<String> startEvent = new PromotionStartEvent<>(promotionTest);
       promotionEventRepository.save(startEvent);
+
+      if(i <= 7) {
+        PromotionFinishEvent<String> finishEvent = new PromotionFinishEvent<>(promotionTest);
+        promotionEventRepository.save(finishEvent);
+      } else {
+        expectPromotionList.add(promotionTest);
+      }
     }
 
     Thread.sleep(2000);
+
 //    check the query result wether is matching
-    ResultActions resultFill = this.mockMvc.perform(get("/query/promotions").contentType(contentType));
-    for (Promotion promotion : expectPromotionList) {
-      resultFill.andExpect(content().string(containsString(Integer.toString(promotion.getId()))));
-    }
-/*
+    ResultActions result = this.mockMvc.perform(get("/query/promotions").contentType(contentType));
+    result.andDo(new ResultHandler() {
+      @Override
+      public void handle(MvcResult mvcResult) throws Exception {
+        List responseList = RestObjectMapper.INSTANCE.readValue(
+            mvcResult.getResponse().getContentAsString(),ArrayList.class);
+
+        assertThat(responseList.size(), is(3));
+
+        for (Promotion promotion : expectPromotionList) {
+          result.andExpect(content().string(containsString(promotion.getPromotionId())));
+        }
+      }
+    });
 
 //    test expire promotion
     for (Promotion promotion : expectPromotionList) {
@@ -140,9 +156,24 @@ public class SecKillQueryServiceApplicationTest {
       promotionEventRepository.save(finishEvent);
     }
 
-    Thread.sleep(2000);
-    ResultActions result = this.mockMvc.perform(get("/query/promotions").contentType(contentType));
-*/
-  }
+    for (int j = 0; j < 2; j++) {
+      Promotion promotion = expectPromotionList.get(j);
 
+      PromotionFinishEvent<String> finishEvent = new PromotionFinishEvent<>(promotion);
+      promotionEventRepository.save(finishEvent);
+    }
+
+    Thread.sleep(2000);
+
+    ResultActions resultTemp = this.mockMvc.perform(get("/query/promotions").contentType(contentType));
+    resultTemp.andDo(new ResultHandler() {
+      @Override
+      public void handle(MvcResult mvcResult) throws Exception {
+        List responseList = RestObjectMapper.INSTANCE.readValue(
+            mvcResult.getResponse().getContentAsString(),ArrayList.class);
+
+        assertThat(responseList.size(), is(1));
+      }
+    });
+  }
 }
