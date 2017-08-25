@@ -101,11 +101,12 @@ class SeckillEventLoader{
   private int reloadActivePromotions (int promotionEventIndex) {
     List<PromotionEvent> promotionEvents = promotionEventRepository.findByIdGreaterThan(promotionEventIndex);
 
-    for (Promotion activePromotion : activePromotions) {
+    for (int i = 0; i < activePromotions.size(); i++) {
       for (PromotionEvent promotionEvent : promotionEvents) {
-        if(activePromotion.getPromotionId().equals(promotionEvent.getPromotionId())
+        if(promotionEvent.getPromotionId().equals(activePromotions.get(i).getPromotionId())
             && promotionEvent.getType().equals(PromotionEventType.Finish)) {
-          activePromotions.remove(activePromotion);
+          activePromotions.remove(activePromotions.get(i));
+          break;
         }
       }
     }
