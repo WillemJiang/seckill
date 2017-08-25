@@ -21,10 +21,9 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import io.servicecomb.common.rest.codec.RestObjectMapper;
-import io.servicecomb.poc.demo.CommandQueryApplication;
+import io.servicecomb.poc.demo.QueryServiceApplication;
 import io.servicecomb.poc.demo.seckill.event.PromotionFinishEvent;
 import io.servicecomb.poc.demo.seckill.event.PromotionGrabbedEvent;
 import io.servicecomb.poc.demo.seckill.event.PromotionStartEvent;
@@ -48,7 +47,7 @@ import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.ResultHandler;
 
 @RunWith(SpringRunner.class)
-@SpringBootTest(classes = CommandQueryApplication.class)
+@SpringBootTest(classes = QueryServiceApplication.class)
 @WebAppConfiguration
 @AutoConfigureMockMvc
 public class SecKillQueryServiceApplicationTest {
@@ -69,18 +68,17 @@ public class SecKillQueryServiceApplicationTest {
 
   @Test
   public void testQuerySuccess() throws Exception {
+    Date startTime = new Date();
+    Date finishTime = new Date(startTime.getTime() + 10*60*1000);
     List<String> expectCouponList = new ArrayList<>();
 
     for (int i = 1; i <= 10; i++) {
-      Date startTime = new Date();
-      Date finishTime = new Date(startTime.getTime() + 60*1000);
-
       Promotion promotionTest = new Promotion(startTime,finishTime,i,0.8f);
 
       PromotionStartEvent<String> startEvent = new PromotionStartEvent<>(promotionTest);
       promotionEventRepository.save(startEvent);
 
-      if((i > 2) && (i < 6)) {
+      if((i >= 3) && (i <= 5)) {
         PromotionGrabbedEvent<String> grabbedEvent = new PromotionGrabbedEvent<>(
             promotionTest,
             "tester");
@@ -96,34 +94,40 @@ public class SecKillQueryServiceApplicationTest {
 
     Thread.sleep(2000);
 
-    this.mockMvc.perform(get("/query/coupons/nonCustomerId").contentType(contentType))
-        .andExpect(status().isOk()).andExpect(content().string(containsString("")));
-
+//    this.mockMvc.perform(get("/query/coupons/nonCustomerId").contentType(contentType))
+//        .andExpect(status().isOk()).andExpect(content().string(containsString("")));
     ResultActions resultFill = this.mockMvc.perform(get("/query/coupons/tester").contentType(contentType));
     for (String s : expectCouponList) {
       resultFill.andExpect(content().string(containsString(s)));
     }
-
 //    numberOfCoupons in each promotion
-    for (int i = 3; i < 6; i++) {
+    for (int i = 3; i <= 5; i++) {
       resultFill.andExpect(content().string(containsString(Integer.toString(i))));
+    }
+
+//    finish all the remaining test promotions
+    for (int i = 5; i <= 10; i++) {
+      Promotion promotionTest = new Promotion(startTime,finishTime,i,0.8f);
+      PromotionFinishEvent<String> finishEvent = new PromotionFinishEvent<>(promotionTest);
+      promotionEventRepository.save(finishEvent);
     }
   }
 
   @Test
   public void testQueryCurrent() throws Exception {
 //    inject test promotion
+    Date startTime = new Date();
+    Date finishTime = new Date(startTime.getTime() + 10*60*1000);
     List<Promotion> expectPromotionList = new ArrayList<>();
-    for (int i = 1; i <= 10; i++) {
-      Date startTime = new Date();
-      Date finishTime = new Date(startTime.getTime() + 60*1000);
 
+    for (int i = 1; i <= 10; i++) {
       Promotion promotionTest = new Promotion(startTime, finishTime, i,0.7f);
       promotionRepository.save(promotionTest);
 
       PromotionStartEvent<String> startEvent = new PromotionStartEvent<>(promotionTest);
       promotionEventRepository.save(startEvent);
 
+//      left 3 active promotions
       if(i <= 7) {
         PromotionFinishEvent<String> finishEvent = new PromotionFinishEvent<>(promotionTest);
         promotionEventRepository.save(finishEvent);
@@ -134,7 +138,7 @@ public class SecKillQueryServiceApplicationTest {
 
     Thread.sleep(2000);
 
-//    check the query result wether is matching
+//    check the query result wether is matched
     ResultActions result = this.mockMvc.perform(get("/query/promotions").contentType(contentType));
     result.andDo(new ResultHandler() {
       @Override
@@ -150,18 +154,10 @@ public class SecKillQueryServiceApplicationTest {
       }
     });
 
-//    test expire promotion
-    for (Promotion promotion : expectPromotionList) {
-      PromotionFinishEvent<String> finishEvent = new PromotionFinishEvent<>(promotion);
-      promotionEventRepository.save(finishEvent);
-    }
-
-    for (int j = 0; j < 2; j++) {
-      Promotion promotion = expectPromotionList.get(j);
-
-      PromotionFinishEvent<String> finishEvent = new PromotionFinishEvent<>(promotion);
-      promotionEventRepository.save(finishEvent);
-    }
+//    test expire promotion: 1 active promotion was finished, left 2 active promotions
+    Promotion promotion = expectPromotionList.get(0);
+    PromotionFinishEvent<String> finishEvent = new PromotionFinishEvent<>(promotion);
+    promotionEventRepository.save(finishEvent);
 
     Thread.sleep(2000);
 
@@ -172,8 +168,18 @@ public class SecKillQueryServiceApplicationTest {
         List responseList = RestObjectMapper.INSTANCE.readValue(
             mvcResult.getResponse().getContentAsString(),ArrayList.class);
 
-        assertThat(responseList.size(), is(1));
+        assertThat(responseList.size(), is(2));
+
+        for (Promotion promotion : expectPromotionList) {
+          result.andExpect(content().string(containsString(promotion.getPromotionId())));
+        }
       }
     });
+
+//    finish all the remaining test promotions
+    for (Promotion promotion1 : expectPromotionList) {
+      PromotionFinishEvent<String> finishEvent1 = new PromotionFinishEvent<>(promotion1);
+      promotionEventRepository.save(finishEvent1);
+    }
   }
 }

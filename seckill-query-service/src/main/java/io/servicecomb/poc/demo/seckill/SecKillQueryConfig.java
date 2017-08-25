@@ -23,12 +23,6 @@ import org.springframework.context.annotation.Configuration;
 
 @Configuration
 public class SecKillQueryConfig {
-
-  @Bean
-  SecKillEventSubscriber secKillEventSubscriber(SeckillEventLoader seckillEventLoader) {
-    return new SecKillEventSubscriber(seckillEventLoader);
-  }
-
   @Bean
   SeckillEventLoader seckillEventLoader(SpringBasedPromotionEventRepository promotionEventRepository,
       PromotionRepository promotionRepository) {
