@@ -22,112 +22,101 @@ import io.servicecomb.poc.demo.seckill.repositories.PromotionRepository;
 import io.servicecomb.poc.demo.seckill.repositories.SpringBasedPromotionEventRepository;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
-class SeckillEventLoader{
+public class SeckillEventLoader {
+
   private SpringBasedPromotionEventRepository promotionEventRepository;
   private PromotionRepository promotionRepository;
 
+  private final Map<String, List<Coupon>> customerCoupons = new HashMap<>();
+  private final List<Promotion> activePromotions = new ArrayList<>();
+
   SeckillEventLoader(SpringBasedPromotionEventRepository promotionEventRepository,
-      PromotionRepository promotionRepository){
+      PromotionRepository promotionRepository) {
     this.promotionEventRepository = promotionEventRepository;
     this.promotionRepository = promotionRepository;
   }
 
   void reloadEventsScheduler() {
-    ScheduledExecutorService executor = Executors.newScheduledThreadPool(2);
-    executor.scheduleWithFixedDelay(new Runnable() {
-                                      int currentPromotionEventIndex = 0;
-                                      @Override
-                                      public void run() {
-                                        currentPromotionEventIndex = reloadActivePromotions(currentPromotionEventIndex);
-                                      }
-                                    },
-        0,
-        1000,
-        TimeUnit.MILLISECONDS);
+    ScheduledExecutorService executor = Executors.newScheduledThreadPool(1);
+    executor.scheduleWithFixedDelay(
+        new Runnable() {
+          int currentPromotionEventIndex = 0;
 
-    executor.scheduleWithFixedDelay(new Runnable() {
-                                      int currentPromotionEventIndex = 0;
-                                      @Override
-                                      public void run() {
-                                        currentPromotionEventIndex = reloadSuccessCoupons(currentPromotionEventIndex);
-                                      }
-                                    },
+          @Override
+          public void run() {
+            List<PromotionEvent> promotionEvents = promotionEventRepository
+                .findByIdGreaterThan(currentPromotionEventIndex);
+
+            updateActivePromotions(promotionEvents);
+
+            for (PromotionEvent promotionEvent : promotionEvents) {
+              reloadActivePromotions(promotionEvent);
+              reloadSuccessCoupons(promotionEvent);
+
+              currentPromotionEventIndex = promotionEvent.getId();
+            }
+          }
+        },
         0,
         1000,
-        TimeUnit.MILLISECONDS);
+        TimeUnit.MILLISECONDS
+    );
   }
 
-  private final Map<String,List<Coupon>> customerCoupons = new HashMap<>();
-  private final List<Promotion> activePromotions = new ArrayList<>();
-
-  List<Coupon> getCustomerCoupons(String customerId){
+  public List<Coupon> getCustomerCoupons(String customerId) {
     return customerCoupons.get(customerId);
   }
 
-  List<Promotion> getActivePromotions(){
+  public List<Promotion> getActivePromotions() {
     return activePromotions;
   }
 
-  private int reloadSuccessCoupons(int promotionEventIndex){
-    List<PromotionEvent> promotionEvents = promotionEventRepository.findByIdGreaterThan(promotionEventIndex);
-
-    for (PromotionEvent promotionEvent : promotionEvents) {
-      String customerId = (String)promotionEvent.getCustomerId();
-
-      if(!customerCoupons.containsKey(customerId)) {
-        customerCoupons.put(customerId, new ArrayList<>());
-      }
-
-      customerCoupons.get(customerId).add(
-          new Coupon<>(promotionEvent.getId(),
-              promotionEvent.getPromotionId(),
-              promotionEvent.getTime(),
-              promotionEvent.getDiscount(),
-              promotionEvent.getCustomerId())
-      );
-
-      promotionEventIndex = promotionEvent.getId();
-    }
-
-    return promotionEventIndex;
+  private void reloadSuccessCoupons(PromotionEvent promotionEvent) {
+    customerCoupons.computeIfAbsent((String)promotionEvent.getCustomerId(), customerId -> new ArrayList<>()).add(
+        new Coupon<>(promotionEvent.getId(),
+            promotionEvent.getPromotionId(),
+            promotionEvent.getTime(),
+            promotionEvent.getDiscount(),
+            promotionEvent.getCustomerId())
+    );
   }
 
-  private int reloadActivePromotions (int promotionEventIndex) {
-    List<PromotionEvent> promotionEvents = promotionEventRepository.findByIdGreaterThan(promotionEventIndex);
+  private void updateActivePromotions(List<PromotionEvent> promotionEvents){
+    List<PromotionEvent> finishPromotionEvents = promotionEvents.stream().filter(
+        promotionEvent -> promotionEvent.getType().equals(PromotionEventType.Finish)).collect(Collectors.toList());
 
-    for (int i = 0; i < activePromotions.size(); i++) {
-      for (PromotionEvent promotionEvent : promotionEvents) {
-        if(promotionEvent.getPromotionId().equals(activePromotions.get(i).getPromotionId())
-            && promotionEvent.getType().equals(PromotionEventType.Finish)) {
-          activePromotions.remove(activePromotions.get(i));
-          break;
-        }
+    Iterator<Promotion> promotionIterator = activePromotions.iterator();
+    while(promotionIterator.hasNext()){
+      String activePromotionId = promotionIterator.next().getPromotionId();
+
+      boolean isMatch = finishPromotionEvents.stream().anyMatch(finishEvent -> finishEvent.getPromotionId().equals(activePromotionId));
+      if (isMatch) {
+        promotionIterator.remove();
       }
     }
-
-    for (PromotionEvent promotionEvent : promotionEvents) {
-      String currentPromotionId = promotionEvent.getPromotionId();
-
-      PromotionEvent startEvent = promotionEventRepository.findTopByPromotionIdAndTypeOrderByIdDesc(
-          currentPromotionId, PromotionEventType.Start);
-      if (startEvent != null) {
-        PromotionEvent finishEvent = promotionEventRepository.findTopByPromotionIdAndTypeOrderByIdDesc(
-            currentPromotionId, PromotionEventType.Finish);
-        if(finishEvent == null){
-          Promotion activePromotion = promotionRepository.findTopByPromotionId(currentPromotionId);
-          activePromotions.add(activePromotion);
-        }
-      }
-
-      promotionEventIndex = promotionEvent.getId();
-    }
-
-    return promotionEventIndex;
   }
+
+  private void reloadActivePromotions(PromotionEvent promotionEvent) {
+    String currentPromotionId = promotionEvent.getPromotionId();
+
+    PromotionEvent startEvent = promotionEventRepository.findTopByPromotionIdAndTypeOrderByIdDesc(
+        currentPromotionId, PromotionEventType.Start);
+    if (startEvent != null) {
+      PromotionEvent finishEvent = promotionEventRepository.findTopByPromotionIdAndTypeOrderByIdDesc(
+          currentPromotionId, PromotionEventType.Finish);
+      if (finishEvent == null) {
+        Promotion activePromotion = promotionRepository.findTopByPromotionId(currentPromotionId);
+        activePromotions.add(activePromotion);
+      }
+    }
+  }
+
 }

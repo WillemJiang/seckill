@@ -14,23 +14,14 @@
  *   limitations under the License.
  */
 
-package io.servicecomb.poc.demo.seckill;
+package io.servicecomb.poc.demo;
 
-import java.util.List;
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
 
-public class SecKillEventSubscriber {
-
-  private SeckillEventLoader seckillEventLoader;
-
-  SecKillEventSubscriber(SeckillEventLoader seckillEventLoader){
-    this.seckillEventLoader = seckillEventLoader;
-  }
-
-  public List<Coupon> querySuccessCoupon(String customerId){
-    return seckillEventLoader.getCustomerCoupons(customerId);
-  }
-
-  public List<Promotion> queryCurrentPromotion(){
-    return seckillEventLoader.getActivePromotions();
+@SpringBootApplication
+public class QueryServiceApplication {
+  public static void main(String[] args) {
+    SpringApplication.run(QueryServiceApplication.class, args);
   }
 }
