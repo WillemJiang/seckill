@@ -14,14 +14,14 @@
  *   limitations under the License.
  */
 
-package io.servicecomb.poc.demo.seckill.repositories;
+package io.servicecomb.poc.demo;
 
-import io.servicecomb.poc.demo.seckill.Promotion;
-import java.util.List;
-import org.springframework.data.repository.PagingAndSortingRepository;
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
 
-public interface PromotionRepository extends PagingAndSortingRepository<Promotion, Integer> {
-  List<Promotion> findByIdGreaterThan(int id);
-
-  Promotion findTopByPromotionId(String promotionId);
+@SpringBootApplication
+public class QueryServiceApplication {
+  public static void main(String[] args) {
+    SpringApplication.run(QueryServiceApplication.class, args);
+  }
 }
