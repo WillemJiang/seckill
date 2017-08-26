@@ -35,7 +35,7 @@ public class SecKillPromotionBootstrap<T> {
   private static final Logger logger = LoggerFactory.getLogger(SecKillPromotionBootstrap.class);
 
   private final PromotionRepository promotionRepository;
-  private final PromotionEventRepository eventRepository;
+  private final PromotionEventRepository<T> eventRepository;
   private final Map<String, SecKillCommandService<T>> commandServices;
   private final List<SecKillPersistentRunner<T>> persistentRunners;
   private final SecKillRecoveryService recoveryService;
@@ -46,7 +46,7 @@ public class SecKillPromotionBootstrap<T> {
 
   public SecKillPromotionBootstrap(
       PromotionRepository promotionRepository,
-      PromotionEventRepository eventRepository,
+      PromotionEventRepository<T> eventRepository,
       Map<String, SecKillCommandService<T>> commandServices,
       List<SecKillPersistentRunner<T>> persistentRunners,
       SecKillRecoveryService recoveryService) {

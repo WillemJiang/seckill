@@ -16,170 +16,142 @@
 
 package io.servicecomb.poc.demo.seckill;
 
+import static org.hamcrest.CoreMatchers.allOf;
 import static org.hamcrest.CoreMatchers.containsString;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.core.Is.is;
+import static org.hamcrest.CoreMatchers.not;
+import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import io.servicecomb.common.rest.codec.RestObjectMapper;
 import io.servicecomb.poc.demo.QueryServiceApplication;
 import io.servicecomb.poc.demo.seckill.event.PromotionFinishEvent;
 import io.servicecomb.poc.demo.seckill.event.PromotionGrabbedEvent;
 import io.servicecomb.poc.demo.seckill.event.PromotionStartEvent;
-import io.servicecomb.poc.demo.seckill.repositories.PromotionEventRepository;
 import io.servicecomb.poc.demo.seckill.repositories.PromotionRepository;
-import java.nio.charset.Charset;
-import java.util.ArrayList;
+import io.servicecomb.poc.demo.seckill.repositories.SpringBasedPromotionEventRepository;
+import java.time.ZonedDateTime;
 import java.util.Date;
-import java.util.List;
+import org.junit.After;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.http.MediaType;
 import org.springframework.test.context.junit4.SpringRunner;
-import org.springframework.test.context.web.WebAppConfiguration;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.MvcResult;
-import org.springframework.test.web.servlet.ResultActions;
-import org.springframework.test.web.servlet.ResultHandler;
 
 @RunWith(SpringRunner.class)
-@SpringBootTest(classes = QueryServiceApplication.class)
-@WebAppConfiguration
+@SpringBootTest(classes = QueryServiceApplication.class, properties = "event.polling.interval=100")
 @AutoConfigureMockMvc
 public class SecKillQueryServiceApplicationTest {
+
+  private static final String customerId = "tester";
+
+  private final Promotion promotion1 = promotion();
+  private final Promotion promotion2 = promotion();
+  private final Promotion promotion3 = promotion();
+
+  private final Promotion[] promotions = {promotion1, promotion2, promotion3};
+
   @Autowired
   private PromotionRepository promotionRepository;
 
   @Autowired
-  private PromotionEventRepository promotionEventRepository;
+  private SpringBasedPromotionEventRepository promotionEventRepository;
 
   @Autowired
   private MockMvc mockMvc;
 
-  private MediaType contentType = new MediaType(
-      MediaType.APPLICATION_JSON.getType(),
-      MediaType.APPLICATION_JSON.getSubtype(),
-      Charset.forName("utf8")
-  );
-
-  @Test
-  public void testQuerySuccess() throws Exception {
-    Date startTime = new Date();
-    Date finishTime = new Date(startTime.getTime() + 10*60*1000);
-    List<String> expectCouponList = new ArrayList<>();
-
-    for (int i = 1; i <= 10; i++) {
-      Promotion promotionTest = new Promotion(startTime,finishTime,i,0.8f);
-
-      PromotionStartEvent<String> startEvent = new PromotionStartEvent<>(promotionTest);
-      promotionEventRepository.save(startEvent);
-
-      if((i >= 3) && (i <= 5)) {
-        PromotionGrabbedEvent<String> grabbedEvent = new PromotionGrabbedEvent<>(
-            promotionTest,
-            "tester");
-        promotionEventRepository.save(grabbedEvent);
-        expectCouponList.add(promotionTest.getPromotionId());
-      }
-
-      if(i < 5) {
-        PromotionFinishEvent<String> finishEvent = new PromotionFinishEvent<>(promotionTest);
-        promotionEventRepository.save(finishEvent);
-      }
-    }
-
-    Thread.sleep(2000);
-
-//    this.mockMvc.perform(get("/query/coupons/nonCustomerId").contentType(contentType))
-//        .andExpect(status().isOk()).andExpect(content().string(containsString("")));
-    ResultActions resultFill = this.mockMvc.perform(get("/query/coupons/tester").contentType(contentType));
-    for (String s : expectCouponList) {
-      resultFill.andExpect(content().string(containsString(s)));
-    }
-//    numberOfCoupons in each promotion
-    for (int i = 3; i <= 5; i++) {
-      resultFill.andExpect(content().string(containsString(Integer.toString(i))));
-    }
-
-//    finish all the remaining test promotions
-    for (int i = 5; i <= 10; i++) {
-      Promotion promotionTest = new Promotion(startTime,finishTime,i,0.8f);
-      PromotionFinishEvent<String> finishEvent = new PromotionFinishEvent<>(promotionTest);
-      promotionEventRepository.save(finishEvent);
-    }
+  @After
+  public void tearDown() throws Exception {
+    promotionEventRepository.deleteAll();
+    promotionRepository.deleteAll();
   }
 
   @Test
-  public void testQueryCurrent() throws Exception {
-//    inject test promotion
-    Date startTime = new Date();
-    Date finishTime = new Date(startTime.getTime() + 10*60*1000);
-    List<Promotion> expectPromotionList = new ArrayList<>();
+  public void grabbedCouponsCanBeQueried() throws Exception {
+    addCouponToCustomer(customerId, promotion1);
+    addCouponToCustomer("unknown", promotion2);
 
-    for (int i = 1; i <= 10; i++) {
-      Promotion promotionTest = new Promotion(startTime, finishTime, i,0.7f);
-      promotionRepository.save(promotionTest);
+    Thread.sleep(300);
 
-      PromotionStartEvent<String> startEvent = new PromotionStartEvent<>(promotionTest);
-      promotionEventRepository.save(startEvent);
+    mockMvc.perform(get("/query/coupons/{customerId}", customerId).contentType(APPLICATION_JSON))
+        .andExpect(status().isOk())
+        .andExpect(content().string(
+            allOf(
+                containsString(promotion1.getPromotionId()),
+                containsString(customerId),
+                not(containsString(promotion2.getPromotionId())),
+                not(containsString("unknown")))));
 
-//      left 3 active promotions
-      if(i <= 7) {
-        PromotionFinishEvent<String> finishEvent = new PromotionFinishEvent<>(promotionTest);
-        promotionEventRepository.save(finishEvent);
-      } else {
-        expectPromotionList.add(promotionTest);
-      }
+    addCouponToCustomer(customerId, promotion3);
+
+    Thread.sleep(300);
+
+    mockMvc.perform(get("/query/coupons/{customerId}", customerId).contentType(APPLICATION_JSON))
+        .andExpect(status().isOk())
+        .andExpect(content().string(
+            allOf(
+                containsString(promotion1.getPromotionId()),
+                containsString(promotion3.getPromotionId()),
+                containsString(customerId),
+                not(containsString(promotion2.getPromotionId())),
+                not(containsString("unknown")))));
+  }
+
+  @Test
+  public void retrievesActivePromotionsOnly() throws Exception {
+    for (Promotion promotion : promotions) {
+      promotionRepository.save(promotion);
     }
 
-    Thread.sleep(2000);
+    promotionEventRepository.save(new PromotionStartEvent<>(promotion1));
+    promotionEventRepository.save(new PromotionStartEvent<>(promotion2));
 
-//    check the query result wether is matched
-    ResultActions result = this.mockMvc.perform(get("/query/promotions").contentType(contentType));
-    result.andDo(new ResultHandler() {
-      @Override
-      public void handle(MvcResult mvcResult) throws Exception {
-        List responseList = RestObjectMapper.INSTANCE.readValue(
-            mvcResult.getResponse().getContentAsString(),ArrayList.class);
+    Thread.sleep(300);
 
-        assertThat(responseList.size(), is(3));
+    mockMvc.perform(get("/query/promotions").contentType(APPLICATION_JSON))
+        .andExpect(status().isOk())
+        .andExpect(content().string(
+            allOf(
+                containsString(promotion1.getPromotionId()),
+                containsString(promotion2.getPromotionId()))
+        ));
 
-        for (Promotion promotion : expectPromotionList) {
-          result.andExpect(content().string(containsString(promotion.getPromotionId())));
-        }
-      }
-    });
+    promotionEventRepository.save(new PromotionFinishEvent<>(promotion2));
+    promotionEventRepository.save(new PromotionStartEvent<>(promotion3));
 
-//    test expire promotion: 1 active promotion was finished, left 2 active promotions
-    Promotion promotion = expectPromotionList.get(0);
-    PromotionFinishEvent<String> finishEvent = new PromotionFinishEvent<>(promotion);
-    promotionEventRepository.save(finishEvent);
+    Thread.sleep(300);
 
-    Thread.sleep(2000);
+    mockMvc.perform(get("/query/promotions").contentType(APPLICATION_JSON))
+        .andExpect(status().isOk())
+        .andExpect(content().string(
+            allOf(
+                not(containsString(promotion2.getPromotionId())),
+                containsString(promotion1.getPromotionId()),
+                containsString(promotion3.getPromotionId()))
+        ));
+  }
 
-    ResultActions resultTemp = this.mockMvc.perform(get("/query/promotions").contentType(contentType));
-    resultTemp.andDo(new ResultHandler() {
-      @Override
-      public void handle(MvcResult mvcResult) throws Exception {
-        List responseList = RestObjectMapper.INSTANCE.readValue(
-            mvcResult.getResponse().getContentAsString(),ArrayList.class);
+  private String addCouponToCustomer(String customerId, Promotion promotion) {
+    promotionEventRepository.save(new PromotionStartEvent<>(promotion));
 
-        assertThat(responseList.size(), is(2));
+    PromotionGrabbedEvent<String> grabbedEvent = new PromotionGrabbedEvent<>(promotion, customerId);
+    promotionEventRepository.save(grabbedEvent);
 
-        for (Promotion promotion : expectPromotionList) {
-          result.andExpect(content().string(containsString(promotion.getPromotionId())));
-        }
-      }
-    });
+    promotionEventRepository.save(new PromotionFinishEvent<>(promotion));
+    return grabbedEvent.getPromotionId();
+  }
 
-//    finish all the remaining test promotions
-    for (Promotion promotion1 : expectPromotionList) {
-      PromotionFinishEvent<String> finishEvent1 = new PromotionFinishEvent<>(promotion1);
-      promotionEventRepository.save(finishEvent1);
-    }
+  private Promotion promotion() {
+    ZonedDateTime startTime = ZonedDateTime.now();
+    ZonedDateTime finishTime = startTime.plusDays(1);
+
+    return new Promotion(toDate(startTime), toDate(finishTime), 1, 0.8f);
+  }
+
+  private Date toDate(ZonedDateTime startTime) {
+    return Date.from(startTime.toInstant());
   }
 }

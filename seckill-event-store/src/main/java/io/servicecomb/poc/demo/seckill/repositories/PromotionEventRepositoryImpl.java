@@ -17,14 +17,18 @@
 package io.servicecomb.poc.demo.seckill.repositories;
 
 import io.servicecomb.poc.demo.seckill.event.PromotionEvent;
-import java.util.List;
 import org.springframework.data.repository.PagingAndSortingRepository;
 
-public interface SpringBasedPromotionEventRepository extends PagingAndSortingRepository<PromotionEvent<String>, Integer> {
+public class PromotionEventRepositoryImpl<T> implements PromotionEventRepository<T> {
 
-  List<PromotionEvent<String>> findByPromotionId(String promotionId);
+  private final PagingAndSortingRepository<PromotionEvent<T>, Integer> repository;
 
-  PromotionEvent<String> findTopByPromotionIdAndTypeOrderByIdDesc(String promotionId, String type);
+  public PromotionEventRepositoryImpl(PagingAndSortingRepository<PromotionEvent<T>, Integer> repository) {
+    this.repository = repository;
+  }
 
-  List<PromotionEvent> findByIdGreaterThan(int id);
+  @Override
+  public void save(PromotionEvent<T> event) {
+    repository.save(event);
+  }
 }

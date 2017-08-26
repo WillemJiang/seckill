@@ -18,16 +18,22 @@ package io.servicecomb.poc.demo.seckill;
 
 import io.servicecomb.poc.demo.seckill.repositories.PromotionRepository;
 import io.servicecomb.poc.demo.seckill.repositories.SpringBasedPromotionEventRepository;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
 public class SecKillQueryConfig {
   @Bean
-  SeckillEventLoader seckillEventLoader(SpringBasedPromotionEventRepository promotionEventRepository,
-      PromotionRepository promotionRepository) {
+  SecKillEventPoller seckillEventLoader(
+      SpringBasedPromotionEventRepository promotionEventRepository,
+      PromotionRepository promotionRepository,
+      @Value("${event.polling.interval:500}") int pollingInterval) {
 
-    SeckillEventLoader eventLoader = new SeckillEventLoader(promotionEventRepository,promotionRepository);
+    SecKillEventPoller eventLoader = new SecKillEventPoller(
+        promotionEventRepository,
+        promotionRepository,
+        pollingInterval);
 
     eventLoader.reloadEventsScheduler();
 

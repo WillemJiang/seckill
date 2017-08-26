@@ -26,6 +26,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.servicecomb.poc.demo.CommandServiceApplication;
 import io.servicecomb.poc.demo.seckill.dto.CouponDto;
+import io.servicecomb.poc.demo.seckill.repositories.PromotionEventRepository;
 import io.servicecomb.poc.demo.seckill.repositories.SpringBasedPromotionEventRepository;
 import java.util.Date;
 import java.util.List;
@@ -63,7 +64,7 @@ public class SecKillCommandApplicationTest {
   private Map<String, SecKillCommandService<String>> commandServices;
 
   @Autowired
-  private SpringBasedPromotionEventRepository eventRepository;
+  private PromotionEventRepository<String> eventRepository;
 
   @Autowired
   private SecKillRecoveryService recoveryService;
