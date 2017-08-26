@@ -39,13 +39,12 @@ public class SecKillPersistentRunnerTest {
 
   private final List<String> customerIds = new LinkedList<>();
   private volatile boolean isPromotionEnded;
-  private final PromotionEventRepository repository = couponEvent -> {
+  private final PromotionEventRepository<String> repository = couponEvent -> {
     if (PromotionEventType.Finish.equals(couponEvent.getType())) {
       isPromotionEnded = true;
     } else if (PromotionEventType.Grab.equals(couponEvent.getType())) {
       customerIds.add(couponEvent.getCustomerId());
     }
-    return couponEvent;
   };
 
   private final BlockingQueue<String> coupons = new ArrayBlockingQueue<>(numberOfCoupons);

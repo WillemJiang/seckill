@@ -23,6 +23,7 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import org.hibernate.annotations.Type;
 
+// TODO: 8/26/2017 we shall not save event schema, use json to store event details instead
 @Entity
 public class PromotionEvent<T> {
 

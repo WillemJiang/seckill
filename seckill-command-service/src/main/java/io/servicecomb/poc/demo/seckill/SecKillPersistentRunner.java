@@ -33,7 +33,7 @@ public class SecKillPersistentRunner<T> {
   private static final Logger logger = LoggerFactory.getLogger(SecKillPersistentRunner.class);
 
   private final BlockingQueue<T> coupons;
-  private final PromotionEventRepository repository;
+  private final PromotionEventRepository<T> repository;
   private final AtomicInteger claimedCoupons;
   private final Promotion promotion;
   private final SecKillRecoveryCheckResult recoveryInfo;
@@ -41,7 +41,7 @@ public class SecKillPersistentRunner<T> {
   public SecKillPersistentRunner(Promotion promotion,
       BlockingQueue<T> couponQueue,
       AtomicInteger claimedCoupons,
-      PromotionEventRepository repository,
+      PromotionEventRepository<T> repository,
       SecKillRecoveryCheckResult recoveryInfo) {
 
     this.promotion = promotion;
@@ -76,7 +76,7 @@ public class SecKillPersistentRunner<T> {
   private boolean consumeCoupon() throws InterruptedException {
     T customerId = coupons.poll(promotion.getFinishTime().getTime() - System.currentTimeMillis(), TimeUnit.MILLISECONDS);
     if (customerId != null) {
-      repository.save(new PromotionGrabbedEvent<>(promotion, customerId.toString()));
+      repository.save(new PromotionGrabbedEvent<>(promotion, customerId));
       logger.info("Assigned promotion coupon {} to customer {}", promotion, customerId);
     }
     return customerId == null;

@@ -18,8 +18,8 @@ package io.servicecomb.poc.demo.seckill.web;
 
 import io.servicecomb.poc.demo.seckill.Coupon;
 import io.servicecomb.poc.demo.seckill.Promotion;
-import io.servicecomb.poc.demo.seckill.SeckillEventLoader;
-import java.util.List;
+import io.servicecomb.poc.demo.seckill.SecKillEventPoller;
+import java.util.Collection;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,22 +30,22 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/query")
-public class SeckillQueryRestControl {
+public class SeckillQueryRestController {
 
-  private static final Logger logger = LoggerFactory.getLogger(SeckillQueryRestControl.class);
+  private static final Logger logger = LoggerFactory.getLogger(SeckillQueryRestController.class);
 
   @Autowired
-  private SeckillEventLoader seckillEventLoader;
+  private SecKillEventPoller secKillEventPoller;
 
-  @RequestMapping(method = RequestMethod.GET,value = "/coupons/{customerId}")
-  public List<Coupon> querySuccess(@PathVariable("customerId") String customerId) {
-    logger.info("Query customer id = {} coupons",customerId);
-    return seckillEventLoader.getCustomerCoupons(customerId);
+  @RequestMapping(method = RequestMethod.GET, value = "/coupons/{customerId}")
+  public Collection<Coupon> querySuccess(@PathVariable("customerId") String customerId) {
+    logger.info("Query customer id = {} coupons", customerId);
+    return secKillEventPoller.getCustomerCoupons(customerId);
   }
 
-  @RequestMapping(method = RequestMethod.GET,value = "/promotions")
-  public List<Promotion> queryCurrent() {
+  @RequestMapping(method = RequestMethod.GET, value = "/promotions")
+  public Collection<Promotion> queryCurrent() {
     logger.info("Query current active promotions");
-    return seckillEventLoader.getActivePromotions();
+    return secKillEventPoller.getActivePromotions();
   }
 }

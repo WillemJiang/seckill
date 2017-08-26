@@ -16,7 +16,9 @@
 
 package io.servicecomb.poc.demo.seckill;
 
+import io.servicecomb.poc.demo.seckill.event.PromotionEvent;
 import io.servicecomb.poc.demo.seckill.repositories.PromotionEventRepository;
+import io.servicecomb.poc.demo.seckill.repositories.PromotionEventRepositoryImpl;
 import io.servicecomb.poc.demo.seckill.repositories.PromotionRepository;
 import io.servicecomb.poc.demo.seckill.repositories.SpringBasedPromotionEventRepository;
 import java.util.HashMap;
@@ -25,6 +27,7 @@ import java.util.List;
 import java.util.Map;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.data.repository.PagingAndSortingRepository;
 
 @Configuration
 class SecKillConfig {
@@ -40,8 +43,15 @@ class SecKillConfig {
   }
 
   @Bean
+  PromotionEventRepository<String> promotionEventRepository(
+      PagingAndSortingRepository<PromotionEvent<String>, Integer> repository) {
+
+    return new PromotionEventRepositoryImpl<>(repository);
+  }
+
+  @Bean
   SecKillPromotionBootstrap secKillPromotionBootstrap(PromotionRepository promotionRepository,
-      PromotionEventRepository eventRepository,
+      PromotionEventRepository<String> eventRepository,
       Map<String, SecKillCommandService<String>> commandServices,
       List<SecKillPersistentRunner<String>> persistentRunners,
       SecKillRecoveryService recoveryService) {

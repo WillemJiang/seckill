@@ -18,6 +18,6 @@ package io.servicecomb.poc.demo.seckill.repositories;
 
 import io.servicecomb.poc.demo.seckill.event.PromotionEvent;
 
-public interface PromotionEventRepository {
-  PromotionEvent<String> save(PromotionEvent<String> item);
+public interface PromotionEventRepository<T> {
+  void save(PromotionEvent<T> item);
 }
