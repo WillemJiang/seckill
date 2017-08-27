@@ -17,6 +17,7 @@
 package io.servicecomb.poc.demo.seckill.repositories;
 
 import io.servicecomb.poc.demo.seckill.Promotion;
+import java.util.Collection;
 import java.util.List;
 import org.springframework.data.repository.PagingAndSortingRepository;
 
@@ -24,4 +25,6 @@ public interface PromotionRepository extends PagingAndSortingRepository<Promotio
   List<Promotion> findByIdGreaterThan(int id);
 
   Promotion findTopByPromotionId(String promotionId);
+
+  List<Promotion> findByPromotionIdIn(Collection<String> promotionId);
 }

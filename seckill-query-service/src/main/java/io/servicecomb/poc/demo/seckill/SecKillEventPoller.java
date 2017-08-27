@@ -23,6 +23,7 @@ import io.servicecomb.poc.demo.seckill.event.PromotionEventType;
 import io.servicecomb.poc.demo.seckill.repositories.PromotionRepository;
 import io.servicecomb.poc.demo.seckill.repositories.SpringBasedPromotionEventRepository;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Queue;
@@ -73,7 +74,7 @@ public class SecKillEventPoller<T> {
   }
 
   private void populatePromotionEvents(List<PromotionEvent<T>> promotionEvents) {
-    Set<String> newActivePromotionIds = ConcurrentHashMap.newKeySet();
+    Set<String> newActivePromotionIds = new HashSet<>();
     for (PromotionEvent<T> promotionEvent : promotionEvents) {
       if (PromotionEventType.Grab.equals(promotionEvent.getType())) {
         customerCoupons.computeIfAbsent(promotionEvent.getCustomerId(), id -> new ConcurrentLinkedQueue<>())
@@ -94,11 +95,9 @@ public class SecKillEventPoller<T> {
     }
 
     //add new active promotion to cache together
-    if (newActivePromotionIds.size() != 0) {
-      for (String activePromotionId : newActivePromotionIds) {
-        Promotion activePromotion = promotionRepository.findTopByPromotionId(activePromotionId);
-        activePromotions.put(activePromotion.getPromotionId(), activePromotion);
-      }
+    if (!newActivePromotionIds.isEmpty()) {
+      promotionRepository.findByPromotionIdIn(newActivePromotionIds)
+          .forEach(promotion -> activePromotions.put(promotion.getPromotionId(), promotion));
     }
   }
 }
