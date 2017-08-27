@@ -40,6 +40,7 @@ public class SecKillEventPoller<T> {
   private final Map<T, Queue<Coupon<T>>> customerCoupons = new ConcurrentHashMap<>();
   private final Map<String, Promotion> activePromotions = new ConcurrentHashMap<>();
   private final int pollingInterval;
+  private int loadedPromotionEventId = 0;
 
   SecKillEventPoller(
       SpringBasedPromotionEventRepository<T> promotionEventRepository,
@@ -53,14 +54,9 @@ public class SecKillEventPoller<T> {
   void reloadEventsScheduler() {
     ScheduledExecutorService executor = Executors.newScheduledThreadPool(1);
     executor.scheduleWithFixedDelay(
-        new Runnable() {
-          private int lastPromotionEventId = 0;
-
-          @Override
-          public void run() {
-            List<PromotionEvent<T>> promotionEvents = promotionEventRepository.findByIdGreaterThan(lastPromotionEventId);
-            populateNewPromotionsAndGrabbedCoupons(promotionEvents);
-          }
+        () -> {
+          List<PromotionEvent<T>> promotionEvents = promotionEventRepository.findByIdGreaterThan(loadedPromotionEventId);
+          populatePromotionEvents(promotionEvents);
         },
         0,
         pollingInterval,
@@ -76,7 +72,7 @@ public class SecKillEventPoller<T> {
     return activePromotions.values();
   }
 
-  private void populateNewPromotionsAndGrabbedCoupons(List<PromotionEvent<T>> promotionEvents) {
+  private void populatePromotionEvents(List<PromotionEvent<T>> promotionEvents) {
     Set<String> newActivePromotionIds = ConcurrentHashMap.newKeySet();
     for (PromotionEvent<T> promotionEvent : promotionEvents) {
       if (PromotionEventType.Grab.equals(promotionEvent.getType())) {
@@ -94,6 +90,7 @@ public class SecKillEventPoller<T> {
         activePromotions.remove(promotionEvent.getPromotionId());
         newActivePromotionIds.remove(promotionEvent.getPromotionId());
       }
+      loadedPromotionEventId = promotionEvent.getId();
     }
 
     //add new active promotion to cache together
