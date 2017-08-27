@@ -16,8 +16,6 @@
 
 package io.servicecomb.poc.demo.seckill;
 
-import static io.servicecomb.poc.demo.seckill.event.PromotionEventType.Finish;
-import static io.servicecomb.poc.demo.seckill.event.PromotionEventType.Grab;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 
 import io.servicecomb.poc.demo.seckill.event.PromotionEvent;
@@ -28,6 +26,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Queue;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.Executors;
@@ -60,15 +59,7 @@ public class SecKillEventPoller<T> {
           @Override
           public void run() {
             List<PromotionEvent<T>> promotionEvents = promotionEventRepository.findByIdGreaterThan(lastPromotionEventId);
-
-            removeFinishedPromotions(promotionEvents);
-
-            for (PromotionEvent<T> promotionEvent : promotionEvents) {
-              populateNewPromotions(promotionEvent);
-              populateGrabbedCoupons(promotionEvent);
-
-              lastPromotionEventId = promotionEvent.getId();
-            }
+            populateNewPromotionsAndGrabbedCoupons(promotionEvents);
           }
         },
         0,
@@ -85,36 +76,30 @@ public class SecKillEventPoller<T> {
     return activePromotions.values();
   }
 
-  private void populateGrabbedCoupons(PromotionEvent<T> promotionEvent) {
-    if (Grab.equals(promotionEvent.getType())) {
-      customerCoupons.computeIfAbsent(promotionEvent.getCustomerId(), id -> new ConcurrentLinkedQueue<>())
-          .add(new Coupon<>(
-              promotionEvent.getId(),
-              promotionEvent.getPromotionId(),
-              promotionEvent.getTime(),
-              promotionEvent.getDiscount(),
-              promotionEvent.getCustomerId())
-          );
+  private void populateNewPromotionsAndGrabbedCoupons(List<PromotionEvent<T>> promotionEvents) {
+    Set<String> newActivePromotionIds = ConcurrentHashMap.newKeySet();
+    for (PromotionEvent<T> promotionEvent : promotionEvents) {
+      if (PromotionEventType.Grab.equals(promotionEvent.getType())) {
+        customerCoupons.computeIfAbsent(promotionEvent.getCustomerId(), id -> new ConcurrentLinkedQueue<>())
+            .add(new Coupon<>(
+                promotionEvent.getId(),
+                promotionEvent.getPromotionId(),
+                promotionEvent.getTime(),
+                promotionEvent.getDiscount(),
+                promotionEvent.getCustomerId())
+            );
+      } else if (PromotionEventType.Start.equals(promotionEvent.getType())) {
+        newActivePromotionIds.add(promotionEvent.getPromotionId());
+      } else if (PromotionEventType.Finish.equals(promotionEvent.getType())) {
+        activePromotions.remove(promotionEvent.getPromotionId());
+        newActivePromotionIds.remove(promotionEvent.getPromotionId());
+      }
     }
-  }
 
-  private void removeFinishedPromotions(List<PromotionEvent<T>> promotionEvents) {
-    promotionEvents.stream()
-        .filter(promotionEvent -> promotionEvent.getType().equals(PromotionEventType.Finish))
-        .forEach(promotionEvent -> activePromotions.remove(promotionEvent.getPromotionId()));
-  }
-
-  private void populateNewPromotions(PromotionEvent promotionEvent) {
-    String currentPromotionId = promotionEvent.getPromotionId();
-
-    // TODO: 8/26/2017 can we do with a single query?
-    PromotionEvent startEvent = promotionEventRepository.findTopByPromotionIdAndTypeOrderByIdDesc(
-        currentPromotionId, PromotionEventType.Start);
-    if (startEvent != null) {
-      PromotionEvent finishEvent = promotionEventRepository.findTopByPromotionIdAndTypeOrderByIdDesc(
-          currentPromotionId, Finish);
-      if (finishEvent == null) {
-        Promotion activePromotion = promotionRepository.findTopByPromotionId(currentPromotionId);
+    //add new active promotion to cache together
+    if (newActivePromotionIds.size() != 0) {
+      for (String activePromotionId : newActivePromotionIds) {
+        Promotion activePromotion = promotionRepository.findTopByPromotionId(activePromotionId);
         activePromotions.put(activePromotion.getPromotionId(), activePromotion);
       }
     }

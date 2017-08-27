@@ -23,8 +23,5 @@ import org.springframework.data.repository.PagingAndSortingRepository;
 public interface SpringBasedPromotionEventRepository<T> extends PagingAndSortingRepository<PromotionEvent<T>, Integer> {
 
   List<PromotionEvent<T>> findByPromotionId(String promotionId);
-
-  PromotionEvent<T> findTopByPromotionIdAndTypeOrderByIdDesc(String promotionId, String type);
-
   List<PromotionEvent<T>> findByIdGreaterThan(int id);
 }
