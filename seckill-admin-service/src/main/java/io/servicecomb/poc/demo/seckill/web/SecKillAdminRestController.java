@@ -43,11 +43,11 @@ public class SecKillAdminRestController {
   private static final Logger logger = LoggerFactory.getLogger(SecKillAdminRestController.class);
 
   private final PromotionRepository promotionRepository;
-  private final SpringBasedPromotionEventRepository eventRepository;
+  private final SpringBasedPromotionEventRepository<String> eventRepository;
 
   @Autowired
   public SecKillAdminRestController(PromotionRepository promotionRepository,
-      SpringBasedPromotionEventRepository eventRepository) {
+      SpringBasedPromotionEventRepository<String> eventRepository) {
     this.promotionRepository = promotionRepository;
     this.eventRepository = eventRepository;
   }

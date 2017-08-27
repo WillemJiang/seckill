@@ -33,17 +33,17 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 
-public class SecKillEventPoller {
+public class SecKillEventPoller<T> {
 
-  private final SpringBasedPromotionEventRepository promotionEventRepository;
+  private final SpringBasedPromotionEventRepository<T> promotionEventRepository;
   private final PromotionRepository promotionRepository;
 
-  private final Map<String, Queue<Coupon>> customerCoupons = new ConcurrentHashMap<>();
+  private final Map<T, Queue<Coupon<T>>> customerCoupons = new ConcurrentHashMap<>();
   private final Map<String, Promotion> activePromotions = new ConcurrentHashMap<>();
   private final int pollingInterval;
 
   SecKillEventPoller(
-      SpringBasedPromotionEventRepository promotionEventRepository,
+      SpringBasedPromotionEventRepository<T> promotionEventRepository,
       PromotionRepository promotionRepository,
       int pollingInterval) {
     this.promotionEventRepository = promotionEventRepository;
@@ -59,11 +59,11 @@ public class SecKillEventPoller {
 
           @Override
           public void run() {
-            List<PromotionEvent> promotionEvents = promotionEventRepository.findByIdGreaterThan(lastPromotionEventId);
+            List<PromotionEvent<T>> promotionEvents = promotionEventRepository.findByIdGreaterThan(lastPromotionEventId);
 
             removeFinishedPromotions(promotionEvents);
 
-            for (PromotionEvent promotionEvent : promotionEvents) {
+            for (PromotionEvent<T> promotionEvent : promotionEvents) {
               populateNewPromotions(promotionEvent);
               populateGrabbedCoupons(promotionEvent);
 
@@ -77,7 +77,7 @@ public class SecKillEventPoller {
     );
   }
 
-  public Collection<Coupon> getCustomerCoupons(String customerId) {
+  public Collection<Coupon<T>> getCustomerCoupons(T customerId) {
     return customerCoupons.get(customerId);
   }
 
@@ -85,9 +85,9 @@ public class SecKillEventPoller {
     return activePromotions.values();
   }
 
-  private void populateGrabbedCoupons(PromotionEvent promotionEvent) {
+  private void populateGrabbedCoupons(PromotionEvent<T> promotionEvent) {
     if (Grab.equals(promotionEvent.getType())) {
-      customerCoupons.computeIfAbsent(promotionEvent.getCustomerId().toString(), id -> new ConcurrentLinkedQueue<>())
+      customerCoupons.computeIfAbsent(promotionEvent.getCustomerId(), id -> new ConcurrentLinkedQueue<>())
           .add(new Coupon<>(
               promotionEvent.getId(),
               promotionEvent.getPromotionId(),
@@ -98,7 +98,7 @@ public class SecKillEventPoller {
     }
   }
 
-  private void removeFinishedPromotions(List<PromotionEvent> promotionEvents) {
+  private void removeFinishedPromotions(List<PromotionEvent<T>> promotionEvents) {
     promotionEvents.stream()
         .filter(promotionEvent -> promotionEvent.getType().equals(PromotionEventType.Finish))
         .forEach(promotionEvent -> activePromotions.remove(promotionEvent.getPromotionId()));

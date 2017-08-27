@@ -27,7 +27,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.servicecomb.poc.demo.CommandServiceApplication;
 import io.servicecomb.poc.demo.seckill.dto.CouponDto;
 import io.servicecomb.poc.demo.seckill.repositories.PromotionEventRepository;
-import io.servicecomb.poc.demo.seckill.repositories.SpringBasedPromotionEventRepository;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -67,14 +66,14 @@ public class SecKillCommandApplicationTest {
   private PromotionEventRepository<String> eventRepository;
 
   @Autowired
-  private SecKillRecoveryService recoveryService;
+  private SecKillRecoveryService<String> recoveryService;
 
   @Before
   public void setUp() throws Exception {
     this.persistentRunners.clear();
     this.commandServices.clear();
 
-    SecKillRecoveryCheckResult recoveryInfo = recoveryService.check(promotion);
+    SecKillRecoveryCheckResult<String> recoveryInfo = recoveryService.check(promotion);
     AtomicInteger claimedCoupons = new AtomicInteger();
     BlockingQueue<String> couponQueue = new ArrayBlockingQueue<>(recoveryInfo.remainingCoupons());
 

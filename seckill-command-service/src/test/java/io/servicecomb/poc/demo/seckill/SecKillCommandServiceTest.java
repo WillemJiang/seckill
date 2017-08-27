@@ -41,7 +41,7 @@ public class SecKillCommandServiceTest {
   private final BlockingQueue<Integer> coupons = new ArrayBlockingQueue<>(numberOfCoupons);
   private final AtomicInteger claimedCoupons = new AtomicInteger();
 
-  private final SecKillRecoveryCheckResult recovery = new SecKillRecoveryCheckResult(numberOfCoupons);
+  private final SecKillRecoveryCheckResult<Integer> recovery = new SecKillRecoveryCheckResult<>(numberOfCoupons);
   private final SecKillCommandService<Integer> commandService = new SecKillCommandService<>(coupons, claimedCoupons, recovery);
 
   private final AtomicInteger customerIdGenerator = new AtomicInteger();

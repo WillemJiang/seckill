@@ -38,7 +38,7 @@ public class SecKillPromotionBootstrap<T> {
   private final PromotionEventRepository<T> eventRepository;
   private final Map<String, SecKillCommandService<T>> commandServices;
   private final List<SecKillPersistentRunner<T>> persistentRunners;
-  private final SecKillRecoveryService recoveryService;
+  private final SecKillRecoveryService<T> recoveryService;
 
   private final ScheduledExecutorService executorService = Executors.newScheduledThreadPool(1);
   private int loadedPromotionId = 0;
@@ -49,7 +49,7 @@ public class SecKillPromotionBootstrap<T> {
       PromotionEventRepository<T> eventRepository,
       Map<String, SecKillCommandService<T>> commandServices,
       List<SecKillPersistentRunner<T>> persistentRunners,
-      SecKillRecoveryService recoveryService) {
+      SecKillRecoveryService<T> recoveryService) {
     this.promotionRepository = promotionRepository;
     this.eventRepository = eventRepository;
     this.commandServices = commandServices;
@@ -86,7 +86,7 @@ public class SecKillPromotionBootstrap<T> {
   private void startUpPromotion(Promotion promotion) {
     AtomicInteger claimedCoupons = new AtomicInteger();
     BlockingQueue<T> couponQueue = new ArrayBlockingQueue<>(promotion.getNumberOfCoupons());
-    SecKillRecoveryCheckResult recoveryInfo = recoveryService.check(promotion);
+    SecKillRecoveryCheckResult<T> recoveryInfo = recoveryService.check(promotion);
     SecKillPersistentRunner<T> persistentRunner = new SecKillPersistentRunner<>(promotion,
         couponQueue,
         claimedCoupons,

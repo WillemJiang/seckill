@@ -54,7 +54,7 @@ class SecKillConfig {
       PromotionEventRepository<String> eventRepository,
       Map<String, SecKillCommandService<String>> commandServices,
       List<SecKillPersistentRunner<String>> persistentRunners,
-      SecKillRecoveryService recoveryService) {
+      SecKillRecoveryService<String> recoveryService) {
     SecKillPromotionBootstrap<String> promotionBootstrap = new SecKillPromotionBootstrap<>(promotionRepository,
         eventRepository,
         commandServices,
@@ -64,7 +64,7 @@ class SecKillConfig {
   }
 
   @Bean
-  SecKillRecoveryService secKillRecoveryService(SpringBasedPromotionEventRepository promotionEventRepository) {
-    return new SecKillRecoveryService(promotionEventRepository);
+  SecKillRecoveryService<String> secKillRecoveryService(SpringBasedPromotionEventRepository<String> promotionEventRepository) {
+    return new SecKillRecoveryService<String>(promotionEventRepository);
   }
 }

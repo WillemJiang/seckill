@@ -58,7 +58,7 @@ public class SecKillQueryServiceApplicationTest {
   private PromotionRepository promotionRepository;
 
   @Autowired
-  private SpringBasedPromotionEventRepository promotionEventRepository;
+  private SpringBasedPromotionEventRepository<String> promotionEventRepository;
 
   @Autowired
   private MockMvc mockMvc;

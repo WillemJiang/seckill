@@ -19,11 +19,11 @@ package io.servicecomb.poc.demo.seckill;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
-public class SecKillRecoveryCheckResult {
+public class SecKillRecoveryCheckResult<T> {
   private final boolean startEventAvailable;
   private final boolean finishEventAvailable;
   private final int remainingCoupons;
-  private final Set<String> claimedCustomers;
+  private final Set<T> claimedCustomers;
 
   public boolean isStarted() {
     return startEventAvailable;
@@ -37,7 +37,7 @@ public class SecKillRecoveryCheckResult {
     return finishEventAvailable;
   }
 
-  public Set<String> getClaimedCustomers() {
+  public Set<T> getClaimedCustomers() {
     return claimedCustomers;
   }
 
@@ -49,7 +49,7 @@ public class SecKillRecoveryCheckResult {
   }
 
   public SecKillRecoveryCheckResult(boolean startEventAvailable, boolean finishEventAvailable, int remainingCoupons,
-      Set<String> claimedCustomers) {
+      Set<T> claimedCustomers) {
     this.startEventAvailable = startEventAvailable;
     this.finishEventAvailable = finishEventAvailable;
     this.remainingCoupons = remainingCoupons;

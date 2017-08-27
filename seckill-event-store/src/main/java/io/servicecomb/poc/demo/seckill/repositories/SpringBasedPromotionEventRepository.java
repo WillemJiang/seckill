@@ -20,11 +20,11 @@ import io.servicecomb.poc.demo.seckill.event.PromotionEvent;
 import java.util.List;
 import org.springframework.data.repository.PagingAndSortingRepository;
 
-public interface SpringBasedPromotionEventRepository extends PagingAndSortingRepository<PromotionEvent<String>, Integer> {
+public interface SpringBasedPromotionEventRepository<T> extends PagingAndSortingRepository<PromotionEvent<T>, Integer> {
 
-  List<PromotionEvent<String>> findByPromotionId(String promotionId);
+  List<PromotionEvent<T>> findByPromotionId(String promotionId);
 
-  PromotionEvent<String> findTopByPromotionIdAndTypeOrderByIdDesc(String promotionId, String type);
+  PromotionEvent<T> findTopByPromotionIdAndTypeOrderByIdDesc(String promotionId, String type);
 
-  List<PromotionEvent> findByIdGreaterThan(int id);
+  List<PromotionEvent<T>> findByIdGreaterThan(int id);
 }
