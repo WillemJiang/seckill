@@ -74,7 +74,7 @@ public class SecKillQueryServiceApplicationTest {
     addCouponToCustomer(customerId, promotion1);
     addCouponToCustomer("unknown", promotion2);
 
-    Thread.sleep(300);
+    Thread.sleep(1000);
 
     mockMvc.perform(get("/query/coupons/{customerId}", customerId).contentType(APPLICATION_JSON))
         .andExpect(status().isOk())
@@ -87,7 +87,7 @@ public class SecKillQueryServiceApplicationTest {
 
     addCouponToCustomer(customerId, promotion3);
 
-    Thread.sleep(300);
+    Thread.sleep(1000);
 
     mockMvc.perform(get("/query/coupons/{customerId}", customerId).contentType(APPLICATION_JSON))
         .andExpect(status().isOk())
