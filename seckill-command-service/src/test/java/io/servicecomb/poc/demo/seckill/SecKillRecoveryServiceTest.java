@@ -40,9 +40,9 @@ public class SecKillRecoveryServiceTest {
   private final Promotion runningPromotion = new Promotion(new Date(), 5, 0.7f);
   private final Promotion endedPromotion = new Promotion(new Date(), 5, 0.7f);
 
-  private SpringBasedPromotionEventRepository repository = mock(SpringBasedPromotionEventRepository.class);
+  private SpringBasedPromotionEventRepository<String> repository = mock(SpringBasedPromotionEventRepository.class);
 
-  private SecKillRecoveryService recoveryService = new SecKillRecoveryService(repository);
+  private SecKillRecoveryService<String> recoveryService = new SecKillRecoveryService<String>(repository);
 
   @Before
   public void setup() {
@@ -67,7 +67,7 @@ public class SecKillRecoveryServiceTest {
 
   @Test
   public void unstartPromotionCheck() {
-    SecKillRecoveryCheckResult result = recoveryService.check(unpublishedPromotion);
+    SecKillRecoveryCheckResult<String> result = recoveryService.check(unpublishedPromotion);
     assertThat(result.isStarted(), is(false));
     assertThat(result.isFinished(), is(false));
     assertThat(result.remainingCoupons(), is(unpublishedPromotion.getNumberOfCoupons()));
@@ -76,7 +76,7 @@ public class SecKillRecoveryServiceTest {
 
   @Test
   public void recoverPromotionCheck() {
-    SecKillRecoveryCheckResult result = recoveryService.check(runningPromotion);
+    SecKillRecoveryCheckResult<String> result = recoveryService.check(runningPromotion);
     assertThat(result.isStarted(), is(true));
     assertThat(result.isFinished(), is(false));
     assertThat(result.remainingCoupons(), is(runningPromotion.getNumberOfCoupons() - 1));
@@ -85,7 +85,7 @@ public class SecKillRecoveryServiceTest {
 
   @Test
   public void finishPromotionCheck() {
-    SecKillRecoveryCheckResult result = recoveryService.check(endedPromotion);
+    SecKillRecoveryCheckResult<String> result = recoveryService.check(endedPromotion);
     assertThat(result.isStarted(), is(true));
     assertThat(result.isFinished(), is(true));
     assertThat(result.remainingCoupons(), is(0));

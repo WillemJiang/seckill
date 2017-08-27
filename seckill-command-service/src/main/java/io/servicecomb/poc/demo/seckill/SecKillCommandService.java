@@ -23,18 +23,18 @@ public class SecKillCommandService<T> {
 
   private final Queue<T> couponQueue;
   private final AtomicInteger claimedCoupons;
-  private final SecKillRecoveryCheckResult recoveryInfo;
+  private final SecKillRecoveryCheckResult<T> recoveryInfo;
 
   public SecKillCommandService(Queue<T> couponQueue,
       AtomicInteger claimedCoupons,
-      SecKillRecoveryCheckResult recoveryInfo) {
+      SecKillRecoveryCheckResult<T> recoveryInfo) {
     this.couponQueue = couponQueue;
     this.claimedCoupons = claimedCoupons;
     this.recoveryInfo = recoveryInfo;
   }
 
   public SecKillGrabResult addCouponTo(T customerId) {
-    if (recoveryInfo.getClaimedCustomers().add(customerId.toString())) {
+    if (recoveryInfo.getClaimedCustomers().add(customerId)) {
       if (claimedCoupons.getAndIncrement() < recoveryInfo.remainingCoupons()) {
         return couponQueue.offer(customerId) ? SecKillGrabResult.Success : SecKillGrabResult.Failed;
       }

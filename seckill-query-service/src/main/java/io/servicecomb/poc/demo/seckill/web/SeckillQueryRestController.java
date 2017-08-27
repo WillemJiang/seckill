@@ -35,10 +35,10 @@ public class SeckillQueryRestController {
   private static final Logger logger = LoggerFactory.getLogger(SeckillQueryRestController.class);
 
   @Autowired
-  private SecKillEventPoller secKillEventPoller;
+  private SecKillEventPoller<String> secKillEventPoller;
 
   @RequestMapping(method = RequestMethod.GET, value = "/coupons/{customerId}")
-  public Collection<Coupon> querySuccess(@PathVariable("customerId") String customerId) {
+  public Collection<Coupon<String>> querySuccess(@PathVariable("customerId") String customerId) {
     logger.info("Query customer id = {} coupons", customerId);
     return secKillEventPoller.getCustomerCoupons(customerId);
   }

@@ -24,22 +24,22 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
-public class SecKillRecoveryService {
+public class SecKillRecoveryService<T> {
 
-  private final SpringBasedPromotionEventRepository repository;
+  private final SpringBasedPromotionEventRepository<T> repository;
 
-  public SecKillRecoveryService(SpringBasedPromotionEventRepository repository) {
+  public SecKillRecoveryService(SpringBasedPromotionEventRepository<T> repository) {
     this.repository = repository;
   }
 
-  public SecKillRecoveryCheckResult check(Promotion promotion) {
-    List<PromotionEvent<String>> events = this.repository.findByPromotionId(promotion.getPromotionId());
+  public SecKillRecoveryCheckResult<T> check(Promotion promotion) {
+    List<PromotionEvent<T>> events = this.repository.findByPromotionId(promotion.getPromotionId());
     if (!events.isEmpty()) {
       long count = events.stream()
           .filter(event -> PromotionEventType.Grab.equals(event.getType()))
           .count();
 
-      Set<String> claimedCustomers = ConcurrentHashMap.newKeySet();
+      Set<T> claimedCustomers = ConcurrentHashMap.newKeySet();
       claimedCustomers.addAll(events.stream()
           .filter(event -> PromotionEventType.Grab.equals(event.getType()))
           .map(PromotionEvent::getCustomerId)
@@ -47,9 +47,9 @@ public class SecKillRecoveryService {
 
 
       boolean isFinished = events.stream().anyMatch(event -> PromotionEventType.Finish.equals(event.getType()));
-      return new SecKillRecoveryCheckResult(true, isFinished,
+      return new SecKillRecoveryCheckResult<>(true, isFinished,
           promotion.getNumberOfCoupons() - (int) count, claimedCustomers);
     }
-    return new SecKillRecoveryCheckResult(promotion.getNumberOfCoupons());
+    return new SecKillRecoveryCheckResult<>(promotion.getNumberOfCoupons());
   }
 }
