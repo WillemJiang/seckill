@@ -32,7 +32,7 @@ import io.servicecomb.poc.demo.seckill.repositories.PromotionRepository;
 import io.servicecomb.poc.demo.seckill.repositories.SpringBasedPromotionEventRepository;
 import java.time.ZonedDateTime;
 import java.util.Date;
-import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -63,8 +63,8 @@ public class SecKillQueryServiceApplicationTest {
   @Autowired
   private MockMvc mockMvc;
 
-  @After
-  public void tearDown() throws Exception {
+  @Before
+  public void setUp() throws Exception {
     promotionEventRepository.deleteAll();
     promotionRepository.deleteAll();
   }
@@ -74,7 +74,7 @@ public class SecKillQueryServiceApplicationTest {
     addCouponToCustomer(customerId, promotion1);
     addCouponToCustomer("unknown", promotion2);
 
-    Thread.sleep(1000);
+    Thread.sleep(300);
 
     mockMvc.perform(get("/query/coupons/{customerId}", customerId).contentType(APPLICATION_JSON))
         .andExpect(status().isOk())
@@ -87,7 +87,7 @@ public class SecKillQueryServiceApplicationTest {
 
     addCouponToCustomer(customerId, promotion3);
 
-    Thread.sleep(1000);
+    Thread.sleep(300);
 
     mockMvc.perform(get("/query/coupons/{customerId}", customerId).contentType(APPLICATION_JSON))
         .andExpect(status().isOk())
