@@ -7,7 +7,7 @@
   <groupId>io.servicecomb.poc.demo</groupId>
   <artifactId>seckill</artifactId>
   <packaging>pom</packaging>
-  <version>0.0.1-SNAPSHOT</version>
+  <version>0.1.0-RELEASE</version>
 
   <modules>
     <module>seckill-event-store</module>
@@ -36,31 +36,24 @@
   <dependencyManagement>
     <dependencies>
       <dependency>
-        <groupId>io.servicecomb</groupId>
-        <artifactId>java-chassis-dependencies</artifactId>
-        <version>0.1.1-SNAPSHOT</version>
-        <type>pom</type>
-        <scope>import</scope>
-      </dependency>
-      <dependency>
         <groupId>io.servicecomb.poc.demo</groupId>
         <artifactId>seckill-event-store</artifactId>
-        <version>0.0.1-SNAPSHOT</version>
+        <version>0.1.0-RELEASE</version>
       </dependency>
       <dependency>
         <groupId>io.servicecomb.poc.demo</groupId>
         <artifactId>seckill-command-service</artifactId>
-        <version>0.0.1-SNAPSHOT</version>
+        <version>0.1.0-RELEASE</version>
       </dependency>
       <dependency>
         <groupId>io.servicecomb.poc.demo</groupId>
         <artifactId>seckill-admin-service</artifactId>
-        <version>0.0.1-SNAPSHOT</version>
+        <version>0.1.0-RELEASE</version>
       </dependency>
       <dependency>
         <groupId>io.servicecomb.poc.demo</groupId>
         <artifactId>seckill-query-service</artifactId>
-        <version>0.0.1-SNAPSHOT</version>
+        <version>0.1.0-RELEASE</version>
       </dependency>
       <dependency>
         <groupId>commons-io</groupId>
