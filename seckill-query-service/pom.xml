@@ -17,7 +17,18 @@
       <groupId>io.servicecomb.poc.demo</groupId>
       <artifactId>seckill-event-store</artifactId>
     </dependency>
-
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-web</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-data-jpa</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>com.h2database</groupId>
+      <artifactId>h2</artifactId>
+    </dependency>
     <dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
@@ -27,41 +38,25 @@
       <artifactId>spring-boot-starter-test</artifactId>
     </dependency>
     <dependency>
-      <groupId>org.springframework.boot</groupId>
-      <artifactId>spring-boot-starter-web</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>io.servicecomb</groupId>
-      <artifactId>spring-boot-starter-provider</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>io.servicecomb</groupId>
-      <artifactId>handler-tracing-zipkin</artifactId>
-    </dependency>
-    <dependency>
       <groupId>org.awaitility</groupId>
       <artifactId>awaitility</artifactId>
     </dependency>
-      <dependency>
-          <groupId>io.servicecomb.poc.demo</groupId>
-          <artifactId>seckill-event-store</artifactId>
-          <scope>test</scope>
-      </dependency>
-    <dependency>
-      <groupId>io.servicecomb.poc.demo</groupId>
-      <artifactId>seckill-event-store</artifactId>
-    </dependency>
-
   </dependencies>
 
   <build>
     <plugins>
-      <!-- mixin plugin configurations declared in another pom,
-      just like importing dependencies managed in another pom -->
       <plugin>
         <groupId>com.github.odavid.maven.plugins</groupId>
         <artifactId>mixin-maven-plugin</artifactId>
-        <extensions>true</extensions>
+        <configuration>
+          <mixins>
+            <mixin>
+              <groupId>io.servicecomb.poc.demo</groupId>
+              <artifactId>docker-build-config</artifactId>
+              <version>0.0.1-SNAPSHOT</version>
+            </mixin>
+          </mixins>
+        </configuration>
       </plugin>
       <plugin>
         <groupId>org.springframework.boot</groupId>
@@ -69,5 +64,23 @@
       </plugin>
     </plugins>
   </build>
+
+  <profiles>
+    <profile>
+      <id>docker</id>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>io.fabric8</groupId>
+            <artifactId>docker-maven-plugin</artifactId>
+          </plugin>
+          <plugin>
+            <groupId>org.commonjava.maven.plugins</groupId>
+            <artifactId>directory-maven-plugin</artifactId>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+  </profiles>
 
 </project>
