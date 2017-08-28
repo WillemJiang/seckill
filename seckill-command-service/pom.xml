@@ -5,7 +5,7 @@
   <parent>
     <artifactId>seckill</artifactId>
     <groupId>io.servicecomb.poc.demo</groupId>
-    <version>0.0.1-SNAPSHOT</version>
+    <version>0.1.0-RELEASE</version>
   </parent>
   <modelVersion>4.0.0</modelVersion>
 
@@ -52,7 +52,7 @@
             <mixin>
               <groupId>io.servicecomb.poc.demo</groupId>
               <artifactId>docker-build-config</artifactId>
-              <version>0.0.1-SNAPSHOT</version>
+              <version>0.1.0-RELEASE</version>
             </mixin>
           </mixins>
         </configuration>
