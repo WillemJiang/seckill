@@ -51,9 +51,9 @@ public class SecKillPersistentRunnerTest {
   private final AtomicInteger claimedCoupons = new AtomicInteger();
 
   @Test
-  public void persistsCouponUsingRepo() {
+  public void persistsCouponUsingRepo() throws InterruptedException {
     Promotion promotion = new Promotion(new Date(), numberOfCoupons, 0.7f);
-    SecKillRecoveryCheckResult<String> recovery = new SecKillRecoveryCheckResult<String>(numberOfCoupons);
+    SecKillRecoveryCheckResult<String> recovery = new SecKillRecoveryCheckResult<>(numberOfCoupons);
     SecKillPersistentRunner<String> runner = new SecKillPersistentRunner<>(promotion, coupons, claimedCoupons,
         repository, recovery);
 
@@ -65,6 +65,8 @@ public class SecKillPersistentRunnerTest {
     waitAtMost(2, SECONDS).until(coupons::isEmpty);
     assertThat(customerIds, contains("0", "1", "2", "3", "4"));
 
+    Thread.sleep(300);
+
     assertThat(isPromotionEnded, is(true));
   }
 
@@ -74,7 +76,7 @@ public class SecKillPersistentRunnerTest {
     ZonedDateTime publishTime = ZonedDateTime.now();
 
     Promotion promotion = new Promotion(dateOf(publishTime), dateOf(publishTime.plusSeconds(delaySeconds)), numberOfCoupons, 0.7f);
-    SecKillRecoveryCheckResult<String> recovery = new SecKillRecoveryCheckResult<String>(numberOfCoupons);
+    SecKillRecoveryCheckResult<String> recovery = new SecKillRecoveryCheckResult<>(numberOfCoupons);
     SecKillPersistentRunner<String> runner = new SecKillPersistentRunner<>(promotion, coupons, claimedCoupons,
         repository, recovery);
 
@@ -89,7 +91,7 @@ public class SecKillPersistentRunnerTest {
   @Test
   public void exitsWhenAllCouponsConsumed() throws Exception {
     Promotion promotion = new Promotion(new Date(), numberOfCoupons, 0.7f);
-    SecKillRecoveryCheckResult<String> recovery = new SecKillRecoveryCheckResult<String>(numberOfCoupons);
+    SecKillRecoveryCheckResult<String> recovery = new SecKillRecoveryCheckResult<>(numberOfCoupons);
     SecKillPersistentRunner<String> runner = new SecKillPersistentRunner<>(promotion, coupons, claimedCoupons,
         repository, recovery);
     runner.run();
@@ -103,6 +105,8 @@ public class SecKillPersistentRunnerTest {
 
     waitAtMost(2, SECONDS).until(coupons::isEmpty);
     assertThat(customerIds, contains("0", "1", "2", "3", "4"));
+
+    Thread.sleep(300);
 
     assertThat(isPromotionEnded, is(true));
   }
