@@ -19,12 +19,12 @@ package io.servicecomb.poc.demo.seckill.web;
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
 import static org.springframework.http.HttpStatus.OK;
 
-import io.servicecomb.poc.demo.seckill.Promotion;
 import io.servicecomb.poc.demo.seckill.dto.PromotionDto;
-import io.servicecomb.poc.demo.seckill.event.PromotionEvent;
-import io.servicecomb.poc.demo.seckill.event.PromotionEventType;
-import io.servicecomb.poc.demo.seckill.repositories.PromotionRepository;
-import io.servicecomb.poc.demo.seckill.repositories.SpringBasedPromotionEventRepository;
+import io.servicecomb.poc.demo.seckill.entities.PromotionEntity;
+import io.servicecomb.poc.demo.seckill.entities.SecKillEventEntity;
+import io.servicecomb.poc.demo.seckill.event.SecKillEventType;
+import io.servicecomb.poc.demo.seckill.repositories.spring.SpringPromotionRepository;
+import io.servicecomb.poc.demo.seckill.repositories.spring.SpringSecKillEventRepository;
 import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -42,12 +42,12 @@ public class SecKillAdminRestController {
 
   private static final Logger logger = LoggerFactory.getLogger(SecKillAdminRestController.class);
 
-  private final PromotionRepository promotionRepository;
-  private final SpringBasedPromotionEventRepository<String> eventRepository;
+  private final SpringPromotionRepository promotionRepository;
+  private final SpringSecKillEventRepository eventRepository;
 
   @Autowired
-  public SecKillAdminRestController(PromotionRepository promotionRepository,
-      SpringBasedPromotionEventRepository<String> eventRepository) {
+  public SecKillAdminRestController(SpringPromotionRepository promotionRepository,
+      SpringSecKillEventRepository eventRepository) {
     this.promotionRepository = promotionRepository;
     this.eventRepository = eventRepository;
   }
@@ -55,7 +55,7 @@ public class SecKillAdminRestController {
   @RequestMapping(method = RequestMethod.POST, value = "/")
   public ResponseEntity<String> create(@RequestBody PromotionDto promotionDto) {
     if (isValidPromotion(promotionDto)) {
-      Promotion promotion = new Promotion(promotionDto.getPublishTime(), promotionDto.getFinishTime(),
+      PromotionEntity promotion = new PromotionEntity(promotionDto.getPublishTime(), promotionDto.getFinishTime(),
           promotionDto.getNumberOfCoupons(),
           promotionDto.getDiscount());
       promotionRepository.save(promotion);
@@ -83,10 +83,11 @@ public class SecKillAdminRestController {
   public ResponseEntity<String> modify(@PathVariable String promotionId,
       @RequestBody PromotionDto promotionDto) {
     if (!promotionId.isEmpty() && isValidPromotion(promotionDto)) {
-      Promotion promotion = promotionRepository.findTopByPromotionId(promotionId);
+      PromotionEntity promotion = promotionRepository.findTopByPromotionId(promotionId);
       if (promotion != null) {
-        List<PromotionEvent<String>> events = eventRepository.findByPromotionId(promotionId);
-        if (events.isEmpty() || events.stream().noneMatch(event -> PromotionEventType.Start.equals(event.getType()))) {
+        List<SecKillEventEntity> events = eventRepository.findByPromotionId(promotionId);
+        if (events.isEmpty() || events.stream()
+            .noneMatch(event -> SecKillEventType.PromotionStartEvent.equals(event.getType()))) {
           promotion.setDiscount(promotionDto.getDiscount());
           promotion.setNumberOfCoupons(promotionDto.getNumberOfCoupons());
           promotion.setPublishTime(promotionDto.getPublishTime());
@@ -95,9 +96,11 @@ public class SecKillAdminRestController {
           return new ResponseEntity<>(promotion.getPromotionId(), OK);
         }
         return new ResponseEntity<>(
-            String.format("Promotion had started and changes is rejected {promotionId=%s}", promotionId), BAD_REQUEST);
+            String.format("PromotionEntity had started and changes is rejected {promotionId=%s}", promotionId),
+            BAD_REQUEST);
       }
-      return new ResponseEntity<>(String.format("Promotion not exists {promotionId=%s}", promotionId), BAD_REQUEST);
+      return new ResponseEntity<>(String.format("PromotionEntity not exists {promotionId=%s}", promotionId),
+          BAD_REQUEST);
     }
 
     return new ResponseEntity<>(String.format(

@@ -14,24 +14,11 @@
  *   limitations under the License.
  */
 
-package io.servicecomb.poc.demo.seckill.event;
+package io.servicecomb.poc.demo.seckill;
 
-import io.servicecomb.poc.demo.seckill.Promotion;
-import javax.persistence.Entity;
+public class SecKillException extends RuntimeException {
 
-@Entity
-public class PromotionGrabbedEvent<T> extends PromotionEvent<T> {
-
-  public PromotionGrabbedEvent() {
-    super();
-    this.type = PromotionEventType.Grab;
-  }
-
-  public PromotionGrabbedEvent(Promotion info, T customerId) {
-    this();
-    this.type = PromotionEventType.Grab;
-    this.promotionId = info.getPromotionId();
-    this.discount = info.getDiscount();
-    this.customerId = customerId;
+  public SecKillException(String cause, Throwable e) {
+    super(cause, e);
   }
 }

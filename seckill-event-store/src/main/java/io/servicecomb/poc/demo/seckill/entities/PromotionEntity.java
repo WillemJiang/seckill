@@ -14,7 +14,7 @@
  *   limitations under the License.
  */
 
-package io.servicecomb.poc.demo.seckill;
+package io.servicecomb.poc.demo.seckill.entities;
 
 import java.util.Date;
 import java.util.UUID;
@@ -24,7 +24,7 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 
 @Entity
-public class Promotion {
+public class PromotionEntity {
 
   @Id
   @GeneratedValue(strategy = GenerationType.AUTO)
@@ -80,14 +80,14 @@ public class Promotion {
     this.discount = discount;
   }
 
-  public Promotion() {
+  public PromotionEntity() {
   }
 
-  public Promotion(Date publishTime,int numberOfCoupons, float discount) {
-    this(publishTime,new Date(Long.MAX_VALUE), numberOfCoupons,discount);
+  public PromotionEntity(Date publishTime, int numberOfCoupons, float discount) {
+    this(publishTime, new Date(Long.MAX_VALUE), numberOfCoupons, discount);
   }
 
-  public Promotion(Date publishTime,Date finishTime, int numberOfCoupons, float discount) {
+  public PromotionEntity(Date publishTime, Date finishTime, int numberOfCoupons, float discount) {
     this.promotionId = UUID.randomUUID().toString();
     this.publishTime = publishTime;
     this.finishTime = finishTime;
@@ -97,7 +97,7 @@ public class Promotion {
 
   @Override
   public String toString() {
-    return "Promotion{" +
+    return "PromotionEntity{" +
         "promotionId='" + promotionId + '\'' +
         ", publishTime=" + publishTime +
         ", finishTime=" + finishTime +

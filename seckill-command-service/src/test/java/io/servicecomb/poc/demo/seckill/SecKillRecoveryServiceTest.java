@@ -22,11 +22,14 @@ import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-import io.servicecomb.poc.demo.seckill.event.PromotionEvent;
+import io.servicecomb.poc.demo.seckill.entities.PromotionEntity;
+import io.servicecomb.poc.demo.seckill.entities.SecKillEventEntity;
+import io.servicecomb.poc.demo.seckill.event.CouponGrabbedEvent;
+import io.servicecomb.poc.demo.seckill.event.JacksonSecKillEventFormat;
 import io.servicecomb.poc.demo.seckill.event.PromotionFinishEvent;
-import io.servicecomb.poc.demo.seckill.event.PromotionGrabbedEvent;
 import io.servicecomb.poc.demo.seckill.event.PromotionStartEvent;
-import io.servicecomb.poc.demo.seckill.repositories.SpringBasedPromotionEventRepository;
+import io.servicecomb.poc.demo.seckill.json.JacksonToJsonFormat;
+import io.servicecomb.poc.demo.seckill.repositories.spring.SpringSecKillEventRepository;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
@@ -36,31 +39,34 @@ import org.junit.Test;
 
 public class SecKillRecoveryServiceTest {
 
-  private final Promotion unpublishedPromotion = new Promotion(new Date(), 5, 0.7f);
-  private final Promotion runningPromotion = new Promotion(new Date(), 5, 0.7f);
-  private final Promotion endedPromotion = new Promotion(new Date(), 5, 0.7f);
+  private final PromotionEntity unpublishedPromotion = new PromotionEntity(new Date(), 5, 0.7f);
+  private final PromotionEntity runningPromotion = new PromotionEntity(new Date(), 5, 0.7f);
+  private final PromotionEntity endedPromotion = new PromotionEntity(new Date(), 5, 0.7f);
 
-  private SpringBasedPromotionEventRepository<String> repository = mock(SpringBasedPromotionEventRepository.class);
+  private SpringSecKillEventRepository repository = mock(SpringSecKillEventRepository.class);
 
-  private SecKillRecoveryService<String> recoveryService = new SecKillRecoveryService<String>(repository);
+  private final JacksonToJsonFormat toJsonFormat = new JacksonToJsonFormat();
+  private final JacksonSecKillEventFormat<String> secKillEventFormat = new JacksonSecKillEventFormat<>();
+
+  private SecKillRecoveryService<String> recoveryService = new SecKillRecoveryService<>(repository, secKillEventFormat);
 
   @Before
   public void setup() {
     when(repository.findByPromotionId(unpublishedPromotion.getPromotionId()))
         .thenReturn(Collections.emptyList());
 
-    List<PromotionEvent<String>> runningPromotionEvents = new ArrayList<>();
-    runningPromotionEvents.add(new PromotionStartEvent<>(runningPromotion));
-    runningPromotionEvents.add(new PromotionGrabbedEvent<>(runningPromotion, "zyy"));
+    List<SecKillEventEntity> runningPromotionEvents = new ArrayList<>();
+    runningPromotionEvents.add(new PromotionStartEvent(runningPromotion).toEntity(toJsonFormat));
+    runningPromotionEvents.add(new CouponGrabbedEvent<>(runningPromotion, "zyy").toEntity(toJsonFormat));
     when(repository.findByPromotionId(runningPromotion.getPromotionId()))
         .thenReturn(runningPromotionEvents);
 
-    List<PromotionEvent<String>> endedPromotionEvents = new ArrayList<>();
-    endedPromotionEvents.add(new PromotionStartEvent<>(endedPromotion));
+    List<SecKillEventEntity> endedPromotionEvents = new ArrayList<>();
+    endedPromotionEvents.add(new PromotionStartEvent(endedPromotion).toEntity(toJsonFormat));
     for (int i = 0; i < endedPromotion.getNumberOfCoupons(); i++) {
-      endedPromotionEvents.add(new PromotionGrabbedEvent<>(endedPromotion, String.valueOf(i)));
+      endedPromotionEvents.add(new CouponGrabbedEvent<>(endedPromotion, String.valueOf(i)).toEntity(toJsonFormat));
     }
-    endedPromotionEvents.add(new PromotionFinishEvent<>(endedPromotion));
+    endedPromotionEvents.add(new PromotionFinishEvent(endedPromotion).toEntity(toJsonFormat));
     when(repository.findByPromotionId(endedPromotion.getPromotionId()))
         .thenReturn(endedPromotionEvents);
   }
@@ -89,6 +95,6 @@ public class SecKillRecoveryServiceTest {
     assertThat(result.isStarted(), is(true));
     assertThat(result.isFinished(), is(true));
     assertThat(result.remainingCoupons(), is(0));
-    assertThat(result.getClaimedCustomers(), contains("0","1", "2", "3", "4"));
+    assertThat(result.getClaimedCustomers(), contains("0", "1", "2", "3", "4"));
   }
 }

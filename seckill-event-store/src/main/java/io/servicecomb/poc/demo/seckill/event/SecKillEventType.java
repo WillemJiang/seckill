@@ -14,17 +14,11 @@
  *   limitations under the License.
  */
 
-package io.servicecomb.poc.demo.seckill.repositories;
+package io.servicecomb.poc.demo.seckill.event;
 
-import io.servicecomb.poc.demo.seckill.Promotion;
-import java.util.Collection;
-import java.util.List;
-import org.springframework.data.repository.PagingAndSortingRepository;
+public class SecKillEventType {
+  public static final String PromotionStartEvent = "PromotionStartEvent";
+  public static final String CouponGrabbedEvent = "CouponGrabbedEvent";
+  public static final String PromotionFinishEvent = "PromotionFinishEvent";
 
-public interface PromotionRepository extends PagingAndSortingRepository<Promotion, Integer> {
-  List<Promotion> findByIdGreaterThan(int id);
-
-  Promotion findTopByPromotionId(String promotionId);
-
-  List<Promotion> findByPromotionIdIn(Collection<String> promotionId);
 }

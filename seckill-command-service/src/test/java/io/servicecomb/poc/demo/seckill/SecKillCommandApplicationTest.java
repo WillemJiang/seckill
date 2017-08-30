@@ -26,7 +26,9 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.servicecomb.poc.demo.CommandServiceApplication;
 import io.servicecomb.poc.demo.seckill.dto.CouponDto;
-import io.servicecomb.poc.demo.seckill.repositories.PromotionEventRepository;
+import io.servicecomb.poc.demo.seckill.entities.PromotionEntity;
+import io.servicecomb.poc.demo.seckill.json.ToJsonFormat;
+import io.servicecomb.poc.demo.seckill.repositories.SecKillEventRepository;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -51,7 +53,7 @@ import org.springframework.test.web.servlet.MockMvc;
 public class SecKillCommandApplicationTest {
 
   private final ObjectMapper objectMapper = new ObjectMapper();
-  private final Promotion promotion = new Promotion(new Date(), 10, 0.7f);
+  private final PromotionEntity promotion = new PromotionEntity(new Date(), 10, 0.7f);
 
   @Autowired
   private MockMvc mockMvc;
@@ -63,7 +65,10 @@ public class SecKillCommandApplicationTest {
   private Map<String, SecKillCommandService<String>> commandServices;
 
   @Autowired
-  private PromotionEventRepository<String> eventRepository;
+  private ToJsonFormat toJsonFormat;
+
+  @Autowired
+  private SecKillEventRepository eventRepository;
 
   @Autowired
   private SecKillRecoveryService<String> recoveryService;
@@ -81,6 +86,7 @@ public class SecKillCommandApplicationTest {
         couponQueue,
         claimedCoupons,
         eventRepository,
+        toJsonFormat,
         recoveryInfo);
     persistentRunner.run();
     persistentRunners.add(persistentRunner);

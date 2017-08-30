@@ -16,26 +16,38 @@
 
 package io.servicecomb.poc.demo.seckill.event;
 
+import io.servicecomb.poc.demo.seckill.Coupon;
 import io.servicecomb.poc.demo.seckill.entities.PromotionEntity;
 import io.servicecomb.poc.demo.seckill.json.ToJsonFormat;
 
-public class PromotionFinishEvent extends SecKillEvent {
+public class CouponGrabbedEvent<T> extends SecKillEvent {
 
-  protected PromotionEntity promotion;
+  protected Coupon<T> coupon;
 
-  public PromotionFinishEvent() {
+  public CouponGrabbedEvent() {
     super();
-    this.type = PromotionFinishEvent.class.getSimpleName();
+    this.type = CouponGrabbedEvent.class.getSimpleName();
   }
 
-  public PromotionFinishEvent(PromotionEntity promotion) {
+  public CouponGrabbedEvent(Coupon<T> coupon) {
+    this();
+    this.promotionId = coupon.getPromotionId();
+    this.coupon = coupon;
+  }
+
+  public CouponGrabbedEvent(PromotionEntity promotion, T customerId) {
     this();
     this.promotionId = promotion.getPromotionId();
-    this.promotion = promotion;
+    this.coupon = new Coupon<>(promotion.getPromotionId(), System.currentTimeMillis(), promotion.getDiscount(),
+        customerId);
+  }
+
+  public Coupon<T> getCoupon() {
+    return coupon;
   }
 
   @Override
   public String json(ToJsonFormat toJsonFormat) {
-    return toJsonFormat.toJson(promotion);
+    return toJsonFormat.toJson(coupon);
   }
 }

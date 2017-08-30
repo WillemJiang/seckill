@@ -16,11 +16,15 @@
 
 package io.servicecomb.poc.demo.seckill;
 
-import io.servicecomb.poc.demo.seckill.event.PromotionEvent;
-import io.servicecomb.poc.demo.seckill.repositories.PromotionEventRepository;
-import io.servicecomb.poc.demo.seckill.repositories.PromotionEventRepositoryImpl;
-import io.servicecomb.poc.demo.seckill.repositories.PromotionRepository;
-import io.servicecomb.poc.demo.seckill.repositories.SpringBasedPromotionEventRepository;
+import io.servicecomb.poc.demo.seckill.entities.SecKillEventEntity;
+import io.servicecomb.poc.demo.seckill.event.JacksonSecKillEventFormat;
+import io.servicecomb.poc.demo.seckill.event.SecKillEventFormat;
+import io.servicecomb.poc.demo.seckill.json.JacksonToJsonFormat;
+import io.servicecomb.poc.demo.seckill.json.ToJsonFormat;
+import io.servicecomb.poc.demo.seckill.repositories.SecKillEventRepository;
+import io.servicecomb.poc.demo.seckill.repositories.SecKillEventRepositoryImpl;
+import io.servicecomb.poc.demo.seckill.repositories.spring.SpringPromotionRepository;
+import io.servicecomb.poc.demo.seckill.repositories.spring.SpringSecKillEventRepository;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -30,7 +34,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.data.repository.PagingAndSortingRepository;
 
 @Configuration
-class SecKillConfig {
+class SecKillCommandConfig {
 
   @Bean
   Map<String, SecKillCommandService<String>> commandServices() {
@@ -43,28 +47,42 @@ class SecKillConfig {
   }
 
   @Bean
-  PromotionEventRepository<String> promotionEventRepository(
-      PagingAndSortingRepository<PromotionEvent<String>, Integer> repository) {
+  SecKillEventRepository secKillEventRepository(
+      PagingAndSortingRepository<SecKillEventEntity, Integer> repository) {
 
-    return new PromotionEventRepositoryImpl<>(repository);
+    return new SecKillEventRepositoryImpl(repository);
   }
 
   @Bean
-  SecKillPromotionBootstrap secKillPromotionBootstrap(PromotionRepository promotionRepository,
-      PromotionEventRepository<String> eventRepository,
+  SecKillPromotionBootstrap secKillPromotionBootstrap(SpringPromotionRepository promotionRepository,
+      SecKillEventRepository eventRepository,
       Map<String, SecKillCommandService<String>> commandServices,
       List<SecKillPersistentRunner<String>> persistentRunners,
+      ToJsonFormat toJsonFormat,
       SecKillRecoveryService<String> recoveryService) {
     SecKillPromotionBootstrap<String> promotionBootstrap = new SecKillPromotionBootstrap<>(promotionRepository,
         eventRepository,
         commandServices,
-        persistentRunners, recoveryService);
+        persistentRunners,
+        toJsonFormat,
+        recoveryService);
     promotionBootstrap.run();
     return promotionBootstrap;
   }
 
   @Bean
-  SecKillRecoveryService<String> secKillRecoveryService(SpringBasedPromotionEventRepository<String> promotionEventRepository) {
-    return new SecKillRecoveryService<String>(promotionEventRepository);
+  SecKillRecoveryService<String> secKillRecoveryService(SpringSecKillEventRepository secKillEventRepository,
+      SecKillEventFormat secKillEventFormat) {
+    return new SecKillRecoveryService<>(secKillEventRepository, secKillEventFormat);
+  }
+
+  @Bean
+  SecKillEventFormat secKillEventFormat() {
+    return new JacksonSecKillEventFormat<String>();
+  }
+
+  @Bean
+  ToJsonFormat toJsonFormat() {
+    return new JacksonToJsonFormat();
   }
 }
