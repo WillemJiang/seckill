@@ -7,7 +7,7 @@
   <groupId>io.servicecomb.poc.demo</groupId>
   <artifactId>seckill</artifactId>
   <packaging>pom</packaging>
-  <version>0.1.0-RELEASE</version>
+  <version>0.2.0-SNAPSHOT</version>
 
   <modules>
     <module>seckill-event-store</module>
@@ -38,22 +38,22 @@
       <dependency>
         <groupId>io.servicecomb.poc.demo</groupId>
         <artifactId>seckill-event-store</artifactId>
-        <version>0.1.0-RELEASE</version>
+        <version>0.2.0-SNAPSHOT</version>
       </dependency>
       <dependency>
         <groupId>io.servicecomb.poc.demo</groupId>
         <artifactId>seckill-command-service</artifactId>
-        <version>0.1.0-RELEASE</version>
+        <version>0.2.0-SNAPSHOT</version>
       </dependency>
       <dependency>
         <groupId>io.servicecomb.poc.demo</groupId>
         <artifactId>seckill-admin-service</artifactId>
-        <version>0.1.0-RELEASE</version>
+        <version>0.2.0-SNAPSHOT</version>
       </dependency>
       <dependency>
         <groupId>io.servicecomb.poc.demo</groupId>
         <artifactId>seckill-query-service</artifactId>
-        <version>0.1.0-RELEASE</version>
+        <version>0.2.0-SNAPSHOT</version>
       </dependency>
       <dependency>
         <groupId>commons-io</groupId>
