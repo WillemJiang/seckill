@@ -14,28 +14,18 @@
  *   limitations under the License.
  */
 
-package io.servicecomb.poc.demo.seckill.event;
+package io.servicecomb.poc.demo.seckill.repositories.spring;
 
 import io.servicecomb.poc.demo.seckill.entities.PromotionEntity;
-import io.servicecomb.poc.demo.seckill.json.ToJsonFormat;
+import java.util.Collection;
+import java.util.List;
+import org.springframework.data.repository.PagingAndSortingRepository;
 
-public class PromotionFinishEvent extends SecKillEvent {
+public interface SpringPromotionRepository extends PagingAndSortingRepository<PromotionEntity, Integer> {
 
-  protected PromotionEntity promotion;
+  List<PromotionEntity> findByIdGreaterThan(int id);
 
-  public PromotionFinishEvent() {
-    super();
-    this.type = PromotionFinishEvent.class.getSimpleName();
-  }
+  PromotionEntity findTopByPromotionId(String promotionId);
 
-  public PromotionFinishEvent(PromotionEntity promotion) {
-    this();
-    this.promotionId = promotion.getPromotionId();
-    this.promotion = promotion;
-  }
-
-  @Override
-  public String json(ToJsonFormat toJsonFormat) {
-    return toJsonFormat.toJson(promotion);
-  }
+  List<PromotionEntity> findByPromotionIdIn(Collection<String> promotionId);
 }

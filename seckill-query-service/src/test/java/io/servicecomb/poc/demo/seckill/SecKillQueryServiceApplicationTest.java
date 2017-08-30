@@ -25,11 +25,13 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import io.servicecomb.poc.demo.QueryServiceApplication;
+import io.servicecomb.poc.demo.seckill.entities.PromotionEntity;
+import io.servicecomb.poc.demo.seckill.event.CouponGrabbedEvent;
 import io.servicecomb.poc.demo.seckill.event.PromotionFinishEvent;
-import io.servicecomb.poc.demo.seckill.event.PromotionGrabbedEvent;
 import io.servicecomb.poc.demo.seckill.event.PromotionStartEvent;
-import io.servicecomb.poc.demo.seckill.repositories.PromotionRepository;
-import io.servicecomb.poc.demo.seckill.repositories.SpringBasedPromotionEventRepository;
+import io.servicecomb.poc.demo.seckill.json.ToJsonFormat;
+import io.servicecomb.poc.demo.seckill.repositories.spring.SpringPromotionRepository;
+import io.servicecomb.poc.demo.seckill.repositories.spring.SpringSecKillEventRepository;
 import java.time.ZonedDateTime;
 import java.util.Date;
 import org.junit.Before;
@@ -48,24 +50,27 @@ public class SecKillQueryServiceApplicationTest {
 
   private static final String customerId = "tester";
 
-  private final Promotion promotion1 = promotion();
-  private final Promotion promotion2 = promotion();
-  private final Promotion promotion3 = promotion();
+  private final PromotionEntity promotion1 = promotion();
+  private final PromotionEntity promotion2 = promotion();
+  private final PromotionEntity promotion3 = promotion();
 
-  private final Promotion[] promotions = {promotion1, promotion2, promotion3};
-
-  @Autowired
-  private PromotionRepository promotionRepository;
+  private final PromotionEntity[] promotions = {promotion1, promotion2, promotion3};
 
   @Autowired
-  private SpringBasedPromotionEventRepository<String> promotionEventRepository;
+  private SpringPromotionRepository promotionRepository;
+
+  @Autowired
+  private SpringSecKillEventRepository eventRepository;
 
   @Autowired
   private MockMvc mockMvc;
 
+  @Autowired
+  private ToJsonFormat toJsonFormat;
+
   @Before
   public void setUp() throws Exception {
-    promotionEventRepository.deleteAll();
+    eventRepository.deleteAll();
     promotionRepository.deleteAll();
   }
 
@@ -102,12 +107,12 @@ public class SecKillQueryServiceApplicationTest {
 
   @Test
   public void retrievesActivePromotionsOnly() throws Exception {
-    for (Promotion promotion : promotions) {
+    for (PromotionEntity promotion : promotions) {
       promotionRepository.save(promotion);
     }
 
-    promotionEventRepository.save(new PromotionStartEvent<>(promotion1));
-    promotionEventRepository.save(new PromotionStartEvent<>(promotion2));
+    eventRepository.save(new PromotionStartEvent(promotion1).toEntity(toJsonFormat));
+    eventRepository.save(new PromotionStartEvent<>(promotion2).toEntity(toJsonFormat));
 
     Thread.sleep(300);
 
@@ -119,8 +124,8 @@ public class SecKillQueryServiceApplicationTest {
                 containsString(promotion2.getPromotionId()))
         ));
 
-    promotionEventRepository.save(new PromotionFinishEvent<>(promotion2));
-    promotionEventRepository.save(new PromotionStartEvent<>(promotion3));
+    eventRepository.save(new PromotionFinishEvent(promotion2).toEntity(toJsonFormat));
+    eventRepository.save(new PromotionStartEvent(promotion3).toEntity(toJsonFormat));
 
     Thread.sleep(300);
 
@@ -134,21 +139,20 @@ public class SecKillQueryServiceApplicationTest {
         ));
   }
 
-  private String addCouponToCustomer(String customerId, Promotion promotion) {
-    promotionEventRepository.save(new PromotionStartEvent<>(promotion));
+  private void addCouponToCustomer(String customerId, PromotionEntity promotion) {
+    eventRepository.save(new PromotionStartEvent(promotion).toEntity(toJsonFormat));
 
-    PromotionGrabbedEvent<String> grabbedEvent = new PromotionGrabbedEvent<>(promotion, customerId);
-    promotionEventRepository.save(grabbedEvent);
+    CouponGrabbedEvent<String> grabbedEvent = new CouponGrabbedEvent<>(promotion, customerId);
+    eventRepository.save(grabbedEvent.toEntity(toJsonFormat));
 
-    promotionEventRepository.save(new PromotionFinishEvent<>(promotion));
-    return grabbedEvent.getPromotionId();
+    eventRepository.save(new PromotionFinishEvent(promotion).toEntity(toJsonFormat));
   }
 
-  private Promotion promotion() {
+  private PromotionEntity promotion() {
     ZonedDateTime startTime = ZonedDateTime.now();
     ZonedDateTime finishTime = startTime.plusDays(1);
 
-    return new Promotion(toDate(startTime), toDate(finishTime), 1, 0.8f);
+    return new PromotionEntity(toDate(startTime), toDate(finishTime), 1, 0.8f);
   }
 
   private Date toDate(ZonedDateTime startTime) {

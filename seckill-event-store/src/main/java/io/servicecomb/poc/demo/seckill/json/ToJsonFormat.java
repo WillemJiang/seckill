@@ -14,21 +14,15 @@
  *   limitations under the License.
  */
 
-package io.servicecomb.poc.demo.seckill.repositories;
+package io.servicecomb.poc.demo.seckill.json;
 
-import io.servicecomb.poc.demo.seckill.event.PromotionEvent;
-import org.springframework.data.repository.PagingAndSortingRepository;
+import io.servicecomb.poc.demo.seckill.Coupon;
+import io.servicecomb.poc.demo.seckill.entities.PromotionEntity;
 
-public class PromotionEventRepositoryImpl<T> implements PromotionEventRepository<T> {
+public interface ToJsonFormat {
 
-  private final PagingAndSortingRepository<PromotionEvent<T>, Integer> repository;
+  String toJson(PromotionEntity promotion);
 
-  public PromotionEventRepositoryImpl(PagingAndSortingRepository<PromotionEvent<T>, Integer> repository) {
-    this.repository = repository;
-  }
+  String toJson(Coupon coupon);
 
-  @Override
-  public void save(PromotionEvent<T> event) {
-    repository.save(event);
-  }
 }

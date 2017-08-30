@@ -29,8 +29,8 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.servicecomb.poc.demo.seckill.dto.CouponDto;
 import io.servicecomb.poc.demo.seckill.dto.PromotionDto;
-import io.servicecomb.poc.demo.seckill.repositories.PromotionRepository;
-import io.servicecomb.poc.demo.seckill.repositories.SpringBasedPromotionEventRepository;
+import io.servicecomb.poc.demo.seckill.repositories.spring.SpringPromotionRepository;
+import io.servicecomb.poc.demo.seckill.repositories.spring.SpringSecKillEventRepository;
 import java.util.Date;
 import org.junit.Before;
 import org.junit.Test;
@@ -55,14 +55,14 @@ public class SecKillIntegrationTest {
   private MockMvc mockMvc;
 
   @Autowired
-  private PromotionRepository promotionRepository;
+  private SpringPromotionRepository promotionRepository;
 
   @Autowired
-  private SpringBasedPromotionEventRepository<String> promotionEventRepository;
+  private SpringSecKillEventRepository eventRepository;
 
   @Before
   public void setUp() throws Exception {
-    promotionEventRepository.deleteAll();
+    eventRepository.deleteAll();
     promotionRepository.deleteAll();
   }
 
@@ -136,7 +136,7 @@ public class SecKillIntegrationTest {
     mockMvc.perform(put("/admin/promotions/" + promotionId + "/").contentType(APPLICATION_JSON)
         .content(toJson(new PromotionDto(5, 0.7f, new Date()))))
         .andExpect(status().isBadRequest())
-        .andExpect(content().string(containsString("Promotion had started and changes is rejected")));
+        .andExpect(content().string(containsString("PromotionEntity had started and changes is rejected")));
   }
 
   private String toJson(Object value) throws JsonProcessingException {

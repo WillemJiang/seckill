@@ -16,9 +16,12 @@
 
 package io.servicecomb.poc.demo.seckill;
 
-import io.servicecomb.poc.demo.seckill.event.PromotionEvent;
-import io.servicecomb.poc.demo.seckill.event.PromotionEventType;
-import io.servicecomb.poc.demo.seckill.repositories.SpringBasedPromotionEventRepository;
+import io.servicecomb.poc.demo.seckill.entities.PromotionEntity;
+import io.servicecomb.poc.demo.seckill.event.CouponGrabbedEvent;
+import io.servicecomb.poc.demo.seckill.entities.SecKillEventEntity;
+import io.servicecomb.poc.demo.seckill.event.SecKillEventFormat;
+import io.servicecomb.poc.demo.seckill.event.SecKillEventType;
+import io.servicecomb.poc.demo.seckill.repositories.spring.SpringSecKillEventRepository;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -26,27 +29,30 @@ import java.util.stream.Collectors;
 
 public class SecKillRecoveryService<T> {
 
-  private final SpringBasedPromotionEventRepository<T> repository;
+  private final SpringSecKillEventRepository repository;
+  private final SecKillEventFormat secKillEventFormat;
 
-  public SecKillRecoveryService(SpringBasedPromotionEventRepository<T> repository) {
+  public SecKillRecoveryService(SpringSecKillEventRepository repository,
+      SecKillEventFormat secKillEventFormat) {
     this.repository = repository;
+    this.secKillEventFormat = secKillEventFormat;
   }
 
-  public SecKillRecoveryCheckResult<T> check(Promotion promotion) {
-    List<PromotionEvent<T>> events = this.repository.findByPromotionId(promotion.getPromotionId());
+  public SecKillRecoveryCheckResult<T> check(PromotionEntity promotion) {
+    List<SecKillEventEntity> events = this.repository.findByPromotionId(promotion.getPromotionId());
     if (!events.isEmpty()) {
       long count = events.stream()
-          .filter(event -> PromotionEventType.Grab.equals(event.getType()))
+          .filter(event -> SecKillEventType.CouponGrabbedEvent.equals(event.getType()))
           .count();
 
       Set<T> claimedCustomers = ConcurrentHashMap.newKeySet();
       claimedCustomers.addAll(events.stream()
-          .filter(event -> PromotionEventType.Grab.equals(event.getType()))
-          .map(PromotionEvent::getCustomerId)
+          .filter(event -> SecKillEventType.CouponGrabbedEvent.equals(event.getType()))
+          .map(event -> ((CouponGrabbedEvent<T>) secKillEventFormat.toSecKillEvent(event)).getCoupon().getCustomerId())
           .collect(Collectors.toSet()));
 
-
-      boolean isFinished = events.stream().anyMatch(event -> PromotionEventType.Finish.equals(event.getType()));
+      boolean isFinished = events.stream()
+          .anyMatch(event -> SecKillEventType.PromotionFinishEvent.equals(event.getType()));
       return new SecKillRecoveryCheckResult<>(true, isFinished,
           promotion.getNumberOfCoupons() - (int) count, claimedCustomers);
     }

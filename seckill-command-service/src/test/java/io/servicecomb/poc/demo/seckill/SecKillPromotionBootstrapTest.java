@@ -26,7 +26,8 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.servicecomb.poc.demo.CommandServiceApplication;
 import io.servicecomb.poc.demo.seckill.dto.CouponDto;
-import io.servicecomb.poc.demo.seckill.repositories.PromotionRepository;
+import io.servicecomb.poc.demo.seckill.entities.PromotionEntity;
+import io.servicecomb.poc.demo.seckill.repositories.spring.SpringPromotionRepository;
 import java.util.Date;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -49,13 +50,13 @@ public class SecKillPromotionBootstrapTest {
   private MockMvc mockMvc;
 
   @Autowired
-  private PromotionRepository promotionRepository;
+  private SpringPromotionRepository promotionRepository;
 
   @Test
   public void testPromotionStartedWhenPublishTimeReach() throws Exception {
     int waitTime = 3000;
 
-    Promotion delayPromotion = new Promotion(new Date(System.currentTimeMillis() + waitTime), 5, 0.8f);
+    PromotionEntity delayPromotion = new PromotionEntity(new Date(System.currentTimeMillis() + waitTime), 5, 0.8f);
     promotionRepository.save(delayPromotion);
 
     mockMvc.perform(post("/command/coupons/").contentType(APPLICATION_JSON)
