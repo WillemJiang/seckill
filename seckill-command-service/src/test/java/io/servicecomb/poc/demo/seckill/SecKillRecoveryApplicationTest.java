@@ -26,11 +26,13 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.servicecomb.poc.demo.CommandServiceApplication;
 import io.servicecomb.poc.demo.seckill.dto.CouponDto;
-import io.servicecomb.poc.demo.seckill.event.PromotionEvent;
-import io.servicecomb.poc.demo.seckill.event.PromotionGrabbedEvent;
+import io.servicecomb.poc.demo.seckill.entities.PromotionEntity;
+import io.servicecomb.poc.demo.seckill.entities.SecKillEventEntity;
+import io.servicecomb.poc.demo.seckill.event.CouponGrabbedEvent;
 import io.servicecomb.poc.demo.seckill.event.PromotionStartEvent;
-import io.servicecomb.poc.demo.seckill.repositories.PromotionRepository;
-import io.servicecomb.poc.demo.seckill.repositories.SpringBasedPromotionEventRepository;
+import io.servicecomb.poc.demo.seckill.json.ToJsonFormat;
+import io.servicecomb.poc.demo.seckill.repositories.spring.SpringPromotionRepository;
+import io.servicecomb.poc.demo.seckill.repositories.spring.SpringSecKillEventRepository;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -51,28 +53,31 @@ import org.springframework.test.web.servlet.MockMvc;
 public class SecKillRecoveryApplicationTest {
 
   private final ObjectMapper objectMapper = new ObjectMapper();
-  private final Promotion promotion = new Promotion(new Date(), 10, 0.7f);
+  private final PromotionEntity promotion = new PromotionEntity(new Date(), 10, 0.7f);
 
   @Autowired
   private MockMvc mockMvc;
 
   @Autowired
-  private SpringBasedPromotionEventRepository<String> eventRepository;
+  private SpringSecKillEventRepository eventRepository;
 
   @Autowired
-  private PromotionRepository promotionRepository;
+  private SpringPromotionRepository promotionRepository;
+
+  @Autowired
+  private ToJsonFormat toJsonFormat;
 
 
   @Test
   public void recoveryServiceSuccessfully() throws Exception {
     //init failed promotion status
-    List<PromotionEvent> events = new ArrayList<>();
-    events.add(new PromotionStartEvent(promotion));
-    events.add(new PromotionGrabbedEvent<>(promotion, "0"));
-    events.add(new PromotionGrabbedEvent<>(promotion, "2"));
-    events.add(new PromotionGrabbedEvent<>(promotion, "4"));
-    events.add(new PromotionGrabbedEvent<>(promotion, "6"));
-    events.add(new PromotionGrabbedEvent<>(promotion, "8"));
+    List<SecKillEventEntity> events = new ArrayList<>();
+    events.add(new PromotionStartEvent(promotion).toEntity(toJsonFormat));
+    events.add(new CouponGrabbedEvent<>(promotion, "0").toEntity(toJsonFormat));
+    events.add(new CouponGrabbedEvent<>(promotion, "2").toEntity(toJsonFormat));
+    events.add(new CouponGrabbedEvent<>(promotion, "4").toEntity(toJsonFormat));
+    events.add(new CouponGrabbedEvent<>(promotion, "6").toEntity(toJsonFormat));
+    events.add(new CouponGrabbedEvent<>(promotion, "8").toEntity(toJsonFormat));
     eventRepository.save(events);
     promotionRepository.save(promotion);
 

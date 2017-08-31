@@ -17,8 +17,8 @@
 package io.servicecomb.poc.demo.seckill.web;
 
 import io.servicecomb.poc.demo.seckill.Coupon;
-import io.servicecomb.poc.demo.seckill.Promotion;
-import io.servicecomb.poc.demo.seckill.SecKillEventPoller;
+import io.servicecomb.poc.demo.seckill.SecKillEventPuller;
+import io.servicecomb.poc.demo.seckill.entities.PromotionEntity;
 import java.util.Collection;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -35,7 +35,7 @@ public class SeckillQueryRestController {
   private static final Logger logger = LoggerFactory.getLogger(SeckillQueryRestController.class);
 
   @Autowired
-  private SecKillEventPoller<String> secKillEventPoller;
+  private SecKillEventPuller<String> secKillEventPoller;
 
   @RequestMapping(method = RequestMethod.GET, value = "/coupons/{customerId}")
   public Collection<Coupon<String>> querySuccess(@PathVariable("customerId") String customerId) {
@@ -44,7 +44,7 @@ public class SeckillQueryRestController {
   }
 
   @RequestMapping(method = RequestMethod.GET, value = "/promotions")
-  public Collection<Promotion> queryCurrent() {
+  public Collection<PromotionEntity> queryCurrent() {
     logger.info("Query current active promotions");
     return secKillEventPoller.getActivePromotions();
   }

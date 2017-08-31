@@ -16,21 +16,26 @@
 
 package io.servicecomb.poc.demo.seckill.event;
 
-import io.servicecomb.poc.demo.seckill.Promotion;
-import javax.persistence.Entity;
+import io.servicecomb.poc.demo.seckill.entities.PromotionEntity;
+import io.servicecomb.poc.demo.seckill.json.ToJsonFormat;
 
-@Entity
-public class PromotionStartEvent<T> extends PromotionEvent<T> {
+public class PromotionStartEvent<T> extends SecKillEvent {
+
+  protected PromotionEntity promotion;
 
   public PromotionStartEvent() {
     super();
-    this.type = PromotionEventType.Start;
+    this.type = PromotionStartEvent.class.getSimpleName();
   }
 
-  public PromotionStartEvent(Promotion info) {
+  public PromotionStartEvent(PromotionEntity promotion) {
     this();
-    this.type = PromotionEventType.Start;
-    this.promotionId = info.getPromotionId();
-    this.discount = info.getDiscount();
+    this.promotionId = promotion.getPromotionId();
+    this.promotion = promotion;
+  }
+
+  @Override
+  public String json(ToJsonFormat toJsonFormat) {
+    return toJsonFormat.toJson(promotion);
   }
 }

@@ -14,60 +14,48 @@
  *   limitations under the License.
  */
 
-package io.servicecomb.poc.demo.seckill.event;
+package io.servicecomb.poc.demo.seckill.entities;
 
-import java.util.Date;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
-import org.hibernate.annotations.Type;
 
-// TODO: 8/26/2017 we shall not save event schema, use json to store event details instead
 @Entity
-public class PromotionEvent<T> {
+public class SecKillEventEntity {
 
   @Id
   @GeneratedValue(strategy = GenerationType.AUTO)
   private int id;
 
-  protected String promotionId;
-
-  //PromotionEventType
   protected String type;
 
-  protected Date time;
+  protected String promotionId;
 
-  protected Float discount;
-
-  @Type(type = "java.lang.String")
-  protected T customerId;
+  protected String contentJson;
 
   public int getId() {
     return id;
-  }
-
-  public String getPromotionId() {
-    return promotionId;
   }
 
   public String getType() {
     return type;
   }
 
-  public Date getTime() {
-    return time;
+  public String getPromotionId() {
+    return promotionId;
   }
 
-  public Float getDiscount() {
-    return discount;
+  public String getContentJson() {
+    return contentJson;
   }
 
-  public T getCustomerId() {
-    return customerId;
+  public SecKillEventEntity() {
   }
 
-  public PromotionEvent() {
-    this.time = new Date();
+  public SecKillEventEntity(String type, String promotionId, String contentJson) {
+    this.type = type;
+    this.promotionId = promotionId;
+    this.contentJson = contentJson;
   }
 }

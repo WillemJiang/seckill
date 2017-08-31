@@ -16,22 +16,33 @@
 
 package io.servicecomb.poc.demo.seckill;
 
-import java.util.Date;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import org.hibernate.annotations.Type;
 
+@Entity
 public class Coupon<T> {
+
+  @Id
+  @GeneratedValue(strategy = GenerationType.AUTO)
   private int id;
 
-  private String couponId;
+  private String promotionId;
 
-  private Date time;
+  private long time;
 
-  private Float discount;
+  private float discount;
 
+  @Type(type = "java.lang.String")
   private T customerId;
 
-  Coupon(int id, String couponId, Date time, Float discount, T customerId) {
-    this.id = id;
-    this.couponId = couponId;
+  public Coupon() {
+  }
+
+  public Coupon(String promotionId, long time, float discount, T customerId) {
+    this.promotionId = promotionId;
     this.time = time;
     this.discount = discount;
     this.customerId = customerId;
@@ -41,19 +52,39 @@ public class Coupon<T> {
     return id;
   }
 
-  public String getCouponId() {
-    return couponId;
+  public void setId(int id) {
+    this.id = id;
   }
 
-  public Date getTime() {
+  public String getPromotionId() {
+    return promotionId;
+  }
+
+  public void setPromotionId(String promotionId) {
+    this.promotionId = promotionId;
+  }
+
+  public long getTime() {
     return time;
   }
 
-  public Float getDiscount() {
+  public void setTime(long time) {
+    this.time = time;
+  }
+
+  public float getDiscount() {
     return discount;
+  }
+
+  public void setDiscount(float discount) {
+    this.discount = discount;
   }
 
   public T getCustomerId() {
     return customerId;
+  }
+
+  public void setCustomerId(T customerId) {
+    this.customerId = customerId;
   }
 }

@@ -28,7 +28,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.servicecomb.poc.demo.seckill.dto.PromotionDto;
-import io.servicecomb.poc.demo.seckill.repositories.PromotionRepository;
+import io.servicecomb.poc.demo.seckill.entities.PromotionEntity;
+import io.servicecomb.poc.demo.seckill.repositories.spring.SpringPromotionRepository;
 import java.util.Date;
 import java.util.UUID;
 import org.junit.Before;
@@ -54,7 +55,7 @@ public class SecKillAdminApplicationTest {
   private MockMvc mockMvc;
 
   @Autowired
-  private PromotionRepository repository;
+  private SpringPromotionRepository repository;
 
 
   @Before
@@ -105,7 +106,7 @@ public class SecKillAdminApplicationTest {
         .content(toJson(new PromotionDto(numberOfCoupons, discount, publishTime, finishTime))))
         .andExpect(status().isOk());
 
-    Promotion promotion = repository.findTopByPromotionId(promotionId);
+    PromotionEntity promotion = repository.findTopByPromotionId(promotionId);
     assertThat(promotion.getDiscount(), is(discount));
     assertThat(promotion.getNumberOfCoupons(), is(numberOfCoupons));
     assertThat(promotion.getPublishTime().getTime(), is(publishTime.getTime()));
@@ -117,7 +118,7 @@ public class SecKillAdminApplicationTest {
     mockMvc.perform(put("/admin/promotions/" + UUID.randomUUID().toString() + "/").contentType(APPLICATION_JSON)
         .content(toJson(new PromotionDto(5, 0.7f, timeFromNow(2000)))))
         .andExpect(status().isBadRequest())
-        .andExpect(content().string(containsString("Promotion not exists")));
+        .andExpect(content().string(containsString("PromotionEntity not exists")));
   }
 
   @Test

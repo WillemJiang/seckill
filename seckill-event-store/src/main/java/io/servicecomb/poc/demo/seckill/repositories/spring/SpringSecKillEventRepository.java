@@ -14,10 +14,15 @@
  *   limitations under the License.
  */
 
-package io.servicecomb.poc.demo.seckill.repositories;
+package io.servicecomb.poc.demo.seckill.repositories.spring;
 
-import io.servicecomb.poc.demo.seckill.event.PromotionEvent;
+import io.servicecomb.poc.demo.seckill.entities.SecKillEventEntity;
+import java.util.List;
+import org.springframework.data.repository.PagingAndSortingRepository;
 
-public interface PromotionEventRepository<T> {
-  void save(PromotionEvent<T> item);
+public interface SpringSecKillEventRepository extends PagingAndSortingRepository<SecKillEventEntity, Integer> {
+
+  List<SecKillEventEntity> findByPromotionId(String promotionId);
+
+  List<SecKillEventEntity> findByIdGreaterThan(int id);
 }

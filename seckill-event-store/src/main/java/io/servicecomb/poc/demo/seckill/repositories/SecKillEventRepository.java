@@ -14,11 +14,11 @@
  *   limitations under the License.
  */
 
-package io.servicecomb.poc.demo.seckill.event;
+package io.servicecomb.poc.demo.seckill.repositories;
 
-public class PromotionEventType {
-  public static final String Start = "start";
-  public static final String Grab = "grab";
-  public static final String Finish = "finish";
+import io.servicecomb.poc.demo.seckill.entities.SecKillEventEntity;
 
+public interface SecKillEventRepository {
+
+  void save(SecKillEventEntity entity);
 }
