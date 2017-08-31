@@ -14,6 +14,7 @@
     <module>seckill-command-service</module>
     <module>seckill-admin-service</module>
     <module>seckill-query-service</module>
+    <module>seckill-event-service</module>
     <module>integration-test</module>
     <module>coverage-aggregate</module>
     <module>docker-build-config</module>
