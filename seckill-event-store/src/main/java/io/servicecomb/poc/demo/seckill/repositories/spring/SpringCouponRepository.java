@@ -14,19 +14,11 @@
  *   limitations under the License.
  */
 
-package io.servicecomb.poc.demo.seckill;
+package io.servicecomb.poc.demo.seckill.repositories.spring;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.amqp.rabbit.annotation.RabbitListener;
+import io.servicecomb.poc.demo.seckill.entities.CouponEntity;
+import org.springframework.data.repository.PagingAndSortingRepository;
 
-public class RabbitSecKillMessageSubscriber implements SecKillMessageSubscriber {
+public interface SpringCouponRepository<T> extends PagingAndSortingRepository<CouponEntity<T>, Integer> {
 
-  private static final Logger logger = LoggerFactory.getLogger(RabbitSecKillMessageSubscriber.class);
-
-  @Override
-  @RabbitListener(queues = MessageBrokerName.Rabbit_QueueName)
-  public void processMessage(String messageContent) {
-    logger.info("receive message : {}", messageContent);
-  }
 }

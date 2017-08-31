@@ -16,8 +16,8 @@
 
 package io.servicecomb.poc.demo.seckill.web;
 
-import io.servicecomb.poc.demo.seckill.Coupon;
 import io.servicecomb.poc.demo.seckill.SecKillEventPuller;
+import io.servicecomb.poc.demo.seckill.entities.CouponEntity;
 import io.servicecomb.poc.demo.seckill.entities.PromotionEntity;
 import java.util.Collection;
 import org.slf4j.Logger;
@@ -38,7 +38,7 @@ public class SeckillQueryRestController {
   private SecKillEventPuller<String> secKillEventPoller;
 
   @RequestMapping(method = RequestMethod.GET, value = "/coupons/{customerId}")
-  public Collection<Coupon<String>> querySuccess(@PathVariable("customerId") String customerId) {
+  public Collection<CouponEntity<String>> querySuccess(@PathVariable("customerId") String customerId) {
     logger.info("Query customer id = {} coupons", customerId);
     return secKillEventPoller.getCustomerCoupons(customerId);
   }

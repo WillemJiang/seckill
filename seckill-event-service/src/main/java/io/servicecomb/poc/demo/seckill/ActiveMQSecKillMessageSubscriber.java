@@ -14,15 +14,19 @@
  *   limitations under the License.
  */
 
-package io.servicecomb.poc.demo.seckill.json;
+package io.servicecomb.poc.demo.seckill;
 
-import io.servicecomb.poc.demo.seckill.entities.CouponEntity;
-import io.servicecomb.poc.demo.seckill.entities.PromotionEntity;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.jms.annotation.JmsListener;
 
-public interface ToJsonFormat {
+public class ActiveMQSecKillMessageSubscriber implements SecKillMessageSubscriber {
 
-  String toJson(PromotionEntity promotion);
+  private static final Logger logger = LoggerFactory.getLogger(ActiveMQSecKillMessageSubscriber.class);
 
-  String toJson(CouponEntity coupon);
-
+  @Override
+  @JmsListener(destination = "seckill", containerFactory = "containerFactory")
+  public void processMessage(String messageContent) {
+    logger.info("receive message : {}", messageContent);
+  }
 }

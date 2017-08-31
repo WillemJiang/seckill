@@ -16,20 +16,20 @@
 
 package io.servicecomb.poc.demo.seckill.event;
 
-import io.servicecomb.poc.demo.seckill.Coupon;
+import io.servicecomb.poc.demo.seckill.entities.CouponEntity;
 import io.servicecomb.poc.demo.seckill.entities.PromotionEntity;
 import io.servicecomb.poc.demo.seckill.json.ToJsonFormat;
 
 public class CouponGrabbedEvent<T> extends SecKillEvent {
 
-  protected Coupon<T> coupon;
+  protected CouponEntity<T> coupon;
 
   public CouponGrabbedEvent() {
     super();
     this.type = CouponGrabbedEvent.class.getSimpleName();
   }
 
-  public CouponGrabbedEvent(Coupon<T> coupon) {
+  public CouponGrabbedEvent(CouponEntity<T> coupon) {
     this();
     this.promotionId = coupon.getPromotionId();
     this.coupon = coupon;
@@ -38,11 +38,11 @@ public class CouponGrabbedEvent<T> extends SecKillEvent {
   public CouponGrabbedEvent(PromotionEntity promotion, T customerId) {
     this();
     this.promotionId = promotion.getPromotionId();
-    this.coupon = new Coupon<>(promotion.getPromotionId(), System.currentTimeMillis(), promotion.getDiscount(),
+    this.coupon = new CouponEntity<>(promotion.getPromotionId(), System.currentTimeMillis(), promotion.getDiscount(),
         customerId);
   }
 
-  public Coupon<T> getCoupon() {
+  public CouponEntity<T> getCoupon() {
     return coupon;
   }
 

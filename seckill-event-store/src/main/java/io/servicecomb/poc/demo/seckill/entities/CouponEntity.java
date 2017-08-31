@@ -14,7 +14,7 @@
  *   limitations under the License.
  */
 
-package io.servicecomb.poc.demo.seckill;
+package io.servicecomb.poc.demo.seckill.entities;
 
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
@@ -23,7 +23,7 @@ import javax.persistence.Id;
 import org.hibernate.annotations.Type;
 
 @Entity
-public class Coupon<T> {
+public class CouponEntity<T> {
 
   @Id
   @GeneratedValue(strategy = GenerationType.AUTO)
@@ -38,10 +38,10 @@ public class Coupon<T> {
   @Type(type = "java.lang.String")
   private T customerId;
 
-  public Coupon() {
+  public CouponEntity() {
   }
 
-  public Coupon(String promotionId, long time, float discount, T customerId) {
+  public CouponEntity(String promotionId, long time, float discount, T customerId) {
     this.promotionId = promotionId;
     this.time = time;
     this.discount = discount;
