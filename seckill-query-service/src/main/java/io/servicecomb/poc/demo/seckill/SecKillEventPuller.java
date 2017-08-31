@@ -18,6 +18,7 @@ package io.servicecomb.poc.demo.seckill;
 
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 
+import io.servicecomb.poc.demo.seckill.entities.CouponEntity;
 import io.servicecomb.poc.demo.seckill.entities.PromotionEntity;
 import io.servicecomb.poc.demo.seckill.entities.SecKillEventEntity;
 import io.servicecomb.poc.demo.seckill.event.CouponGrabbedEvent;
@@ -41,7 +42,7 @@ public class SecKillEventPuller<T> {
   private final SpringSecKillEventRepository eventRepository;
   private final SpringPromotionRepository promotionRepository;
 
-  private final Map<T, Queue<Coupon<T>>> customerCoupons = new ConcurrentHashMap<>();
+  private final Map<T, Queue<CouponEntity<T>>> customerCoupons = new ConcurrentHashMap<>();
   private final Map<String, PromotionEntity> activePromotions = new ConcurrentHashMap<>();
   private final SecKillEventFormat secKillEventFormat;
   private final int pollingInterval;
@@ -71,7 +72,7 @@ public class SecKillEventPuller<T> {
     );
   }
 
-  public Collection<Coupon<T>> getCustomerCoupons(T customerId) {
+  public Collection<CouponEntity<T>> getCustomerCoupons(T customerId) {
     return customerCoupons.get(customerId);
   }
 

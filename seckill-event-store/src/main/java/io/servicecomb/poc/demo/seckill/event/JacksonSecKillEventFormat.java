@@ -17,8 +17,8 @@
 package io.servicecomb.poc.demo.seckill.event;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.servicecomb.poc.demo.seckill.Coupon;
 import io.servicecomb.poc.demo.seckill.SecKillException;
+import io.servicecomb.poc.demo.seckill.entities.CouponEntity;
 import io.servicecomb.poc.demo.seckill.entities.PromotionEntity;
 import io.servicecomb.poc.demo.seckill.entities.SecKillEventEntity;
 import java.io.IOException;
@@ -67,7 +67,7 @@ public class JacksonSecKillEventFormat<T> implements SecKillEventFormat {
 
   private SecKillEvent couponGrabbedEvent(String contentJson) {
     try {
-      return new CouponGrabbedEvent<>(objectMapper.readValue(contentJson, Coupon.class));
+      return new CouponGrabbedEvent<>(objectMapper.readValue(contentJson, CouponEntity.class));
     } catch (IOException e) {
       throw new SecKillException("Json Exception", e);
     }

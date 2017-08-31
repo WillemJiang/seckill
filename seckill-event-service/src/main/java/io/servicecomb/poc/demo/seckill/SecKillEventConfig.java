@@ -16,34 +16,43 @@
 
 package io.servicecomb.poc.demo.seckill;
 
-import org.springframework.amqp.core.Binding;
-import org.springframework.amqp.core.BindingBuilder;
-import org.springframework.amqp.core.Queue;
-import org.springframework.amqp.core.TopicExchange;
+import io.servicecomb.poc.demo.seckill.event.CouponGrabbedEvent;
+import io.servicecomb.poc.demo.seckill.repositories.spring.SpringCouponRepository;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
+import javax.jms.ConnectionFactory;
+import org.springframework.boot.autoconfigure.jms.DefaultJmsListenerContainerFactoryConfigurer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.jms.config.DefaultJmsListenerContainerFactory;
+import org.springframework.jms.config.JmsListenerContainerFactory;
+import org.springframework.jms.support.converter.MessageConverter;
+import org.springframework.jms.support.converter.SimpleMessageConverter;
 
 @Configuration
 public class SecKillEventConfig {
 
   @Bean
-  SecKillMessageSubscriber secKillMessageSubscriber() {
-    return new RabbitSecKillMessageSubscriber();
+  BlockingQueue<CouponGrabbedEvent<String>> events() {
+    return new LinkedBlockingQueue<>();
   }
 
   @Bean
-  public TopicExchange exchange() {
-    return new TopicExchange(MessageBrokerName.Rabbit_ExchangeName, true, false);
+  JmsListenerContainerFactory<?> containerFactory(ConnectionFactory connectionFactory,
+      DefaultJmsListenerContainerFactoryConfigurer configurer) {
+    DefaultJmsListenerContainerFactory factory = new DefaultJmsListenerContainerFactory();
+    configurer.configure(factory, connectionFactory);
+    return factory;
   }
 
   @Bean
-  public Queue queue() {
-    return new Queue(MessageBrokerName.Rabbit_QueueName, true);
+  MessageConverter messageConverter() {
+    return new SimpleMessageConverter();
   }
 
   @Bean
-  public Binding binding(TopicExchange exchange, Queue queue) {
-    return BindingBuilder.bind(queue).to(exchange).with(MessageBrokerName.Rabbit_TopicName);
+  SecKillCouponPersistentRunner<String> persistentRunner(BlockingQueue<CouponGrabbedEvent<String>> events,
+      SpringCouponRepository<String> repository) {
+    return new SecKillCouponPersistentRunner<>(events, repository);
   }
-
 }

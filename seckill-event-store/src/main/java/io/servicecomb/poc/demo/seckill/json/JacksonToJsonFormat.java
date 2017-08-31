@@ -21,8 +21,8 @@ import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.servicecomb.poc.demo.seckill.Coupon;
 import io.servicecomb.poc.demo.seckill.SecKillException;
+import io.servicecomb.poc.demo.seckill.entities.CouponEntity;
 import io.servicecomb.poc.demo.seckill.entities.PromotionEntity;
 
 public class JacksonToJsonFormat implements ToJsonFormat {
@@ -49,7 +49,7 @@ public class JacksonToJsonFormat implements ToJsonFormat {
   }
 
   @Override
-  public String toJson(Coupon coupon) {
+  public String toJson(CouponEntity coupon) {
     try {
       return objectMapper.writeValueAsString(coupon);
     } catch (JsonProcessingException e) {
