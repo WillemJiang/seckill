@@ -16,6 +16,9 @@
 
 package io.servicecomb.poc.demo.seckill;
 
+import io.servicecomb.poc.demo.seckill.dto.EventMessageDto;
+import io.servicecomb.poc.demo.seckill.event.SecKillEventFormat;
+import java.util.concurrent.BlockingQueue;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.jms.annotation.JmsListener;
@@ -23,10 +26,18 @@ import org.springframework.jms.annotation.JmsListener;
 public class ActiveMQSecKillMessageSubscriber implements SecKillMessageSubscriber {
 
   private static final Logger logger = LoggerFactory.getLogger(ActiveMQSecKillMessageSubscriber.class);
+  private final BlockingQueue<EventMessageDto> messages;
+  private final SecKillEventFormat eventFormat;
+
+  public ActiveMQSecKillMessageSubscriber(BlockingQueue<EventMessageDto> messages, SecKillEventFormat eventFormat) {
+    this.messages = messages;
+    this.eventFormat = eventFormat;
+  }
 
   @Override
   @JmsListener(destination = "seckill", containerFactory = "containerFactory")
-  public void processMessage(String messageContent) {
+  public void subscribeMessage(String messageContent) {
     logger.info("receive message : {}", messageContent);
+    messages.add(eventFormat.getFormat().deserialize(messageContent, EventMessageDto.class));
   }
 }

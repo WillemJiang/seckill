@@ -18,5 +18,5 @@ package io.servicecomb.poc.demo.seckill;
 
 public interface SecKillMessageSubscriber {
 
-  void processMessage(String messageContent);
+  void subscribeMessage(String messageContent);
 }

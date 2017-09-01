@@ -17,8 +17,10 @@
 package io.servicecomb.poc.demo.seckill.repositories.spring;
 
 import io.servicecomb.poc.demo.seckill.entities.CouponEntity;
+import io.servicecomb.poc.demo.seckill.entities.EventEntity;
+import java.util.List;
 import org.springframework.data.repository.PagingAndSortingRepository;
 
 public interface SpringCouponRepository<T> extends PagingAndSortingRepository<CouponEntity<T>, Integer> {
-
+  List<CouponEntity<T>> findByIdGreaterThan(int id);
 }

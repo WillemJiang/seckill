@@ -23,12 +23,12 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import io.servicecomb.poc.demo.seckill.entities.PromotionEntity;
-import io.servicecomb.poc.demo.seckill.entities.SecKillEventEntity;
+import io.servicecomb.poc.demo.seckill.entities.EventEntity;
 import io.servicecomb.poc.demo.seckill.event.CouponGrabbedEvent;
-import io.servicecomb.poc.demo.seckill.event.JacksonSecKillEventFormat;
+import io.servicecomb.poc.demo.seckill.event.SecKillEventFormat;
 import io.servicecomb.poc.demo.seckill.event.PromotionFinishEvent;
 import io.servicecomb.poc.demo.seckill.event.PromotionStartEvent;
-import io.servicecomb.poc.demo.seckill.json.JacksonToJsonFormat;
+import io.servicecomb.poc.demo.seckill.json.JacksonGeneralFormat;
 import io.servicecomb.poc.demo.seckill.repositories.spring.SpringSecKillEventRepository;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -45,28 +45,28 @@ public class SecKillRecoveryServiceTest {
 
   private SpringSecKillEventRepository repository = mock(SpringSecKillEventRepository.class);
 
-  private final JacksonToJsonFormat toJsonFormat = new JacksonToJsonFormat();
-  private final JacksonSecKillEventFormat<String> secKillEventFormat = new JacksonSecKillEventFormat<>();
+  private final JacksonGeneralFormat jsonFormat = new JacksonGeneralFormat();
+  private final SecKillEventFormat eventFormat = new SecKillEventFormat(jsonFormat);
 
-  private SecKillRecoveryService<String> recoveryService = new SecKillRecoveryService<>(repository, secKillEventFormat);
+  private SecKillRecoveryService<String> recoveryService = new SecKillRecoveryService<>(repository, eventFormat);
 
   @Before
   public void setup() {
     when(repository.findByPromotionId(unpublishedPromotion.getPromotionId()))
         .thenReturn(Collections.emptyList());
 
-    List<SecKillEventEntity> runningPromotionEvents = new ArrayList<>();
-    runningPromotionEvents.add(new PromotionStartEvent(runningPromotion).toEntity(toJsonFormat));
-    runningPromotionEvents.add(new CouponGrabbedEvent<>(runningPromotion, "zyy").toEntity(toJsonFormat));
+    List<EventEntity> runningPromotionEvents = new ArrayList<>();
+    runningPromotionEvents.add(eventFormat.toEntity(new PromotionStartEvent(runningPromotion)));
+    runningPromotionEvents.add(eventFormat.toEntity(new CouponGrabbedEvent<>(runningPromotion, "zyy")));
     when(repository.findByPromotionId(runningPromotion.getPromotionId()))
         .thenReturn(runningPromotionEvents);
 
-    List<SecKillEventEntity> endedPromotionEvents = new ArrayList<>();
-    endedPromotionEvents.add(new PromotionStartEvent(endedPromotion).toEntity(toJsonFormat));
+    List<EventEntity> endedPromotionEvents = new ArrayList<>();
+    endedPromotionEvents.add(eventFormat.toEntity(new PromotionStartEvent(endedPromotion)));
     for (int i = 0; i < endedPromotion.getNumberOfCoupons(); i++) {
-      endedPromotionEvents.add(new CouponGrabbedEvent<>(endedPromotion, String.valueOf(i)).toEntity(toJsonFormat));
+      endedPromotionEvents.add(eventFormat.toEntity(new CouponGrabbedEvent<>(endedPromotion, String.valueOf(i))));
     }
-    endedPromotionEvents.add(new PromotionFinishEvent(endedPromotion).toEntity(toJsonFormat));
+    endedPromotionEvents.add(eventFormat.toEntity(new PromotionFinishEvent(endedPromotion)));
     when(repository.findByPromotionId(endedPromotion.getPromotionId()))
         .thenReturn(endedPromotionEvents);
   }

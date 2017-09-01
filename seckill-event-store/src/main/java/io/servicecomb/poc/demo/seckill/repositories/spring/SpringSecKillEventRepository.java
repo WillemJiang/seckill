@@ -16,13 +16,11 @@
 
 package io.servicecomb.poc.demo.seckill.repositories.spring;
 
-import io.servicecomb.poc.demo.seckill.entities.SecKillEventEntity;
+import io.servicecomb.poc.demo.seckill.entities.EventEntity;
 import java.util.List;
 import org.springframework.data.repository.PagingAndSortingRepository;
 
-public interface SpringSecKillEventRepository extends PagingAndSortingRepository<SecKillEventEntity, Integer> {
+public interface SpringSecKillEventRepository extends PagingAndSortingRepository<EventEntity, Integer> {
 
-  List<SecKillEventEntity> findByPromotionId(String promotionId);
-
-  List<SecKillEventEntity> findByIdGreaterThan(int id);
+  List<EventEntity> findByPromotionId(String promotionId);
 }

@@ -16,11 +16,48 @@
 
 package io.servicecomb.poc.demo.seckill.event;
 
-import io.servicecomb.poc.demo.seckill.entities.SecKillEventEntity;
+import io.servicecomb.poc.demo.seckill.Format;
+import io.servicecomb.poc.demo.seckill.dto.EventMessageDto;
+import io.servicecomb.poc.demo.seckill.entities.EventEntity;
 
-public interface SecKillEventFormat {
+public class SecKillEventFormat {
 
-  SecKillEvent toSecKillEvent(String eventType, String contentJson);
+  private Format format = null;
 
-  SecKillEvent toSecKillEvent(SecKillEventEntity entity);
+  public Format getFormat() {
+    return format;
+  }
+
+  public SecKillEventFormat(Format format) {
+    this.format = format;
+  }
+
+  public SecKillEvent fromMessage(EventMessageDto message) {
+    return generateEvent(message.getType(), message.getContentJson());
+  }
+
+  public SecKillEvent fromEntity(EventEntity entity) {
+    return generateEvent(entity.getType(), entity.getContentJson());
+  }
+
+  private SecKillEvent generateEvent(String type, String contentJson) {
+    if (SecKillEventType.CouponGrabbedEvent.equals(type)) {
+      return new CouponGrabbedEvent(format, contentJson);
+    } else if (SecKillEventType.PromotionStartEvent.equals(type)) {
+      return new PromotionStartEvent(format, contentJson);
+    } else if (SecKillEventType.PromotionFinishEvent.equals(type)) {
+      return new PromotionFinishEvent(format, contentJson);
+    } else {
+      return null;
+    }
+  }
+
+
+  public EventMessageDto toMessage(SecKillEvent event) {
+    return new EventMessageDto(event.getType(), event.getPromotionId(), event.getContent(format));
+  }
+
+  public EventEntity toEntity(SecKillEvent event) {
+    return new EventEntity(event.getType(), event.getPromotionId(), event.getContent(format));
+  }
 }

@@ -16,9 +16,9 @@
 
 package io.servicecomb.poc.demo.seckill.event;
 
+import io.servicecomb.poc.demo.seckill.Format;
 import io.servicecomb.poc.demo.seckill.entities.CouponEntity;
 import io.servicecomb.poc.demo.seckill.entities.PromotionEntity;
-import io.servicecomb.poc.demo.seckill.json.ToJsonFormat;
 
 public class CouponGrabbedEvent<T> extends SecKillEvent {
 
@@ -27,6 +27,11 @@ public class CouponGrabbedEvent<T> extends SecKillEvent {
   public CouponGrabbedEvent() {
     super();
     this.type = CouponGrabbedEvent.class.getSimpleName();
+  }
+
+  public CouponGrabbedEvent(Format format, String content){
+    this();
+    coupon = format.deserialize(content, CouponEntity.class);
   }
 
   public CouponGrabbedEvent(CouponEntity<T> coupon) {
@@ -47,7 +52,7 @@ public class CouponGrabbedEvent<T> extends SecKillEvent {
   }
 
   @Override
-  public String json(ToJsonFormat toJsonFormat) {
-    return toJsonFormat.toJson(coupon);
+  public String getContent(Format format) {
+    return format.serialize(coupon);
   }
 }

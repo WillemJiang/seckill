@@ -21,7 +21,6 @@ import static org.hamcrest.CoreMatchers.containsString;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -34,7 +33,6 @@ import io.servicecomb.poc.demo.seckill.repositories.spring.SpringCouponRepositor
 import io.servicecomb.poc.demo.seckill.repositories.spring.SpringPromotionRepository;
 import io.servicecomb.poc.demo.seckill.repositories.spring.SpringSecKillEventRepository;
 import java.util.Date;
-import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -51,7 +49,7 @@ import org.springframework.test.web.servlet.MvcResult;
 @WebAppConfiguration
 @AutoConfigureMockMvc
 @EnableJms
-public class SecKillIntegrationTest {
+public class SecKillMutiActivePromotionIntegrationTest {
 
   private final Format format = new JacksonGeneralFormat();
 
@@ -67,25 +65,26 @@ public class SecKillIntegrationTest {
   @Autowired
   private SpringCouponRepository couponRepository;
 
-  @Before
-  public void setUp() throws Exception {
-    eventRepository.deleteAll();
-    couponRepository.deleteAll();
-    promotionRepository.deleteAll();
-  }
-
   @Test
-  public void createPromotionAndGrabSuccessfully() throws Exception {
+  public void createAndPublishMultiPromotionAndGrabSuccessfully() throws Exception {
     MvcResult result = mockMvc.perform(post("/admin/promotions/").contentType(APPLICATION_JSON)
         .content(format.serialize(new PromotionDto(5, 0.7f, new Date()))))
         .andExpect(status().isOk()).andReturn();
+    String promotionId1 = result.getResponse().getContentAsString();
+
+    result = mockMvc.perform(post("/admin/promotions/").contentType(APPLICATION_JSON)
+        .content(format.serialize(new PromotionDto(10, 0.8f, new Date()))))
+        .andExpect(status().isOk()).andReturn();
+    String promotionId2 = result.getResponse().getContentAsString();
 
     Thread.sleep(1000);
 
-    String promotionId = result.getResponse().getContentAsString();
+    mockMvc.perform(post("/command/coupons/").contentType(APPLICATION_JSON)
+        .content(format.serialize(new CouponDto<>(promotionId1, "zyy"))))
+        .andExpect(status().isOk()).andExpect(content().string("Request accepted"));
 
     mockMvc.perform(post("/command/coupons/").contentType(APPLICATION_JSON)
-        .content(format.serialize(new CouponDto<>(promotionId, "zyy"))))
+        .content(format.serialize(new CouponDto<>(promotionId2, "zyy"))))
         .andExpect(status().isOk()).andExpect(content().string("Request accepted"));
 
     Thread.sleep(1000);
@@ -94,25 +93,9 @@ public class SecKillIntegrationTest {
         .andExpect(status().isOk())
         .andExpect(content().string(
             allOf(
-                containsString(promotionId),
+                containsString(promotionId1),
+                containsString(promotionId2),
                 containsString("zyy"))));
 
-    Thread.sleep(1000);
-  }
-
-  @Test
-  public void failsUpdatePromotionWhenPromotionHadStarted() throws Exception {
-    MvcResult result = mockMvc.perform(post("/admin/promotions/").contentType(APPLICATION_JSON)
-        .content(format.serialize(new PromotionDto(5, 0.7f, new Date()))))
-        .andExpect(status().isOk()).andReturn();
-
-    Thread.sleep(1000);
-
-    String promotionId = result.getResponse().getContentAsString();
-
-    mockMvc.perform(put("/admin/promotions/" + promotionId + "/").contentType(APPLICATION_JSON)
-        .content(format.serialize(new PromotionDto(5, 0.7f, new Date()))))
-        .andExpect(status().isBadRequest())
-        .andExpect(content().string(containsString("PromotionEntity had started and changes is rejected")));
   }
 }

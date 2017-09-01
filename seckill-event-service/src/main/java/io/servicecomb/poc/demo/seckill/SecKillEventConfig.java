@@ -16,8 +16,12 @@
 
 package io.servicecomb.poc.demo.seckill;
 
-import io.servicecomb.poc.demo.seckill.event.CouponGrabbedEvent;
+import io.servicecomb.poc.demo.seckill.dto.EventMessageDto;
+import io.servicecomb.poc.demo.seckill.event.SecKillEvent;
+import io.servicecomb.poc.demo.seckill.event.SecKillEventFormat;
+import io.servicecomb.poc.demo.seckill.json.JacksonGeneralFormat;
 import io.servicecomb.poc.demo.seckill.repositories.spring.SpringCouponRepository;
+import io.servicecomb.poc.demo.seckill.repositories.spring.SpringPromotionRepository;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import javax.jms.ConnectionFactory;
@@ -33,7 +37,7 @@ import org.springframework.jms.support.converter.SimpleMessageConverter;
 public class SecKillEventConfig {
 
   @Bean
-  BlockingQueue<CouponGrabbedEvent<String>> events() {
+  BlockingQueue<SecKillEvent> events() {
     return new LinkedBlockingQueue<>();
   }
 
@@ -51,8 +55,33 @@ public class SecKillEventConfig {
   }
 
   @Bean
-  SecKillCouponPersistentRunner<String> persistentRunner(BlockingQueue<CouponGrabbedEvent<String>> events,
-      SpringCouponRepository<String> repository) {
-    return new SecKillCouponPersistentRunner<>(events, repository);
+  Format format() {
+    return new JacksonGeneralFormat();
+  }
+
+  @Bean
+  SecKillEventFormat secKillEventFormat(Format format) {
+    return new SecKillEventFormat(format);
+  }
+
+  @Bean
+  BlockingQueue<EventMessageDto> queue() {
+    return new LinkedBlockingQueue<>();
+  }
+
+  @Bean
+  SecKillCouponPersistentRunner persistentRunner(BlockingQueue<EventMessageDto> messages,
+      SecKillEventFormat secKillEventFormat,
+      SpringPromotionRepository promotionRepository,
+      SpringCouponRepository<String> couponRepository) {
+    SecKillCouponPersistentRunner persistentRunner = new SecKillCouponPersistentRunner<>(messages,
+        secKillEventFormat, promotionRepository, couponRepository);
+    persistentRunner.run();
+    return persistentRunner;
+  }
+
+  @Bean
+  SecKillMessageSubscriber messageSubscriber(BlockingQueue<EventMessageDto> messages, SecKillEventFormat eventFormat) {
+    return new ActiveMQSecKillMessageSubscriber(messages, eventFormat);
   }
 }

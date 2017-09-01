@@ -24,9 +24,9 @@ import static org.junit.Assert.assertThat;
 
 import io.servicecomb.poc.demo.seckill.entities.PromotionEntity;
 import io.servicecomb.poc.demo.seckill.event.CouponGrabbedEvent;
-import io.servicecomb.poc.demo.seckill.event.JacksonSecKillEventFormat;
+import io.servicecomb.poc.demo.seckill.event.SecKillEventFormat;
 import io.servicecomb.poc.demo.seckill.event.SecKillEventType;
-import io.servicecomb.poc.demo.seckill.json.JacksonToJsonFormat;
+import io.servicecomb.poc.demo.seckill.json.JacksonGeneralFormat;
 import io.servicecomb.poc.demo.seckill.repositories.SecKillEventRepository;
 import java.time.ZonedDateTime;
 import java.util.Date;
@@ -44,17 +44,22 @@ public class SecKillPersistentRunnerTest {
   private final List<String> customerIds = new LinkedList<>();
   private volatile boolean isPromotionEnded;
 
-  private final JacksonSecKillEventFormat<String> secKillEventFormat = new JacksonSecKillEventFormat<>();
-  private final JacksonToJsonFormat toJsonFormat = new JacksonToJsonFormat();
+  private final JacksonGeneralFormat jsonFormat = new JacksonGeneralFormat();
+  private final SecKillEventFormat eventFormat = new SecKillEventFormat(jsonFormat);
 
-  private final SecKillEventRepository repository = couponEvent -> {
-    if (SecKillEventType.PromotionFinishEvent.equals(couponEvent.getType())) {
+
+  private final SecKillEventRepository repository = eventEntity -> {
+    if (SecKillEventType.PromotionFinishEvent.equals(eventEntity.getType())) {
       isPromotionEnded = true;
-    } else if (SecKillEventType.CouponGrabbedEvent.equals(couponEvent.getType())) {
-      String customerId = ((CouponGrabbedEvent<String>) secKillEventFormat.toSecKillEvent(couponEvent)).getCoupon()
+    } else if (SecKillEventType.CouponGrabbedEvent.equals(eventEntity.getType())) {
+      String customerId = ((CouponGrabbedEvent<String>) eventFormat.fromEntity(eventEntity)).getCoupon()
           .getCustomerId();
       customerIds.add(customerId);
     }
+  };
+
+  private final SecKillMessagePublisher messagePublisher = messageContent -> {
+    //nothing to do
   };
 
   private final BlockingQueue<String> coupons = new ArrayBlockingQueue<>(numberOfCoupons);
@@ -64,8 +69,8 @@ public class SecKillPersistentRunnerTest {
   public void persistsCouponUsingRepo() throws InterruptedException {
     PromotionEntity promotion = new PromotionEntity(new Date(), numberOfCoupons, 0.7f);
     SecKillRecoveryCheckResult<String> recovery = new SecKillRecoveryCheckResult<>(numberOfCoupons);
-    SecKillPersistentRunner<String> runner = new SecKillPersistentRunner<>(promotion, coupons, claimedCoupons,
-        repository, toJsonFormat, recovery);
+    SecKillEventPersistentRunner<String> runner = new SecKillEventPersistentRunner<>(promotion, coupons, claimedCoupons,
+        repository, eventFormat, messagePublisher, recovery);
 
     for (int i = 0; i < numberOfCoupons; i++) {
       coupons.offer(String.valueOf(i));
@@ -89,8 +94,8 @@ public class SecKillPersistentRunnerTest {
     PromotionEntity promotion = new PromotionEntity(dateOf(publishTime), dateOf(publishTime.plusSeconds(delaySeconds)),
         numberOfCoupons, 0.7f);
     SecKillRecoveryCheckResult<String> recovery = new SecKillRecoveryCheckResult<>(numberOfCoupons);
-    SecKillPersistentRunner<String> runner = new SecKillPersistentRunner<>(promotion, coupons, claimedCoupons,
-        repository, toJsonFormat, recovery);
+    SecKillEventPersistentRunner<String> runner = new SecKillEventPersistentRunner<>(promotion, coupons, claimedCoupons,
+        repository, eventFormat, messagePublisher, recovery);
 
     coupons.offer(String.valueOf(0));
     runner.run();
@@ -104,8 +109,8 @@ public class SecKillPersistentRunnerTest {
   public void exitsWhenAllCouponsConsumed() throws Exception {
     PromotionEntity promotion = new PromotionEntity(new Date(), numberOfCoupons, 0.7f);
     SecKillRecoveryCheckResult<String> recovery = new SecKillRecoveryCheckResult<>(numberOfCoupons);
-    SecKillPersistentRunner<String> runner = new SecKillPersistentRunner<>(promotion, coupons, claimedCoupons,
-        repository, toJsonFormat, recovery);
+    SecKillEventPersistentRunner<String> runner = new SecKillEventPersistentRunner<>(promotion, coupons, claimedCoupons,
+        repository, eventFormat, messagePublisher, recovery);
     runner.run();
 
     Thread.sleep(1000);

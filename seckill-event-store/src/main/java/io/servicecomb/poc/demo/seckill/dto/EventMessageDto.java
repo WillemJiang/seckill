@@ -14,19 +14,9 @@
  *   limitations under the License.
  */
 
-package io.servicecomb.poc.demo.seckill.entities;
+package io.servicecomb.poc.demo.seckill.dto;
 
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-
-@Entity
-public class SecKillEventEntity {
-
-  @Id
-  @GeneratedValue(strategy = GenerationType.AUTO)
-  private int id;
+public class EventMessageDto {
 
   protected String type;
 
@@ -34,8 +24,14 @@ public class SecKillEventEntity {
 
   protected String contentJson;
 
-  public int getId() {
-    return id;
+  public EventMessageDto() {
+
+  }
+
+  public EventMessageDto(String type, String promotionId, String contentJson) {
+    this.type = type;
+    this.promotionId = promotionId;
+    this.contentJson = contentJson;
   }
 
   public String getType() {
@@ -50,12 +46,5 @@ public class SecKillEventEntity {
     return contentJson;
   }
 
-  public SecKillEventEntity() {
-  }
 
-  public SecKillEventEntity(String type, String promotionId, String contentJson) {
-    this.type = type;
-    this.promotionId = promotionId;
-    this.contentJson = contentJson;
-  }
 }

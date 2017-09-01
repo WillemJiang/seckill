@@ -17,7 +17,7 @@
 package io.servicecomb.poc.demo.seckill;
 
 import io.servicecomb.poc.demo.seckill.entities.PromotionEntity;
-import io.servicecomb.poc.demo.seckill.json.ToJsonFormat;
+import io.servicecomb.poc.demo.seckill.event.SecKillEventFormat;
 import io.servicecomb.poc.demo.seckill.repositories.SecKillEventRepository;
 import io.servicecomb.poc.demo.seckill.repositories.spring.SpringPromotionRepository;
 import java.util.HashMap;
@@ -38,9 +38,10 @@ public class SecKillPromotionBootstrap<T> {
 
   private final SpringPromotionRepository promotionRepository;
   private final SecKillEventRepository eventRepository;
+  private final SecKillMessagePublisher messagePublisher;
   private final Map<String, SecKillCommandService<T>> commandServices;
-  private final List<SecKillPersistentRunner<T>> persistentRunners;
-  private ToJsonFormat toJsonFormat;
+  private final SecKillEventFormat eventFormat;
+  private final List<SecKillEventPersistentRunner<T>> persistentRunners;
   private final SecKillRecoveryService<T> recoveryService;
 
   private final ScheduledExecutorService executorService = Executors.newScheduledThreadPool(1);
@@ -50,15 +51,17 @@ public class SecKillPromotionBootstrap<T> {
   public SecKillPromotionBootstrap(
       SpringPromotionRepository promotionRepository,
       SecKillEventRepository eventRepository,
+      SecKillMessagePublisher messagePublisher,
       Map<String, SecKillCommandService<T>> commandServices,
-      List<SecKillPersistentRunner<T>> persistentRunners,
-      ToJsonFormat toJsonFormat,
+      List<SecKillEventPersistentRunner<T>> persistentRunners,
+      SecKillEventFormat eventFormat,
       SecKillRecoveryService<T> recoveryService) {
     this.promotionRepository = promotionRepository;
     this.eventRepository = eventRepository;
+    this.messagePublisher = messagePublisher;
     this.commandServices = commandServices;
+    this.eventFormat = eventFormat;
     this.persistentRunners = persistentRunners;
-    this.toJsonFormat = toJsonFormat;
     this.recoveryService = recoveryService;
   }
 
@@ -92,11 +95,12 @@ public class SecKillPromotionBootstrap<T> {
     AtomicInteger claimedCoupons = new AtomicInteger();
     BlockingQueue<T> couponQueue = new ArrayBlockingQueue<>(promotion.getNumberOfCoupons());
     SecKillRecoveryCheckResult<T> recoveryInfo = recoveryService.check(promotion);
-    SecKillPersistentRunner<T> persistentRunner = new SecKillPersistentRunner<>(promotion,
+    SecKillEventPersistentRunner<T> persistentRunner = new SecKillEventPersistentRunner<>(promotion,
         couponQueue,
         claimedCoupons,
         eventRepository,
-        toJsonFormat,
+        eventFormat,
+        messagePublisher,
         recoveryInfo);
     persistentRunners.add(persistentRunner);
     persistentRunner.run();

@@ -16,19 +16,19 @@
 
 package io.servicecomb.poc.demo.seckill.repositories;
 
-import io.servicecomb.poc.demo.seckill.entities.SecKillEventEntity;
+import io.servicecomb.poc.demo.seckill.entities.EventEntity;
 import org.springframework.data.repository.PagingAndSortingRepository;
 
 public class SecKillEventRepositoryImpl implements SecKillEventRepository {
 
-  private final PagingAndSortingRepository<SecKillEventEntity, Integer> repository;
+  private final PagingAndSortingRepository<EventEntity, Integer> repository;
 
-  public SecKillEventRepositoryImpl(PagingAndSortingRepository<SecKillEventEntity, Integer> repository) {
+  public SecKillEventRepositoryImpl(PagingAndSortingRepository<EventEntity, Integer> repository) {
     this.repository = repository;
   }
 
   @Override
-  public void save(SecKillEventEntity entity) {
+  public void save(EventEntity entity) {
     repository.save(entity);
   }
 }
