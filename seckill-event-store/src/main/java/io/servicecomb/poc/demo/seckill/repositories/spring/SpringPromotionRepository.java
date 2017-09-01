@@ -20,6 +20,7 @@ import io.servicecomb.poc.demo.seckill.entities.PromotionEntity;
 import java.util.Collection;
 import java.util.List;
 import org.springframework.data.repository.PagingAndSortingRepository;
+import org.springframework.transaction.annotation.Transactional;
 
 public interface SpringPromotionRepository extends PagingAndSortingRepository<PromotionEntity, Integer> {
 
@@ -27,5 +28,6 @@ public interface SpringPromotionRepository extends PagingAndSortingRepository<Pr
 
   PromotionEntity findTopByPromotionId(String promotionId);
 
-  List<PromotionEntity> findByPromotionIdIn(Collection<String> promotionId);
+  @Transactional
+  void deleteByPromotionId(String promotionId);
 }

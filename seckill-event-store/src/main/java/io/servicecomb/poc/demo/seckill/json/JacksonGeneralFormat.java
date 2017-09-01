@@ -21,15 +21,16 @@ import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import io.servicecomb.poc.demo.seckill.SecKillException;
-import io.servicecomb.poc.demo.seckill.entities.CouponEntity;
-import io.servicecomb.poc.demo.seckill.entities.PromotionEntity;
+import io.servicecomb.poc.demo.seckill.Format;
+import java.io.IOException;
 
-public class JacksonToJsonFormat implements ToJsonFormat {
+public class JacksonGeneralFormat implements Format {
 
   private final ObjectMapper objectMapper = new ObjectMapper();
 
-  public JacksonToJsonFormat() {
+  public JacksonGeneralFormat() {
     objectMapper.setVisibility(
         objectMapper.getSerializationConfig()
             .getDefaultVisibilityChecker()
@@ -40,19 +41,29 @@ public class JacksonToJsonFormat implements ToJsonFormat {
   }
 
   @Override
-  public String toJson(PromotionEntity promotion) {
+  public String serialize(Object obj) {
     try {
-      return objectMapper.writeValueAsString(promotion);
+      return objectMapper.writeValueAsString(obj);
     } catch (JsonProcessingException e) {
       throw new SecKillException("Json Exception", e);
     }
   }
 
+
   @Override
-  public String toJson(CouponEntity coupon) {
+  public <T> T deserialize(String json, Class<T> type) {
     try {
-      return objectMapper.writeValueAsString(coupon);
-    } catch (JsonProcessingException e) {
+      return objectMapper.readValue(json, type);
+    } catch (IOException e) {
+      throw new SecKillException("Json Exception", e);
+    }
+  }
+
+  @Override
+  public String getField(String fieldName, String json) {
+    try {
+      return objectMapper.readValue(json, ObjectNode.class).get(fieldName).asText();
+    } catch (IOException e) {
       throw new SecKillException("Json Exception", e);
     }
   }

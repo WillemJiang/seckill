@@ -16,9 +16,9 @@
 
 package io.servicecomb.poc.demo.seckill.repositories;
 
-import io.servicecomb.poc.demo.seckill.entities.SecKillEventEntity;
+import io.servicecomb.poc.demo.seckill.entities.EventEntity;
 
 public interface SecKillEventRepository {
 
-  void save(SecKillEventEntity entity);
+  void save(EventEntity entity);
 }

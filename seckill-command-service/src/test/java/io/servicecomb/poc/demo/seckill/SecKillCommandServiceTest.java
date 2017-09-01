@@ -123,6 +123,6 @@ public class SecKillCommandServiceTest {
           Thread.currentThread().interrupt();
         }
       }
-    });
+    },Executors.newFixedThreadPool(4));
   }
 }

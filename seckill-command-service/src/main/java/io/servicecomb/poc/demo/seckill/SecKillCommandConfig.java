@@ -16,11 +16,9 @@
 
 package io.servicecomb.poc.demo.seckill;
 
-import io.servicecomb.poc.demo.seckill.entities.SecKillEventEntity;
-import io.servicecomb.poc.demo.seckill.event.JacksonSecKillEventFormat;
+import io.servicecomb.poc.demo.seckill.entities.EventEntity;
 import io.servicecomb.poc.demo.seckill.event.SecKillEventFormat;
-import io.servicecomb.poc.demo.seckill.json.JacksonToJsonFormat;
-import io.servicecomb.poc.demo.seckill.json.ToJsonFormat;
+import io.servicecomb.poc.demo.seckill.json.JacksonGeneralFormat;
 import io.servicecomb.poc.demo.seckill.repositories.SecKillEventRepository;
 import io.servicecomb.poc.demo.seckill.repositories.SecKillEventRepositoryImpl;
 import io.servicecomb.poc.demo.seckill.repositories.spring.SpringPromotionRepository;
@@ -32,6 +30,7 @@ import java.util.Map;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.repository.PagingAndSortingRepository;
+import org.springframework.jms.core.JmsTemplate;
 
 @Configuration
 class SecKillCommandConfig {
@@ -42,13 +41,13 @@ class SecKillCommandConfig {
   }
 
   @Bean
-  List<SecKillPersistentRunner<String>> persistentRunners() {
+  List<SecKillEventPersistentRunner<String>> persistentRunners() {
     return new LinkedList<>();
   }
 
   @Bean
   SecKillEventRepository secKillEventRepository(
-      PagingAndSortingRepository<SecKillEventEntity, Integer> repository) {
+      PagingAndSortingRepository<EventEntity, Integer> repository) {
 
     return new SecKillEventRepositoryImpl(repository);
   }
@@ -56,33 +55,41 @@ class SecKillCommandConfig {
   @Bean
   SecKillPromotionBootstrap secKillPromotionBootstrap(SpringPromotionRepository promotionRepository,
       SecKillEventRepository eventRepository,
+      SecKillMessagePublisher messagePublisher,
       Map<String, SecKillCommandService<String>> commandServices,
-      List<SecKillPersistentRunner<String>> persistentRunners,
-      ToJsonFormat toJsonFormat,
+      List<SecKillEventPersistentRunner<String>> persistentRunners,
+      SecKillEventFormat eventFormat,
       SecKillRecoveryService<String> recoveryService) {
     SecKillPromotionBootstrap<String> promotionBootstrap = new SecKillPromotionBootstrap<>(promotionRepository,
         eventRepository,
+        messagePublisher,
         commandServices,
         persistentRunners,
-        toJsonFormat,
+        eventFormat,
         recoveryService);
     promotionBootstrap.run();
     return promotionBootstrap;
   }
 
   @Bean
-  SecKillRecoveryService<String> secKillRecoveryService(SpringSecKillEventRepository secKillEventRepository,
-      SecKillEventFormat secKillEventFormat) {
-    return new SecKillRecoveryService<>(secKillEventRepository, secKillEventFormat);
+  SecKillRecoveryService<String> secKillRecoveryService(SpringSecKillEventRepository eventRepository,
+      SecKillEventFormat eventFormat) {
+    return new SecKillRecoveryService<>(eventRepository, eventFormat);
   }
 
   @Bean
-  SecKillEventFormat secKillEventFormat() {
-    return new JacksonSecKillEventFormat<String>();
+  SecKillEventFormat secKillEventFormat(Format format) {
+    return new SecKillEventFormat(format);
   }
 
   @Bean
-  ToJsonFormat toJsonFormat() {
-    return new JacksonToJsonFormat();
+  Format format() {
+    return new JacksonGeneralFormat();
   }
+
+  @Bean
+  SecKillMessagePublisher secKillMessagePublisher(JmsTemplate jmsTemplate) {
+    return new ActiveMQSecKillMessagePublisher(jmsTemplate);
+  }
+
 }

@@ -14,15 +14,14 @@
  *   limitations under the License.
  */
 
-package io.servicecomb.poc.demo.seckill.json;
+package io.servicecomb.poc.demo;
 
-import io.servicecomb.poc.demo.seckill.entities.CouponEntity;
-import io.servicecomb.poc.demo.seckill.entities.PromotionEntity;
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
 
-public interface ToJsonFormat {
-
-  String toJson(PromotionEntity promotion);
-
-  String toJson(CouponEntity coupon);
-
+@SpringBootApplication
+public class AdminServiceApplication {
+  public static void main(String[] args) {
+    SpringApplication.run(AdminServiceApplication.class, args);
+  }
 }

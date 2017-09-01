@@ -16,12 +16,8 @@
 
 package io.servicecomb.poc.demo.seckill;
 
-import io.servicecomb.poc.demo.seckill.event.JacksonSecKillEventFormat;
-import io.servicecomb.poc.demo.seckill.event.SecKillEventFormat;
-import io.servicecomb.poc.demo.seckill.json.JacksonToJsonFormat;
-import io.servicecomb.poc.demo.seckill.json.ToJsonFormat;
+import io.servicecomb.poc.demo.seckill.repositories.spring.SpringCouponRepository;
 import io.servicecomb.poc.demo.seckill.repositories.spring.SpringPromotionRepository;
-import io.servicecomb.poc.demo.seckill.repositories.spring.SpringSecKillEventRepository;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -31,29 +27,17 @@ class SecKillQueryConfig {
 
   @Bean
   SecKillEventPuller<String> seckillEventLoader(
-      SpringSecKillEventRepository secKillEventRepository,
+      SpringCouponRepository couponRepository,
       SpringPromotionRepository promotionRepository,
-      SecKillEventFormat secKillEventFormat,
       @Value("${event.polling.interval:500}") int pollingInterval) {
 
     SecKillEventPuller<String> eventLoader = new SecKillEventPuller<>(
-        secKillEventRepository,
+        couponRepository,
         promotionRepository,
-        secKillEventFormat,
         pollingInterval);
 
-    eventLoader.reloadEventsScheduler();
+    eventLoader.reloadScheduler();
 
     return eventLoader;
-  }
-
-  @Bean
-  SecKillEventFormat secKillEventFormat() {
-    return new JacksonSecKillEventFormat<String>();
-  }
-
-  @Bean
-  ToJsonFormat toJsonFormat() {
-    return new JacksonToJsonFormat();
   }
 }

@@ -27,8 +27,10 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.servicecomb.poc.demo.AdminServiceApplication;
 import io.servicecomb.poc.demo.seckill.dto.PromotionDto;
 import io.servicecomb.poc.demo.seckill.entities.PromotionEntity;
+import io.servicecomb.poc.demo.seckill.json.JacksonGeneralFormat;
 import io.servicecomb.poc.demo.seckill.repositories.spring.SpringPromotionRepository;
 import java.util.Date;
 import java.util.UUID;
@@ -49,7 +51,7 @@ import org.springframework.test.web.servlet.MvcResult;
 @AutoConfigureMockMvc
 public class SecKillAdminApplicationTest {
 
-  private final ObjectMapper objectMapper = new ObjectMapper();
+  private final Format format = new JacksonGeneralFormat();
 
   @Autowired
   private MockMvc mockMvc;
@@ -66,7 +68,7 @@ public class SecKillAdminApplicationTest {
   @Test
   public void createsPromotionSuccessfully() throws Exception {
     MvcResult result = mockMvc.perform(post("/admin/promotions/").contentType(APPLICATION_JSON)
-        .content(toJson(new PromotionDto(5, 0.7f, timeFromNow(2000)))))
+        .content(format.serialize(new PromotionDto(5, 0.7f, timeFromNow(2000)))))
         .andExpect(status().isOk()).andReturn();
 
     UUID.fromString(result.getResponse().getContentAsString());
@@ -77,7 +79,7 @@ public class SecKillAdminApplicationTest {
   @Test
   public void failsWhenNumberOfCouponsIsInvalid() throws Exception {
     mockMvc.perform(post("/admin/promotions/").contentType(APPLICATION_JSON)
-        .content(toJson(new PromotionDto(0, 0.7f, timeFromNow(2000)))))
+        .content(format.serialize(new PromotionDto(0, 0.7f, timeFromNow(2000)))))
         .andExpect(status().isBadRequest())
         .andExpect(content().string(containsString("Invalid promotion {numberOfCoupons=")));
   }
@@ -85,7 +87,7 @@ public class SecKillAdminApplicationTest {
   @Test
   public void failsWhenDiscountIsInvalid() throws Exception {
     mockMvc.perform(post("/admin/promotions/").contentType(APPLICATION_JSON)
-        .content(toJson(new PromotionDto(5, -0.1f, timeFromNow(2000)))))
+        .content(format.serialize(new PromotionDto(5, -0.1f, timeFromNow(2000)))))
         .andExpect(status().isBadRequest())
         .andExpect(content().string(containsString("Invalid promotion {numberOfCoupons=")));
   }
@@ -93,7 +95,7 @@ public class SecKillAdminApplicationTest {
   @Test
   public void updatePromotionSuccessfully() throws Exception {
     MvcResult result = mockMvc.perform(post("/admin/promotions/").contentType(APPLICATION_JSON)
-        .content(toJson(new PromotionDto(5, 0.7f, timeFromNow(2000)))))
+        .content(format.serialize(new PromotionDto(5, 0.7f, timeFromNow(2000)))))
         .andExpect(status().isOk()).andReturn();
 
     String promotionId = result.getResponse().getContentAsString();
@@ -103,7 +105,7 @@ public class SecKillAdminApplicationTest {
     Date finishTime = truncateToSeconds(new Date(System.currentTimeMillis() + 300000));
 
     mockMvc.perform(put("/admin/promotions/" + promotionId + "/").contentType(APPLICATION_JSON)
-        .content(toJson(new PromotionDto(numberOfCoupons, discount, publishTime, finishTime))))
+        .content(format.serialize(new PromotionDto(numberOfCoupons, discount, publishTime, finishTime))))
         .andExpect(status().isOk());
 
     PromotionEntity promotion = repository.findTopByPromotionId(promotionId);
@@ -116,7 +118,7 @@ public class SecKillAdminApplicationTest {
   @Test
   public void failsUpdatePromotionWhenPromotionDoesNotExist() throws Exception {
     mockMvc.perform(put("/admin/promotions/" + UUID.randomUUID().toString() + "/").contentType(APPLICATION_JSON)
-        .content(toJson(new PromotionDto(5, 0.7f, timeFromNow(2000)))))
+        .content(format.serialize(new PromotionDto(5, 0.7f, timeFromNow(2000)))))
         .andExpect(status().isBadRequest())
         .andExpect(content().string(containsString("PromotionEntity not exists")));
   }
@@ -124,7 +126,7 @@ public class SecKillAdminApplicationTest {
   @Test
   public void failsUpdatePromotionWhenDtoIsInvalid() throws Exception {
     MvcResult result = mockMvc.perform(post("/admin/promotions/").contentType(APPLICATION_JSON)
-        .content(toJson(new PromotionDto(5, 0.7f, timeFromNow(2000)))))
+        .content(format.serialize(new PromotionDto(5, 0.7f, timeFromNow(2000)))))
         .andExpect(status().isOk()).andReturn();
 
     String promotionId = result.getResponse().getContentAsString();
@@ -134,14 +136,11 @@ public class SecKillAdminApplicationTest {
     Date finishTime = truncateToSeconds(new Date(System.currentTimeMillis() + 300000));
 
     mockMvc.perform(put("/admin/promotions/" + promotionId + "/").contentType(APPLICATION_JSON)
-        .content(toJson(new PromotionDto(numberOfCoupons, discount, publishTime, finishTime))))
+        .content(format.serialize(new PromotionDto(numberOfCoupons, discount, publishTime, finishTime))))
         .andExpect(status().isBadRequest())
         .andExpect(content().string(containsString("Invalid promotion {numberOfCoupons=")));
   }
 
-  private String toJson(PromotionDto value) throws JsonProcessingException {
-    return objectMapper.writeValueAsString(value);
-  }
 
   private Date timeFromNow(int offset) {
     return new Date(System.currentTimeMillis() + offset);

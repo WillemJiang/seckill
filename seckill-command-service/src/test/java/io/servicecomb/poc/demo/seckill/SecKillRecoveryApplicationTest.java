@@ -27,10 +27,11 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.servicecomb.poc.demo.CommandServiceApplication;
 import io.servicecomb.poc.demo.seckill.dto.CouponDto;
 import io.servicecomb.poc.demo.seckill.entities.PromotionEntity;
-import io.servicecomb.poc.demo.seckill.entities.SecKillEventEntity;
+import io.servicecomb.poc.demo.seckill.entities.EventEntity;
 import io.servicecomb.poc.demo.seckill.event.CouponGrabbedEvent;
 import io.servicecomb.poc.demo.seckill.event.PromotionStartEvent;
-import io.servicecomb.poc.demo.seckill.json.ToJsonFormat;
+import io.servicecomb.poc.demo.seckill.event.SecKillEventFormat;
+import io.servicecomb.poc.demo.seckill.json.JacksonGeneralFormat;
 import io.servicecomb.poc.demo.seckill.repositories.spring.SpringPromotionRepository;
 import io.servicecomb.poc.demo.seckill.repositories.spring.SpringSecKillEventRepository;
 import java.util.ArrayList;
@@ -52,8 +53,8 @@ import org.springframework.test.web.servlet.MockMvc;
 @AutoConfigureMockMvc
 public class SecKillRecoveryApplicationTest {
 
-  private final ObjectMapper objectMapper = new ObjectMapper();
   private final PromotionEntity promotion = new PromotionEntity(new Date(), 10, 0.7f);
+  private final Format format = new JacksonGeneralFormat();
 
   @Autowired
   private MockMvc mockMvc;
@@ -65,19 +66,19 @@ public class SecKillRecoveryApplicationTest {
   private SpringPromotionRepository promotionRepository;
 
   @Autowired
-  private ToJsonFormat toJsonFormat;
+  private SecKillEventFormat eventFormat;
 
 
   @Test
   public void recoveryServiceSuccessfully() throws Exception {
     //init failed promotion status
-    List<SecKillEventEntity> events = new ArrayList<>();
-    events.add(new PromotionStartEvent(promotion).toEntity(toJsonFormat));
-    events.add(new CouponGrabbedEvent<>(promotion, "0").toEntity(toJsonFormat));
-    events.add(new CouponGrabbedEvent<>(promotion, "2").toEntity(toJsonFormat));
-    events.add(new CouponGrabbedEvent<>(promotion, "4").toEntity(toJsonFormat));
-    events.add(new CouponGrabbedEvent<>(promotion, "6").toEntity(toJsonFormat));
-    events.add(new CouponGrabbedEvent<>(promotion, "8").toEntity(toJsonFormat));
+    List<EventEntity> events = new ArrayList<>();
+    events.add(eventFormat.toEntity(new PromotionStartEvent(promotion)));
+    events.add(eventFormat.toEntity(new CouponGrabbedEvent<>(promotion, "0")));
+    events.add(eventFormat.toEntity(new CouponGrabbedEvent<>(promotion, "2")));
+    events.add(eventFormat.toEntity(new CouponGrabbedEvent<>(promotion, "4")));
+    events.add(eventFormat.toEntity(new CouponGrabbedEvent<>(promotion, "6")));
+    events.add(eventFormat.toEntity(new CouponGrabbedEvent<>(promotion, "8")));
     eventRepository.save(events);
     promotionRepository.save(promotion);
 
@@ -86,27 +87,23 @@ public class SecKillRecoveryApplicationTest {
     for (int i = 0; i < 11; i++) {
       if (i == 10) {
         mockMvc.perform(post("/command/coupons/").contentType(APPLICATION_JSON)
-            .content(toJson(new CouponDto<>(promotion.getPromotionId(), i))))
+            .content(format.serialize(new CouponDto<>(promotion.getPromotionId(), i))))
             .andExpect(status().is(429))
             .andExpect(content().string(containsString("out of stock")));
       } else if (i % 2 == 0) {
         mockMvc.perform(post("/command/coupons/").contentType(APPLICATION_JSON)
-            .content(toJson(new CouponDto<>(promotion.getPromotionId(), i))))
+            .content(format.serialize(new CouponDto<>(promotion.getPromotionId(), i))))
             .andExpect(status().is(429))
             .andExpect(content().string(containsString("duplicate order")));
       } else if (i % 2 == 1) {
         mockMvc.perform(post("/command/coupons/").contentType(APPLICATION_JSON)
-            .content(toJson(new CouponDto<>(promotion.getPromotionId(), i))))
+            .content(format.serialize(new CouponDto<>(promotion.getPromotionId(), i))))
             .andExpect(status().isOk());
       }
     }
 
     mockMvc.perform(post("/command/coupons/").contentType(APPLICATION_JSON)
-        .content(toJson(new CouponDto<>(UUID.randomUUID().toString(), "zyy"))))
+        .content(format.serialize(new CouponDto<>(UUID.randomUUID().toString(), "zyy"))))
         .andExpect(status().isBadRequest()).andExpect(content().string(containsString("Invalid promotion")));
-  }
-
-  private String toJson(CouponDto value) throws JsonProcessingException {
-    return objectMapper.writeValueAsString(value);
   }
 }

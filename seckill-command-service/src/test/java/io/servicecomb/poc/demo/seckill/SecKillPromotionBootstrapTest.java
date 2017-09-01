@@ -27,6 +27,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.servicecomb.poc.demo.CommandServiceApplication;
 import io.servicecomb.poc.demo.seckill.dto.CouponDto;
 import io.servicecomb.poc.demo.seckill.entities.PromotionEntity;
+import io.servicecomb.poc.demo.seckill.json.JacksonGeneralFormat;
 import io.servicecomb.poc.demo.seckill.repositories.spring.SpringPromotionRepository;
 import java.util.Date;
 import org.junit.Test;
@@ -44,7 +45,7 @@ import org.springframework.test.web.servlet.MockMvc;
 @AutoConfigureMockMvc
 public class SecKillPromotionBootstrapTest {
 
-  private final ObjectMapper objectMapper = new ObjectMapper();
+  private final Format format = new JacksonGeneralFormat();
 
   @Autowired
   private MockMvc mockMvc;
@@ -54,26 +55,21 @@ public class SecKillPromotionBootstrapTest {
 
   @Test
   public void testPromotionStartedWhenPublishTimeReach() throws Exception {
-    int waitTime = 3000;
+    int waitTime = 1000;
 
     PromotionEntity delayPromotion = new PromotionEntity(new Date(System.currentTimeMillis() + waitTime), 5, 0.8f);
     promotionRepository.save(delayPromotion);
 
     mockMvc.perform(post("/command/coupons/").contentType(APPLICATION_JSON)
-        .content(toJson(new CouponDto<>(delayPromotion.getPromotionId(), "zyy"))))
+        .content(format.serialize(new CouponDto<>(delayPromotion.getPromotionId(), "zyy"))))
         .andExpect(status().isBadRequest()).andExpect(content().string(containsString("Invalid promotion")));
 
     Thread.sleep(waitTime + 1000);
 
     mockMvc.perform(post("/command/coupons/").contentType(APPLICATION_JSON)
-        .content(toJson(new CouponDto<>(delayPromotion.getPromotionId(), "zyy"))))
+        .content(format.serialize(new CouponDto<>(delayPromotion.getPromotionId(), "zyy"))))
         .andExpect(status().isOk()).andExpect(content().string("Request accepted"));
 
 
   }
-
-  private String toJson(CouponDto value) throws JsonProcessingException {
-    return objectMapper.writeValueAsString(value);
-  }
-
 }

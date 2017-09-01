@@ -16,53 +16,58 @@
 
 package io.servicecomb.poc.demo.seckill;
 
+import io.servicecomb.poc.demo.seckill.dto.EventMessageDto;
+import io.servicecomb.poc.demo.seckill.entities.EventEntity;
 import io.servicecomb.poc.demo.seckill.entities.PromotionEntity;
 import io.servicecomb.poc.demo.seckill.event.CouponGrabbedEvent;
 import io.servicecomb.poc.demo.seckill.event.PromotionFinishEvent;
 import io.servicecomb.poc.demo.seckill.event.PromotionStartEvent;
-import io.servicecomb.poc.demo.seckill.json.ToJsonFormat;
+import io.servicecomb.poc.demo.seckill.event.SecKillEvent;
+import io.servicecomb.poc.demo.seckill.event.SecKillEventFormat;
 import io.servicecomb.poc.demo.seckill.repositories.SecKillEventRepository;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class SecKillPersistentRunner<T> {
+public class SecKillEventPersistentRunner<T> {
 
-  private static final Logger logger = LoggerFactory.getLogger(SecKillPersistentRunner.class);
+  private static final Logger logger = LoggerFactory.getLogger(SecKillEventPersistentRunner.class);
 
   private final BlockingQueue<T> coupons;
   private final SecKillEventRepository repository;
   private final AtomicInteger claimedCoupons;
   private final PromotionEntity promotion;
-  private ToJsonFormat toJsonFormat;
+  private final SecKillEventFormat eventFormat;
+  private final SecKillMessagePublisher messagePublisher;
   private final SecKillRecoveryCheckResult<T> recoveryInfo;
 
-  public SecKillPersistentRunner(PromotionEntity promotion,
+  public SecKillEventPersistentRunner(PromotionEntity promotion,
       BlockingQueue<T> couponQueue,
       AtomicInteger claimedCoupons,
       SecKillEventRepository repository,
-      ToJsonFormat toJsonFormat,
+      SecKillEventFormat eventFormat,
+      SecKillMessagePublisher messagePublisher,
       SecKillRecoveryCheckResult<T> recoveryInfo) {
 
     this.promotion = promotion;
     this.coupons = couponQueue;
     this.repository = repository;
     this.claimedCoupons = claimedCoupons;
-    this.toJsonFormat = toJsonFormat;
+    this.eventFormat = eventFormat;
+    this.messagePublisher = messagePublisher;
     this.recoveryInfo = recoveryInfo;
   }
 
   public void run() {
     if (!recoveryInfo.isStarted()) {
-      logger.info("PromotionEntity {} is not started", promotion);
-      repository.save(new PromotionStartEvent(promotion).toEntity(toJsonFormat));
+      saveAndPublishEvent(new PromotionStartEvent(promotion));
     }
 
-    logger.info("Starting to consume user requests for promotion {}", promotion);
     CompletableFuture.runAsync(() -> {
       boolean promotionEnded = false;
       while (!Thread.currentThread().isInterrupted() && !hasConsumedAllCoupons() && !promotionEnded) {
@@ -72,9 +77,7 @@ public class SecKillPersistentRunner<T> {
           Thread.currentThread().interrupt();
         }
       }
-
-      logger.info("Consumed all user requests for promotion {}", promotion);
-      repository.save(new PromotionFinishEvent(promotion).toEntity(toJsonFormat));
+      saveAndPublishEvent(new PromotionFinishEvent(promotion));
     }, Executors.newFixedThreadPool(4));
   }
 
@@ -82,7 +85,7 @@ public class SecKillPersistentRunner<T> {
     T customerId = coupons
         .poll(promotion.getFinishTime().getTime() - System.currentTimeMillis(), TimeUnit.MILLISECONDS);
     if (customerId != null) {
-      repository.save(new CouponGrabbedEvent<>(promotion, customerId).toEntity(toJsonFormat));
+      saveAndPublishEvent(new CouponGrabbedEvent<>(promotion, customerId));
       logger.info("Assigned promotion coupon {} to customer {}", promotion, customerId);
     }
     return customerId == null;
@@ -90,5 +93,11 @@ public class SecKillPersistentRunner<T> {
 
   private boolean hasConsumedAllCoupons() {
     return claimedCoupons.get() >= recoveryInfo.remainingCoupons() && coupons.isEmpty();
+  }
+
+  private void saveAndPublishEvent(SecKillEvent event) {
+    EventMessageDto message = eventFormat.toMessage(event);
+    repository.save(new EventEntity(message.getType(), message.getPromotionId(), message.getContentJson()));
+    messagePublisher.publishMessage(eventFormat.getFormat().serialize(message));
   }
 }

@@ -16,8 +16,12 @@
 
 package io.servicecomb.poc.demo.seckill;
 
-public class MessageBrokerName {
-  public static final String Rabbit_QueueName = "seckill_queue";
-  public static final String Rabbit_ExchangeName = "seckill_exchange";
-  public static final String Rabbit_TopicName = "seckill_topic";
+public interface Format {
+
+  String serialize(Object obj);
+
+  <T> T deserialize(String json,Class<T> type);
+
+  String getField(String fieldName, String json);
+
 }

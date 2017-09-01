@@ -27,7 +27,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.servicecomb.poc.demo.CommandServiceApplication;
 import io.servicecomb.poc.demo.seckill.dto.CouponDto;
 import io.servicecomb.poc.demo.seckill.entities.PromotionEntity;
-import io.servicecomb.poc.demo.seckill.json.ToJsonFormat;
+import io.servicecomb.poc.demo.seckill.event.SecKillEventFormat;
+import io.servicecomb.poc.demo.seckill.json.JacksonGeneralFormat;
 import io.servicecomb.poc.demo.seckill.repositories.SecKillEventRepository;
 import java.util.Date;
 import java.util.List;
@@ -52,26 +53,29 @@ import org.springframework.test.web.servlet.MockMvc;
 @AutoConfigureMockMvc
 public class SecKillCommandApplicationTest {
 
-  private final ObjectMapper objectMapper = new ObjectMapper();
+  private final Format format = new JacksonGeneralFormat();
   private final PromotionEntity promotion = new PromotionEntity(new Date(), 10, 0.7f);
 
   @Autowired
   private MockMvc mockMvc;
 
   @Autowired
-  private List<SecKillPersistentRunner<String>> persistentRunners;
+  private List<SecKillEventPersistentRunner<String>> persistentRunners;
 
   @Autowired
   private Map<String, SecKillCommandService<String>> commandServices;
-
-  @Autowired
-  private ToJsonFormat toJsonFormat;
 
   @Autowired
   private SecKillEventRepository eventRepository;
 
   @Autowired
   private SecKillRecoveryService<String> recoveryService;
+
+  @Autowired
+  private SecKillEventFormat eventFormat;
+
+  @Autowired
+  private SecKillMessagePublisher messagePublisher;
 
   @Before
   public void setUp() throws Exception {
@@ -82,11 +86,12 @@ public class SecKillCommandApplicationTest {
     AtomicInteger claimedCoupons = new AtomicInteger();
     BlockingQueue<String> couponQueue = new ArrayBlockingQueue<>(recoveryInfo.remainingCoupons());
 
-    SecKillPersistentRunner<String> persistentRunner = new SecKillPersistentRunner<>(promotion,
+    SecKillEventPersistentRunner<String> persistentRunner = new SecKillEventPersistentRunner<>(promotion,
         couponQueue,
         claimedCoupons,
         eventRepository,
-        toJsonFormat,
+        eventFormat,
+        messagePublisher,
         recoveryInfo);
     persistentRunner.run();
     persistentRunners.add(persistentRunner);
@@ -98,25 +103,21 @@ public class SecKillCommandApplicationTest {
   @Test
   public void grabCouponUseStringCustomerIdSuccessfully() throws Exception {
     mockMvc.perform(post("/command/coupons/").contentType(APPLICATION_JSON)
-        .content(toJson(new CouponDto<>(promotion.getPromotionId(), "zyy"))))
+        .content(format.serialize(new CouponDto<>(promotion.getPromotionId(), "zyy"))))
         .andExpect(status().isOk()).andExpect(content().string("Request accepted"));
   }
 
   @Test
   public void grabCouponUseIntCustomerIdSuccessfully() throws Exception {
     mockMvc.perform(post("/command/coupons/").contentType(APPLICATION_JSON)
-        .content(toJson(new CouponDto<>(promotion.getPromotionId(), 10001))))
+        .content(format.serialize(new CouponDto<>(promotion.getPromotionId(), 10001))))
         .andExpect(status().isOk()).andExpect(content().string("Request accepted"));
   }
 
   @Test
   public void failsGrabCouponWhenCustomerIdIsInvalid() throws Exception {
     mockMvc.perform(post("/command/coupons/").contentType(APPLICATION_JSON)
-        .content(toJson(new CouponDto<>(UUID.randomUUID().toString(), "zyy"))))
+        .content(format.serialize(new CouponDto<>(UUID.randomUUID().toString(), "zyy"))))
         .andExpect(status().isBadRequest()).andExpect(content().string(containsString("Invalid promotion")));
-  }
-
-  private String toJson(CouponDto value) throws JsonProcessingException {
-    return objectMapper.writeValueAsString(value);
   }
 }

@@ -20,8 +20,8 @@ import static org.springframework.http.HttpStatus.BAD_REQUEST;
 import static org.springframework.http.HttpStatus.OK;
 
 import io.servicecomb.poc.demo.seckill.dto.PromotionDto;
+import io.servicecomb.poc.demo.seckill.entities.EventEntity;
 import io.servicecomb.poc.demo.seckill.entities.PromotionEntity;
-import io.servicecomb.poc.demo.seckill.entities.SecKillEventEntity;
 import io.servicecomb.poc.demo.seckill.event.SecKillEventType;
 import io.servicecomb.poc.demo.seckill.repositories.spring.SpringPromotionRepository;
 import io.servicecomb.poc.demo.seckill.repositories.spring.SpringSecKillEventRepository;
@@ -85,7 +85,7 @@ public class SecKillAdminRestController {
     if (!promotionId.isEmpty() && isValidPromotion(promotionDto)) {
       PromotionEntity promotion = promotionRepository.findTopByPromotionId(promotionId);
       if (promotion != null) {
-        List<SecKillEventEntity> events = eventRepository.findByPromotionId(promotionId);
+        List<EventEntity> events = eventRepository.findByPromotionId(promotionId);
         if (events.isEmpty() || events.stream()
             .noneMatch(event -> SecKillEventType.PromotionStartEvent.equals(event.getType()))) {
           promotion.setDiscount(promotionDto.getDiscount());

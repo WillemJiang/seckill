@@ -20,51 +20,45 @@ import static java.util.concurrent.TimeUnit.MILLISECONDS;
 
 import io.servicecomb.poc.demo.seckill.entities.CouponEntity;
 import io.servicecomb.poc.demo.seckill.entities.PromotionEntity;
-import io.servicecomb.poc.demo.seckill.entities.SecKillEventEntity;
-import io.servicecomb.poc.demo.seckill.event.CouponGrabbedEvent;
 import io.servicecomb.poc.demo.seckill.event.SecKillEventFormat;
-import io.servicecomb.poc.demo.seckill.event.SecKillEventType;
+import io.servicecomb.poc.demo.seckill.repositories.spring.SpringCouponRepository;
 import io.servicecomb.poc.demo.seckill.repositories.spring.SpringPromotionRepository;
-import io.servicecomb.poc.demo.seckill.repositories.spring.SpringSecKillEventRepository;
+import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Queue;
-import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 
 public class SecKillEventPuller<T> {
 
-  private final SpringSecKillEventRepository eventRepository;
+  private final SpringCouponRepository couponRepository;
   private final SpringPromotionRepository promotionRepository;
 
   private final Map<T, Queue<CouponEntity<T>>> customerCoupons = new ConcurrentHashMap<>();
-  private final Map<String, PromotionEntity> activePromotions = new ConcurrentHashMap<>();
-  private final SecKillEventFormat secKillEventFormat;
+  private final List<PromotionEntity> activePromotions = new CopyOnWriteArrayList<>();
   private final int pollingInterval;
-  private int loadedPromotionEventId = 0;
+  private int loadedCouponEntityId = 0;
 
   SecKillEventPuller(
-      SpringSecKillEventRepository secKillEventRepository,
+      SpringCouponRepository couponRepository,
       SpringPromotionRepository promotionRepository,
-      SecKillEventFormat eventFormat,
       int pollingInterval) {
-    this.eventRepository = secKillEventRepository;
+    this.couponRepository = couponRepository;
     this.promotionRepository = promotionRepository;
-    this.secKillEventFormat = eventFormat;
     this.pollingInterval = pollingInterval;
   }
 
-  void reloadEventsScheduler() {
+  void reloadScheduler() {
     ScheduledExecutorService executor = Executors.newScheduledThreadPool(1);
     executor.scheduleWithFixedDelay(
         () -> {
-          List<SecKillEventEntity> eventEntities = eventRepository.findByIdGreaterThan(loadedPromotionEventId);
-          populateEventEntities(eventEntities);
+          populateCoupons();
+          reloadActivePromotions();
         },
         0,
         pollingInterval,
@@ -77,29 +71,22 @@ public class SecKillEventPuller<T> {
   }
 
   public Collection<PromotionEntity> getActivePromotions() {
-    return activePromotions.values();
+    return activePromotions;
   }
 
-  private void populateEventEntities(List<SecKillEventEntity> eventEntities) {
-    Set<String> newActivePromotionIds = new HashSet<>();
-    for (SecKillEventEntity eventEntity : eventEntities) {
-      if (SecKillEventType.CouponGrabbedEvent.equals(eventEntity.getType())) {
-        CouponGrabbedEvent<T> event = (CouponGrabbedEvent<T>) secKillEventFormat.toSecKillEvent(eventEntity);
-        customerCoupons.computeIfAbsent(event.getCoupon().getCustomerId(), id -> new ConcurrentLinkedQueue<>())
-            .add(event.getCoupon());
-      } else if (SecKillEventType.PromotionStartEvent.equals(eventEntity.getType())) {
-        newActivePromotionIds.add(eventEntity.getPromotionId());
-      } else if (SecKillEventType.PromotionFinishEvent.equals(eventEntity.getType())) {
-        activePromotions.remove(eventEntity.getPromotionId());
-        newActivePromotionIds.remove(eventEntity.getPromotionId());
-      }
-      loadedPromotionEventId = eventEntity.getId();
+  private void populateCoupons() {
+    List<CouponEntity<T>> couponEntities = couponRepository.findByIdGreaterThan(loadedCouponEntityId);
+    for (CouponEntity<T> couponEntity : couponEntities) {
+      customerCoupons.computeIfAbsent(couponEntity.getCustomerId(), id -> new ConcurrentLinkedQueue<>())
+          .add(couponEntity);
+      loadedCouponEntityId = couponEntity.getId();
     }
+  }
 
-    //add new active promotion to cache together
-    if (!newActivePromotionIds.isEmpty()) {
-      promotionRepository.findByPromotionIdIn(newActivePromotionIds)
-          .forEach(promotion -> activePromotions.put(promotion.getPromotionId(), promotion));
-    }
+  private void reloadActivePromotions() {
+    List<PromotionEntity> promotions = new ArrayList<>();
+    promotionRepository.findAll().forEach(promotions::add);
+    activePromotions.clear();
+    activePromotions.addAll(promotions);
   }
 }

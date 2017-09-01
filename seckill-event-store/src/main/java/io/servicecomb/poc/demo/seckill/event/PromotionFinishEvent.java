@@ -16,8 +16,8 @@
 
 package io.servicecomb.poc.demo.seckill.event;
 
+import io.servicecomb.poc.demo.seckill.Format;
 import io.servicecomb.poc.demo.seckill.entities.PromotionEntity;
-import io.servicecomb.poc.demo.seckill.json.ToJsonFormat;
 
 public class PromotionFinishEvent extends SecKillEvent {
 
@@ -28,6 +28,11 @@ public class PromotionFinishEvent extends SecKillEvent {
     this.type = PromotionFinishEvent.class.getSimpleName();
   }
 
+  public PromotionFinishEvent(Format format, String content) {
+    this();
+    promotion = format.deserialize(content, PromotionEntity.class);
+  }
+
   public PromotionFinishEvent(PromotionEntity promotion) {
     this();
     this.promotionId = promotion.getPromotionId();
@@ -35,7 +40,7 @@ public class PromotionFinishEvent extends SecKillEvent {
   }
 
   @Override
-  public String json(ToJsonFormat toJsonFormat) {
-    return toJsonFormat.toJson(promotion);
+  public String getContent(Format format) {
+    return format.serialize(promotion);
   }
 }

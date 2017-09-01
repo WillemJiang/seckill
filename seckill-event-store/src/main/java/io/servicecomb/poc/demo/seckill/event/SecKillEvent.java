@@ -16,8 +16,7 @@
 
 package io.servicecomb.poc.demo.seckill.event;
 
-import io.servicecomb.poc.demo.seckill.entities.SecKillEventEntity;
-import io.servicecomb.poc.demo.seckill.json.ToJsonFormat;
+import io.servicecomb.poc.demo.seckill.Format;
 
 public abstract class SecKillEvent {
 
@@ -32,11 +31,7 @@ public abstract class SecKillEvent {
     return type;
   }
 
-  public String json(ToJsonFormat toJsonFormat) {
+  public String getContent(Format format) {
     return "{}";
-  }
-
-  public SecKillEventEntity toEntity(ToJsonFormat toJsonFormat) {
-    return new SecKillEventEntity(type, promotionId, this.json(toJsonFormat));
   }
 }

@@ -16,31 +16,48 @@
 
 package io.servicecomb.poc.demo.seckill;
 
+import io.servicecomb.poc.demo.seckill.dto.EventMessageDto;
 import io.servicecomb.poc.demo.seckill.event.CouponGrabbedEvent;
+import io.servicecomb.poc.demo.seckill.event.PromotionStartEvent;
+import io.servicecomb.poc.demo.seckill.event.SecKillEventFormat;
+import io.servicecomb.poc.demo.seckill.event.SecKillEventType;
 import io.servicecomb.poc.demo.seckill.repositories.spring.SpringCouponRepository;
+import io.servicecomb.poc.demo.seckill.repositories.spring.SpringPromotionRepository;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 
 public class SecKillCouponPersistentRunner<T> {
 
-  private final BlockingQueue<CouponGrabbedEvent<T>> events;
-  private final SpringCouponRepository<T> repository;
+  private final BlockingQueue<EventMessageDto> messages;
+  private final SecKillEventFormat eventFormat;
+  private final SpringPromotionRepository promotionRepository;
+  private final SpringCouponRepository<T> couponRepository;
 
   private final ScheduledExecutorService executorService = Executors.newScheduledThreadPool(1);
 
-  public SecKillCouponPersistentRunner(BlockingQueue<CouponGrabbedEvent<T>> events,
-      SpringCouponRepository<T> repository) {
-    this.events = events;
-    this.repository = repository;
+  public SecKillCouponPersistentRunner(BlockingQueue<EventMessageDto> messages,
+      SecKillEventFormat eventFormat,
+      SpringPromotionRepository promotionRepository,
+      SpringCouponRepository<T> couponRepository) {
+    this.messages = messages;
+    this.eventFormat = eventFormat;
+    this.promotionRepository = promotionRepository;
+    this.couponRepository = couponRepository;
   }
 
   public void run() {
     final Runnable executor = () -> {
       while (!Thread.currentThread().isInterrupted()) {
         try {
-          CouponGrabbedEvent<T> event = events.take();
-          repository.save(event.getCoupon());
+          EventMessageDto message = messages.take();
+          if (SecKillEventType.CouponGrabbedEvent.equals(message.getType())) {
+            couponRepository.save(((CouponGrabbedEvent<T>) eventFormat.fromMessage(message)).getCoupon());
+          } else if (SecKillEventType.PromotionStartEvent.equals(message.getType())) {
+            promotionRepository.save(((PromotionStartEvent) eventFormat.fromMessage(message)).getPromotion());
+          } else if (SecKillEventType.PromotionFinishEvent.equals(message.getType())) {
+            promotionRepository.deleteByPromotionId(message.getPromotionId());
+          }
         } catch (InterruptedException e) {
           Thread.currentThread().interrupt();
         }
