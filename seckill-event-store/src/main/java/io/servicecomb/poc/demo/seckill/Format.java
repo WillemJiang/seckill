@@ -21,7 +21,4 @@ public interface Format {
   String serialize(Object obj);
 
   <T> T deserialize(String content,Class<T> type);
-
-  String getField(String fieldName, String content);
-
 }

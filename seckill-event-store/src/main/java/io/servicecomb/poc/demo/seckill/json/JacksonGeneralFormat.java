@@ -58,13 +58,4 @@ public class JacksonGeneralFormat implements Format {
       throw new SecKillException("Json Exception", e);
     }
   }
-
-  @Override
-  public String getField(String fieldName, String content) {
-    try {
-      return objectMapper.readValue(content, ObjectNode.class).get(fieldName).asText();
-    } catch (IOException e) {
-      throw new SecKillException("Json Exception", e);
-    }
-  }
 }
