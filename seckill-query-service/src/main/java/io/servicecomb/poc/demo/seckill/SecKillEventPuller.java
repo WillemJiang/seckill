@@ -20,7 +20,6 @@ import static java.util.concurrent.TimeUnit.MILLISECONDS;
 
 import io.servicecomb.poc.demo.seckill.entities.CouponEntity;
 import io.servicecomb.poc.demo.seckill.entities.PromotionEntity;
-import io.servicecomb.poc.demo.seckill.event.SecKillEventFormat;
 import io.servicecomb.poc.demo.seckill.repositories.spring.SpringCouponRepository;
 import io.servicecomb.poc.demo.seckill.repositories.spring.SpringPromotionRepository;
 import java.util.ArrayList;
@@ -32,7 +31,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
 
 public class SecKillEventPuller<T> {
 
@@ -54,16 +52,11 @@ public class SecKillEventPuller<T> {
   }
 
   void reloadScheduler() {
-    ScheduledExecutorService executor = Executors.newScheduledThreadPool(1);
-    executor.scheduleWithFixedDelay(
-        () -> {
-          populateCoupons();
-          reloadActivePromotions();
-        },
-        0,
-        pollingInterval,
-        MILLISECONDS
-    );
+    final Runnable executor = () -> {
+      populateCoupons();
+      reloadActivePromotions();
+    };
+    Executors.newScheduledThreadPool(1).scheduleWithFixedDelay(executor, 0, pollingInterval, MILLISECONDS);
   }
 
   public Collection<CouponEntity<T>> getCustomerCoupons(T customerId) {

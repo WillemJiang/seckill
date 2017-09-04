@@ -19,10 +19,20 @@ package io.servicecomb.poc.demo.seckill.event;
 import io.servicecomb.poc.demo.seckill.Format;
 import io.servicecomb.poc.demo.seckill.dto.EventMessageDto;
 import io.servicecomb.poc.demo.seckill.entities.EventEntity;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.function.Function;
 
 public class SecKillEventFormat {
 
-  private Format format = null;
+  private final Format format;
+
+
+  private final Map<String, Function<String, SecKillEvent>> eventFactories = new HashMap<String, Function<String, SecKillEvent>>() {{
+    put(CouponGrabbedEvent.class.getSimpleName(), (content) -> couponGrabbedEvent(content));
+    put(PromotionStartEvent.class.getSimpleName(), (content) -> promotionStartEvent(content));
+    put(PromotionFinishEvent.class.getSimpleName(), (content) -> promotionFinishEvent(content));
+  }};
 
   public Format getFormat() {
     return format;
@@ -33,25 +43,12 @@ public class SecKillEventFormat {
   }
 
   public SecKillEvent fromMessage(EventMessageDto message) {
-    return generateEvent(message.getType(), message.getContentJson());
+    return generateEvent(message.getType(), message.getContent());
   }
 
   public SecKillEvent fromEntity(EventEntity entity) {
-    return generateEvent(entity.getType(), entity.getContentJson());
+    return generateEvent(entity.getType(), entity.getContent());
   }
-
-  private SecKillEvent generateEvent(String type, String contentJson) {
-    if (SecKillEventType.CouponGrabbedEvent.equals(type)) {
-      return new CouponGrabbedEvent(format, contentJson);
-    } else if (SecKillEventType.PromotionStartEvent.equals(type)) {
-      return new PromotionStartEvent(format, contentJson);
-    } else if (SecKillEventType.PromotionFinishEvent.equals(type)) {
-      return new PromotionFinishEvent(format, contentJson);
-    } else {
-      return null;
-    }
-  }
-
 
   public EventMessageDto toMessage(SecKillEvent event) {
     return new EventMessageDto(event.getType(), event.getPromotionId(), event.getContent(format));
@@ -59,5 +56,21 @@ public class SecKillEventFormat {
 
   public EventEntity toEntity(SecKillEvent event) {
     return new EventEntity(event.getType(), event.getPromotionId(), event.getContent(format));
+  }
+
+  private SecKillEvent generateEvent(String type, String content) {
+    return eventFactories.get(type).apply(content);
+  }
+
+  private SecKillEvent couponGrabbedEvent(String content) {
+    return new CouponGrabbedEvent(format, content);
+  }
+
+  private SecKillEvent promotionStartEvent(String content) {
+    return new PromotionStartEvent(format, content);
+  }
+
+  private SecKillEvent promotionFinishEvent(String content) {
+    return new PromotionFinishEvent(format, content);
   }
 }

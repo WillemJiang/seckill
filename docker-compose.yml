@@ -1,0 +1,62 @@
+version: '2.0'
+
+services:
+  mysql:
+    image: "mysql:latest"
+    hostname: read_db
+    environment:
+      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
+      - MYSQL_DATABASE=${MYSQL_DATABASE}
+      - MYSQL_USER=${MYSQL_USER}
+      - MYSQL_PASSWORD=${MYSQL_PASSWORD}
+    ports:
+      - "3306:3306"
+
+  mysql:
+    image: "mysql:latest"
+    hostname: write_db
+    environment:
+      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
+      - MYSQL_DATABASE=${MYSQL_DATABASE}
+      - MYSQL_USER=${MYSQL_USER}
+      - MYSQL_PASSWORD=${MYSQL_PASSWORD}
+    ports:
+      - "3306:3306"
+
+  admin-service:
+    image: "zhengyangyong/seckill-admin-service:latest"
+    hostname: command-service
+    links:
+      - "mysql:mysql"
+    environment:
+      - JAVA_OPTS=-Dserver.port=8081 -Dspring.datasource.url=jdbc:mysql://write_db:3306/${MYSQL_DATABASE}?useSSL=false -Dspring.datasource.username=${MYSQL_USER} -Dspring.datasource.password=${MYSQL_PASSWORD}
+    ports:
+      - "8081:8080"
+
+  command-service:
+    image: "zhengyangyong/seckill-command-service:latest"
+    hostname: command-service
+    links:
+      - "mysql:mysql"
+    environment:
+      - JAVA_OPTS=-Dserver.port=8082 -Dspring.datasource.url=jdbc:mysql://write_db:3306/${MYSQL_DATABASE}?useSSL=false -Dspring.datasource.username=${MYSQL_USER} -Dspring.datasource.password=${MYSQL_PASSWORD}
+    ports:
+      - "8082:8080"
+
+  query-service:
+    image: "zhengyangyong/seckill-query-service:latest"
+    hostname: query-service
+    links:
+      - "mysql:mysql"
+    environment:
+      - JAVA_OPTS=-Dserver.port=8083 -Dspring.datasource.url=jdbc:mysql://read_db:3306/${MYSQL_DATABASE}?useSSL=false -Dspring.datasource.username=${MYSQL_USER} -Dspring.datasource.password=${MYSQL_PASSWORD}
+    ports:
+      - "8083:8080"
+
+  event-service:
+    image: "zhengyangyong/seckill-event-service:latest"
+    hostname: event-service
+    environment:
+      - JAVA_OPTS=-Dserver.port=8083 -Dspring.datasource.url=jdbc:mysql://read_db:3306/${MYSQL_DATABASE}?useSSL=false -Dspring.datasource.username=${MYSQL_USER} -Dspring.datasource.password=${MYSQL_PASSWORD}
+    ports:
+      - "8083:8080"

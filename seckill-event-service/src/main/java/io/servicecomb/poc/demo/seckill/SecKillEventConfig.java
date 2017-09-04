@@ -16,14 +16,10 @@
 
 package io.servicecomb.poc.demo.seckill;
 
-import io.servicecomb.poc.demo.seckill.dto.EventMessageDto;
-import io.servicecomb.poc.demo.seckill.event.SecKillEvent;
 import io.servicecomb.poc.demo.seckill.event.SecKillEventFormat;
 import io.servicecomb.poc.demo.seckill.json.JacksonGeneralFormat;
 import io.servicecomb.poc.demo.seckill.repositories.spring.SpringCouponRepository;
 import io.servicecomb.poc.demo.seckill.repositories.spring.SpringPromotionRepository;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.LinkedBlockingQueue;
 import javax.jms.ConnectionFactory;
 import org.springframework.boot.autoconfigure.jms.DefaultJmsListenerContainerFactoryConfigurer;
 import org.springframework.context.annotation.Bean;
@@ -35,11 +31,6 @@ import org.springframework.jms.support.converter.SimpleMessageConverter;
 
 @Configuration
 public class SecKillEventConfig {
-
-  @Bean
-  BlockingQueue<SecKillEvent> events() {
-    return new LinkedBlockingQueue<>();
-  }
 
   @Bean
   JmsListenerContainerFactory<?> containerFactory(ConnectionFactory connectionFactory,
@@ -65,23 +56,8 @@ public class SecKillEventConfig {
   }
 
   @Bean
-  BlockingQueue<EventMessageDto> queue() {
-    return new LinkedBlockingQueue<>();
-  }
-
-  @Bean
-  SecKillCouponPersistentRunner persistentRunner(BlockingQueue<EventMessageDto> messages,
-      SecKillEventFormat secKillEventFormat,
-      SpringPromotionRepository promotionRepository,
-      SpringCouponRepository<String> couponRepository) {
-    SecKillCouponPersistentRunner persistentRunner = new SecKillCouponPersistentRunner<>(messages,
-        secKillEventFormat, promotionRepository, couponRepository);
-    persistentRunner.run();
-    return persistentRunner;
-  }
-
-  @Bean
-  SecKillMessageSubscriber messageSubscriber(BlockingQueue<EventMessageDto> messages, SecKillEventFormat eventFormat) {
-    return new ActiveMQSecKillMessageSubscriber(messages, eventFormat);
+  SecKillMessageSubscriber messageSubscriber(SpringPromotionRepository promotionRepository,
+      SpringCouponRepository<String> couponRepository, SecKillEventFormat eventFormat) {
+    return new ActiveMQSecKillMessageSubscriber<>(promotionRepository, couponRepository, eventFormat);
   }
 }
