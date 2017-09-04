@@ -42,6 +42,7 @@ public class CouponEntity<T> {
   }
 
   public CouponEntity(String promotionId, long time, float discount, T customerId) {
+    this();
     this.promotionId = promotionId;
     this.time = time;
     this.discount = discount;
@@ -52,32 +53,12 @@ public class CouponEntity<T> {
     return id;
   }
 
-  public void setId(int id) {
-    this.id = id;
-  }
-
   public String getPromotionId() {
     return promotionId;
   }
 
   public void setPromotionId(String promotionId) {
     this.promotionId = promotionId;
-  }
-
-  public long getTime() {
-    return time;
-  }
-
-  public void setTime(long time) {
-    this.time = time;
-  }
-
-  public float getDiscount() {
-    return discount;
-  }
-
-  public void setDiscount(float discount) {
-    this.discount = discount;
   }
 
   public T getCustomerId() {

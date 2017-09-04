@@ -35,12 +35,6 @@ public class CouponGrabbedEvent<T> extends SecKillEvent {
     this.promotionId = coupon.getPromotionId();
   }
 
-  public CouponGrabbedEvent(CouponEntity<T> coupon) {
-    this();
-    this.promotionId = coupon.getPromotionId();
-    this.coupon = coupon;
-  }
-
   public CouponGrabbedEvent(PromotionEntity promotion, T customerId) {
     this();
     this.promotionId = promotion.getPromotionId();
