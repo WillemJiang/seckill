@@ -28,7 +28,6 @@ import io.servicecomb.poc.demo.seckill.repositories.SecKillEventRepository;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executors;
-import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import org.slf4j.Logger;
@@ -39,7 +38,7 @@ public class SecKillEventPersistentRunner<T> {
   private static final Logger logger = LoggerFactory.getLogger(SecKillEventPersistentRunner.class);
 
   private final BlockingQueue<T> coupons;
-  private final SecKillEventRepository repository;
+  private final SecKillEventRepository eventRepository;
   private final AtomicInteger claimedCoupons;
   private final PromotionEntity promotion;
   private final SecKillEventFormat eventFormat;
@@ -56,7 +55,7 @@ public class SecKillEventPersistentRunner<T> {
 
     this.promotion = promotion;
     this.coupons = couponQueue;
-    this.repository = repository;
+    this.eventRepository = repository;
     this.claimedCoupons = claimedCoupons;
     this.eventFormat = eventFormat;
     this.messagePublisher = messagePublisher;
@@ -65,7 +64,7 @@ public class SecKillEventPersistentRunner<T> {
 
   public void run() {
     if (!recoveryInfo.isStarted()) {
-      saveAndPublishEvent(new PromotionStartEvent(promotion));
+      persistEvent(new PromotionStartEvent(promotion));
     }
 
     CompletableFuture.runAsync(() -> {
@@ -77,7 +76,7 @@ public class SecKillEventPersistentRunner<T> {
           Thread.currentThread().interrupt();
         }
       }
-      saveAndPublishEvent(new PromotionFinishEvent(promotion));
+      persistEvent(new PromotionFinishEvent(promotion));
     }, Executors.newFixedThreadPool(4));
   }
 
@@ -85,7 +84,7 @@ public class SecKillEventPersistentRunner<T> {
     T customerId = coupons
         .poll(promotion.getFinishTime().getTime() - System.currentTimeMillis(), TimeUnit.MILLISECONDS);
     if (customerId != null) {
-      saveAndPublishEvent(new CouponGrabbedEvent<>(promotion, customerId));
+      persistEvent(new CouponGrabbedEvent<>(promotion, customerId));
       logger.info("Assigned promotion coupon {} to customer {}", promotion, customerId);
     }
     return customerId == null;
@@ -95,9 +94,9 @@ public class SecKillEventPersistentRunner<T> {
     return claimedCoupons.get() >= recoveryInfo.remainingCoupons() && coupons.isEmpty();
   }
 
-  private void saveAndPublishEvent(SecKillEvent event) {
+  private void persistEvent(SecKillEvent event) {
     EventMessageDto message = eventFormat.toMessage(event);
-    repository.save(new EventEntity(message.getType(), message.getPromotionId(), message.getContentJson()));
+    eventRepository.save(new EventEntity(message.getType(), message.getPromotionId(), message.getContent()));
     messagePublisher.publishMessage(eventFormat.getFormat().serialize(message));
   }
 }

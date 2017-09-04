@@ -35,6 +35,7 @@ public class PromotionStartEvent extends SecKillEvent {
   public PromotionStartEvent(Format format, String content){
     this();
     promotion = format.deserialize(content, PromotionEntity.class);
+    this.promotionId = promotion.getPromotionId();
   }
 
   public PromotionStartEvent(PromotionEntity promotion) {

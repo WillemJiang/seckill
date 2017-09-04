@@ -22,16 +22,15 @@ public class EventMessageDto {
 
   protected String promotionId;
 
-  protected String contentJson;
+  protected String content;
 
   public EventMessageDto() {
-
   }
 
-  public EventMessageDto(String type, String promotionId, String contentJson) {
+  public EventMessageDto(String type, String promotionId, String content) {
     this.type = type;
     this.promotionId = promotionId;
-    this.contentJson = contentJson;
+    this.content = content;
   }
 
   public String getType() {
@@ -42,8 +41,8 @@ public class EventMessageDto {
     return promotionId;
   }
 
-  public String getContentJson() {
-    return contentJson;
+  public String getContent() {
+    return content;
   }
 
 

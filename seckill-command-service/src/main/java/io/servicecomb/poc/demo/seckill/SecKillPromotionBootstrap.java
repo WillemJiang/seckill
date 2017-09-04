@@ -44,9 +44,8 @@ public class SecKillPromotionBootstrap<T> {
   private final List<SecKillEventPersistentRunner<T>> persistentRunners;
   private final SecKillRecoveryService<T> recoveryService;
 
-  private final ScheduledExecutorService executorService = Executors.newScheduledThreadPool(1);
-  private int loadedPromotionId = 0;
   private final Map<String, PromotionEntity> waitingPromotions = new HashMap<>();
+  private int loadedPromotionId = 0;
 
   public SecKillPromotionBootstrap(
       SpringPromotionRepository promotionRepository,
@@ -88,7 +87,7 @@ public class SecKillPromotionBootstrap<T> {
       }
     };
 
-    executorService.scheduleWithFixedDelay(executor, 0, 500, TimeUnit.MILLISECONDS);
+    Executors.newScheduledThreadPool(1).scheduleWithFixedDelay(executor, 0, 500, TimeUnit.MILLISECONDS);
   }
 
   private void startUpPromotion(PromotionEntity promotion) {

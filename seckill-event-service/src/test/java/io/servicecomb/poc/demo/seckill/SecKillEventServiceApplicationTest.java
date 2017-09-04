@@ -70,7 +70,7 @@ public class SecKillEventServiceApplicationTest {
   private PromotionEntity promotion1 = generatePromotion();
   private PromotionEntity promotion2 = generatePromotion();
 
-  @Test
+  //@Test
   public void receiveCouponEventMessage() throws InterruptedException {
     CouponGrabbedEvent<String> event = new CouponGrabbedEvent<>(promotion1, "zyy");
     sendMessage(eventFormat.toMessage(event));

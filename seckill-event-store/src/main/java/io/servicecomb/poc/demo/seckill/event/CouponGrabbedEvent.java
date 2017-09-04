@@ -29,9 +29,10 @@ public class CouponGrabbedEvent<T> extends SecKillEvent {
     this.type = CouponGrabbedEvent.class.getSimpleName();
   }
 
-  public CouponGrabbedEvent(Format format, String content){
+  public CouponGrabbedEvent(Format format, String content) {
     this();
     coupon = format.deserialize(content, CouponEntity.class);
+    this.promotionId = coupon.getPromotionId();
   }
 
   public CouponGrabbedEvent(CouponEntity<T> coupon) {

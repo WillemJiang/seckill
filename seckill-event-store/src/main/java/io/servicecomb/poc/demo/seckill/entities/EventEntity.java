@@ -32,7 +32,7 @@ public class EventEntity {
 
   protected String promotionId;
 
-  protected String contentJson;
+  protected String content;
 
   public int getId() {
     return id;
@@ -46,16 +46,16 @@ public class EventEntity {
     return promotionId;
   }
 
-  public String getContentJson() {
-    return contentJson;
+  public String getContent() {
+    return content;
   }
 
   public EventEntity() {
   }
 
-  public EventEntity(String type, String promotionId, String contentJson) {
+  public EventEntity(String type, String promotionId, String content) {
     this.type = type;
     this.promotionId = promotionId;
-    this.contentJson = contentJson;
+    this.content = content;
   }
 }

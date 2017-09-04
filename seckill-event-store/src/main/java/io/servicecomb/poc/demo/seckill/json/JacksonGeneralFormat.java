@@ -51,18 +51,18 @@ public class JacksonGeneralFormat implements Format {
 
 
   @Override
-  public <T> T deserialize(String json, Class<T> type) {
+  public <T> T deserialize(String content, Class<T> type) {
     try {
-      return objectMapper.readValue(json, type);
+      return objectMapper.readValue(content, type);
     } catch (IOException e) {
       throw new SecKillException("Json Exception", e);
     }
   }
 
   @Override
-  public String getField(String fieldName, String json) {
+  public String getField(String fieldName, String content) {
     try {
-      return objectMapper.readValue(json, ObjectNode.class).get(fieldName).asText();
+      return objectMapper.readValue(content, ObjectNode.class).get(fieldName).asText();
     } catch (IOException e) {
       throw new SecKillException("Json Exception", e);
     }
