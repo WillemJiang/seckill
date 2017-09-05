@@ -23,6 +23,7 @@ import io.servicecomb.poc.demo.seckill.entities.PromotionEntity;
 import io.servicecomb.poc.demo.seckill.repositories.spring.SpringCouponRepository;
 import io.servicecomb.poc.demo.seckill.repositories.spring.SpringPromotionRepository;
 import java.util.Collection;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Queue;
@@ -33,16 +34,16 @@ import java.util.concurrent.Executors;
 
 public class SecKillEventPoller<T> {
 
-  private final SpringCouponRepository couponRepository;
+  private final SpringCouponRepository<T> couponRepository;
   private final SpringPromotionRepository promotionRepository;
 
   private final Map<T, Queue<CouponEntity<T>>> customerCoupons = new ConcurrentHashMap<>();
-  private final List<PromotionEntity> activePromotions = new CopyOnWriteArrayList<>();
+  private volatile List<PromotionEntity> activePromotions = new LinkedList<>();
   private final int pollingInterval;
   private int loadedCouponEntityId = 0;
 
   SecKillEventPoller(
-      SpringCouponRepository couponRepository,
+      SpringCouponRepository<T> couponRepository,
       SpringPromotionRepository promotionRepository,
       int pollingInterval) {
     this.couponRepository = couponRepository;
@@ -76,7 +77,8 @@ public class SecKillEventPoller<T> {
   }
 
   private void reloadActivePromotions() {
-    activePromotions.clear();
-    promotionRepository.findAll().forEach(activePromotions::add);
+    List<PromotionEntity> promotions = new LinkedList<>();
+    promotionRepository.findAll().forEach(promotions::add);
+    activePromotions = promotions;
   }
 }

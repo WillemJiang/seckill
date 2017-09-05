@@ -23,7 +23,7 @@ public abstract class SecKillEvent {
   private final String promotionId;
   private final String type;
 
-  public SecKillEvent(String promotionId, String type) {
+  SecKillEvent(String promotionId, String type) {
     this.promotionId = promotionId;
     this.type = type;
   }

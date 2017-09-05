@@ -28,11 +28,11 @@ public class EventEntity {
   @GeneratedValue(strategy = GenerationType.AUTO)
   private int id;
 
-  protected String type;
+  private String type;
 
-  protected String promotionId;
+  private String promotionId;
 
-  protected String content;
+  private String content;
 
   public int getId() {
     return id;
