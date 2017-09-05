@@ -35,7 +35,7 @@ services:
     links:
       - "mysql-write-db:write_db.servicecomb.io"
     environment:
-      - JAVA_OPTS=-Dspring.profiles.active=dc -Dendpoints.shutdown.enabled=true
+      - JAVA_OPTS=-Dspring.profiles.active=prd -Dendpoints.shutdown.enabled=true
     ports:
       - "8081:8081"
 
@@ -46,7 +46,7 @@ services:
       - "mysql-write-db:write_db.servicecomb.io"
       - "activemq:queue.servicecomb.io"
     environment:
-      - JAVA_OPTS=-Dspring.profiles.active=dc -Dendpoints.shutdown.enabled=true
+      - JAVA_OPTS=-Dspring.profiles.active=prd -Dendpoints.shutdown.enabled=true
     ports:
       - "8082:8082"
 
@@ -56,7 +56,7 @@ services:
     links:
       - "mysql-write-db:read_db.servicecomb.io"
     environment:
-      - JAVA_OPTS=-Dspring.profiles.active=dc -Dendpoints.shutdown.enabled=true
+      - JAVA_OPTS=-Dspring.profiles.active=prd -Dendpoints.shutdown.enabled=true
     ports:
       - "8083:8083"
 
@@ -67,4 +67,4 @@ services:
       - "mysql-write-db:read_db.servicecomb.io"
       - "activemq:queue.servicecomb.io"
     environment:
-      - JAVA_OPTS=-Dspring.profiles.active=dc -Dendpoints.shutdown.enabled=true
+      - JAVA_OPTS=-Dspring.profiles.active=prd -Dendpoints.shutdown.enabled=true
