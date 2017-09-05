@@ -18,7 +18,9 @@ package io.servicecomb.poc.demo.seckill.event;
 
 import io.servicecomb.poc.demo.seckill.Format;
 import io.servicecomb.poc.demo.seckill.dto.EventMessageDto;
+import io.servicecomb.poc.demo.seckill.entities.CouponEntity;
 import io.servicecomb.poc.demo.seckill.entities.EventEntity;
+import io.servicecomb.poc.demo.seckill.entities.PromotionEntity;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Function;
@@ -63,14 +65,14 @@ public class SecKillEventFormat {
   }
 
   private SecKillEvent couponGrabbedEvent(String content) {
-    return new CouponGrabbedEvent(format, content);
+    return new CouponGrabbedEvent<>(format.deserialize(content, CouponEntity.class));
   }
 
   private SecKillEvent promotionStartEvent(String content) {
-    return new PromotionStartEvent(format, content);
+    return new PromotionStartEvent(format.deserialize(content, PromotionEntity.class));
   }
 
   private SecKillEvent promotionFinishEvent(String content) {
-    return new PromotionFinishEvent(format, content);
+    return new PromotionFinishEvent(format.deserialize(content, PromotionEntity.class));
   }
 }

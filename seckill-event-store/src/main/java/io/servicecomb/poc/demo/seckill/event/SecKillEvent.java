@@ -20,8 +20,13 @@ import io.servicecomb.poc.demo.seckill.Format;
 
 public abstract class SecKillEvent {
 
-  protected String promotionId;
-  protected String type;
+  private final String promotionId;
+  private final String type;
+
+  public SecKillEvent(String promotionId, String type) {
+    this.promotionId = promotionId;
+    this.type = type;
+  }
 
   public String getPromotionId() {
     return promotionId;

@@ -21,27 +21,15 @@ import io.servicecomb.poc.demo.seckill.entities.PromotionEntity;
 
 public class PromotionStartEvent extends SecKillEvent {
 
-  protected PromotionEntity promotion;
+  private final PromotionEntity promotion;
+
+  public PromotionStartEvent(PromotionEntity promotion) {
+    super(promotion.getPromotionId(), PromotionStartEvent.class.getSimpleName());
+    this.promotion = promotion;
+  }
 
   public PromotionEntity getPromotion() {
     return promotion;
-  }
-
-  public PromotionStartEvent() {
-    super();
-    this.type = PromotionStartEvent.class.getSimpleName();
-  }
-
-  public PromotionStartEvent(Format format, String content){
-    this();
-    promotion = format.deserialize(content, PromotionEntity.class);
-    this.promotionId = promotion.getPromotionId();
-  }
-
-  public PromotionStartEvent(PromotionEntity promotion) {
-    this();
-    this.promotionId = promotion.getPromotionId();
-    this.promotion = promotion;
   }
 
   @Override
