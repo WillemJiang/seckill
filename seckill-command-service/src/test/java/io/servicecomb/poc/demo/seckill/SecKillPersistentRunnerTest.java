@@ -65,12 +65,15 @@ public class SecKillPersistentRunnerTest {
   private final BlockingQueue<String> coupons = new ArrayBlockingQueue<>(numberOfCoupons);
   private final AtomicInteger claimedCoupons = new AtomicInteger();
 
+  private final SecKillEventPersistent eventPersistent = new RepositorySecKillEventPersistent(repository, eventFormat,
+      messagePublisher);
+
   @Test
   public void persistsCouponUsingRepo() throws InterruptedException {
     PromotionEntity promotion = new PromotionEntity(new Date(), numberOfCoupons, 0.7f);
     SecKillRecoveryCheckResult<String> recovery = new SecKillRecoveryCheckResult<>(numberOfCoupons);
     SecKillEventPersistentRunner<String> runner = new SecKillEventPersistentRunner<>(promotion, coupons, claimedCoupons,
-        repository, eventFormat, messagePublisher, recovery);
+        eventPersistent, recovery);
 
     for (int i = 0; i < numberOfCoupons; i++) {
       coupons.offer(String.valueOf(i));
@@ -95,7 +98,7 @@ public class SecKillPersistentRunnerTest {
         numberOfCoupons, 0.7f);
     SecKillRecoveryCheckResult<String> recovery = new SecKillRecoveryCheckResult<>(numberOfCoupons);
     SecKillEventPersistentRunner<String> runner = new SecKillEventPersistentRunner<>(promotion, coupons, claimedCoupons,
-        repository, eventFormat, messagePublisher, recovery);
+        eventPersistent, recovery);
 
     coupons.offer(String.valueOf(0));
     runner.run();
@@ -110,7 +113,7 @@ public class SecKillPersistentRunnerTest {
     PromotionEntity promotion = new PromotionEntity(new Date(), numberOfCoupons, 0.7f);
     SecKillRecoveryCheckResult<String> recovery = new SecKillRecoveryCheckResult<>(numberOfCoupons);
     SecKillEventPersistentRunner<String> runner = new SecKillEventPersistentRunner<>(promotion, coupons, claimedCoupons,
-        repository, eventFormat, messagePublisher, recovery);
+        eventPersistent, recovery);
     runner.run();
 
     Thread.sleep(1000);

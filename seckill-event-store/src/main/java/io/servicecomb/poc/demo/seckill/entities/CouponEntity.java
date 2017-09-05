@@ -42,7 +42,6 @@ public class CouponEntity<T> {
   }
 
   public CouponEntity(String promotionId, long time, float discount, T customerId) {
-    this();
     this.promotionId = promotionId;
     this.time = time;
     this.discount = discount;

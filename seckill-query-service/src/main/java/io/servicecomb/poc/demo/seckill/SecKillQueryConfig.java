@@ -26,12 +26,12 @@ import org.springframework.context.annotation.Configuration;
 class SecKillQueryConfig {
 
   @Bean
-  SecKillEventPuller<String> seckillEventLoader(
+  SecKillEventPoller<String> seckillEventLoader(
       SpringCouponRepository couponRepository,
       SpringPromotionRepository promotionRepository,
       @Value("${event.polling.interval:500}") int pollingInterval) {
 
-    SecKillEventPuller<String> eventLoader = new SecKillEventPuller<>(
+    SecKillEventPoller<String> eventLoader = new SecKillEventPoller<>(
         couponRepository,
         promotionRepository,
         pollingInterval);

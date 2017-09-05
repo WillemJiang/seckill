@@ -48,24 +48,26 @@ class SecKillCommandConfig {
   @Bean
   SecKillEventRepository secKillEventRepository(
       PagingAndSortingRepository<EventEntity, Integer> repository) {
-
     return new SecKillEventRepositoryImpl(repository);
   }
 
   @Bean
-  SecKillPromotionBootstrap secKillPromotionBootstrap(SpringPromotionRepository promotionRepository,
-      SecKillEventRepository eventRepository,
-      SecKillMessagePublisher messagePublisher,
+  SecKillEventPersistent eventPersistent(SecKillEventRepository eventRepository,
+      SecKillEventFormat eventFormat,
+      SecKillMessagePublisher messagePublisher) {
+    return new RepositorySecKillEventPersistent(eventRepository, eventFormat, messagePublisher);
+  }
+
+  @Bean
+  SecKillPromotionBootstrap<String> secKillPromotionBootstrap(SpringPromotionRepository promotionRepository,
       Map<String, SecKillCommandService<String>> commandServices,
       List<SecKillEventPersistentRunner<String>> persistentRunners,
-      SecKillEventFormat eventFormat,
+      SecKillEventPersistent eventPersistent,
       SecKillRecoveryService<String> recoveryService) {
     SecKillPromotionBootstrap<String> promotionBootstrap = new SecKillPromotionBootstrap<>(promotionRepository,
-        eventRepository,
-        messagePublisher,
         commandServices,
         persistentRunners,
-        eventFormat,
+        eventPersistent,
         recoveryService);
     promotionBootstrap.run();
     return promotionBootstrap;

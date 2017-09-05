@@ -24,8 +24,6 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import io.servicecomb.poc.demo.seckill.dto.CouponDto;
 import io.servicecomb.poc.demo.seckill.dto.PromotionDto;
 import io.servicecomb.poc.demo.seckill.json.JacksonGeneralFormat;
@@ -49,7 +47,7 @@ import org.springframework.test.web.servlet.MvcResult;
 @WebAppConfiguration
 @AutoConfigureMockMvc
 @EnableJms
-public class SecKillMutiActivePromotionIntegrationTest {
+public class SecKillMultiActivePromotionIntegrationTest {
 
   private final Format format = new JacksonGeneralFormat();
 

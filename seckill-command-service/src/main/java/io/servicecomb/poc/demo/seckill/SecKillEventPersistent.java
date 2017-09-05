@@ -14,13 +14,11 @@
  *   limitations under the License.
  */
 
-package io.servicecomb.poc.demo.seckill.repositories.spring;
+package io.servicecomb.poc.demo.seckill;
 
-import io.servicecomb.poc.demo.seckill.entities.CouponEntity;
-import java.util.List;
-import org.springframework.data.repository.PagingAndSortingRepository;
+import io.servicecomb.poc.demo.seckill.event.SecKillEvent;
 
-public interface SpringCouponRepository<T> extends PagingAndSortingRepository<CouponEntity<T>, Integer> {
+public interface SecKillEventPersistent {
 
-  List<CouponEntity<T>> findByIdGreaterThan(int id);
+  void persistEvent(SecKillEvent event);
 }
