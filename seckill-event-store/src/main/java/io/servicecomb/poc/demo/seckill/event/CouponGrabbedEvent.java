@@ -22,24 +22,19 @@ import io.servicecomb.poc.demo.seckill.entities.PromotionEntity;
 
 public class CouponGrabbedEvent<T> extends SecKillEvent {
 
-  protected CouponEntity<T> coupon;
+  private final CouponEntity<T> coupon;
 
-  public CouponGrabbedEvent() {
-    super();
-    this.type = CouponGrabbedEvent.class.getSimpleName();
-  }
-
-  public CouponGrabbedEvent(Format format, String content) {
-    this();
-    coupon = format.deserialize(content, CouponEntity.class);
-    this.promotionId = coupon.getPromotionId();
+  public CouponGrabbedEvent(CouponEntity<T> coupon) {
+    super(coupon.getPromotionId(), CouponGrabbedEvent.class.getSimpleName());
+    this.coupon = coupon;
   }
 
   public CouponGrabbedEvent(PromotionEntity promotion, T customerId) {
-    this();
-    this.promotionId = promotion.getPromotionId();
-    this.coupon = new CouponEntity<>(promotion.getPromotionId(), System.currentTimeMillis(), promotion.getDiscount(),
-        customerId);
+    this(new CouponEntity<>(
+        promotion.getPromotionId(),
+        System.currentTimeMillis(),
+        promotion.getDiscount(),
+        customerId));
   }
 
   public CouponEntity<T> getCoupon() {
