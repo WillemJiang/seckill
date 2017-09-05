@@ -31,8 +31,11 @@ You will need:
 
 ## Run Services
 You can run services follow this steps:
+
 First Build all service images using command `mvn package -Pdocker`
+
 If run jar mode locally you can change application.properties and then `java -jar target/seckill/seckill-xxx-service-xxx-exec.jar`
+
 Also you can run all service images using command `docker-compose up`
 
 If you are using [Docker Toolbox](https://www.docker.com/products/docker-toolbox), please add an extra profile `-Pdocker-machine`.
