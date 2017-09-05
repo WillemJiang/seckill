@@ -20,12 +20,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.jms.core.JmsTemplate;
 
-public class ActiveMQSecKillMessagePublisher implements SecKillMessagePublisher {
+public class SpringSecKillMessagePublisher implements SecKillMessagePublisher {
 
-  private static final Logger logger = LoggerFactory.getLogger(ActiveMQSecKillMessagePublisher.class);
+  private static final Logger logger = LoggerFactory.getLogger(SpringSecKillMessagePublisher.class);
   private final JmsTemplate jmsTemplate;
 
-  public ActiveMQSecKillMessagePublisher(JmsTemplate jmsTemplate) {
+  public SpringSecKillMessagePublisher(JmsTemplate jmsTemplate) {
     this.jmsTemplate = jmsTemplate;
   }
 

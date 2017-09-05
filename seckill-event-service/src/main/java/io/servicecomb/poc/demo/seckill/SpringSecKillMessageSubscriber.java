@@ -31,9 +31,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.jms.annotation.JmsListener;
 
-public class ActiveMQSecKillMessageSubscriber<T> implements SecKillMessageSubscriber {
+public class SpringSecKillMessageSubscriber<T> implements SecKillMessageSubscriber {
 
-  private static final Logger logger = LoggerFactory.getLogger(ActiveMQSecKillMessageSubscriber.class);
+  private static final Logger logger = LoggerFactory.getLogger(SpringSecKillMessageSubscriber.class);
   private final SecKillEventFormat eventFormat;
 
   private final SpringPromotionRepository promotionRepository;
@@ -45,7 +45,7 @@ public class ActiveMQSecKillMessageSubscriber<T> implements SecKillMessageSubscr
     put(PromotionFinishEvent.class.getSimpleName(), (event) -> processPromotionFinishEvent(event));
   }};
 
-  public ActiveMQSecKillMessageSubscriber(SpringPromotionRepository promotionRepository,
+  public SpringSecKillMessageSubscriber(SpringPromotionRepository promotionRepository,
       SpringCouponRepository<T> couponRepository, SecKillEventFormat eventFormat) {
     this.promotionRepository = promotionRepository;
     this.couponRepository = couponRepository;

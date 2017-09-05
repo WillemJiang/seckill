@@ -58,6 +58,6 @@ public class SecKillEventConfig {
   @Bean
   SecKillMessageSubscriber messageSubscriber(SpringPromotionRepository promotionRepository,
       SpringCouponRepository<String> couponRepository, SecKillEventFormat eventFormat) {
-    return new ActiveMQSecKillMessageSubscriber<>(promotionRepository, couponRepository, eventFormat);
+    return new SpringSecKillMessageSubscriber<>(promotionRepository, couponRepository, eventFormat);
   }
 }
