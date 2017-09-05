@@ -91,7 +91,7 @@ class SecKillCommandConfig {
 
   @Bean
   SecKillMessagePublisher secKillMessagePublisher(JmsTemplate jmsTemplate) {
-    return new ActiveMQSecKillMessagePublisher(jmsTemplate);
+    return new SpringSecKillMessagePublisher(jmsTemplate);
   }
 
 }
