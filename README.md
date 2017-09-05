@@ -5,11 +5,14 @@ In order for users to better understand how to develop micro-services using Serv
 
 ## Architecture of SecKill
 * Admin Micro-Service (Promotion Management)
-* Command Micro-Service (Active Promotion and Accept Customer Grab Coupon then publish event to Message broker)
+* Command Micro-Service (Active Promotion and Accept Customer Grab Coupon then publish event to Message broker)<br />
+More detail see : [Command Micro-Service Architecture][cmsa]
 * Event Micro-Service (Consume Event Message from Message broker)
 * Query Micro-Service (Customer can query current active promotion and acquired coupons)
 
 ![Alt text](https://github.com/ServiceComb/seckill/blob/master/etc/EventSourcing.png)
+
+[cmsa]: https://github.com/ServiceComb/seckill/tree/master/seckill-command-service/README.md
 
 ## Prerequisites
 You will need:
