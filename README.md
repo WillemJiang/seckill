@@ -1,12 +1,15 @@
 # ServiceComb Demo - SecKill [![Build Status](https://travis-ci.org/ServiceComb/seckill.svg?branch=master)](https://travis-ci.org/ServiceComb/seckill)[![Coverage Status](https://coveralls.io/repos/github/ServiceComb/seckill/badge.svg)](https://coveralls.io/github/ServiceComb/seckill)
 
 ## Purpose
-In order for users to better understand how to develop microservices using ServiceComb, and learning event sourcing.
+In order for users to better understand how to develop micro-services using ServiceComb, and learning event sourcing.
 
 ## Architecture of SecKill
-* Admin (Promotion Management)
-* Command (Active Promotion and Accept Customer Grab Coupon)
-* Query (Customer can query current active promotion and acquired coupons)
+* Admin Micro-Service (Promotion Management)
+* Command Micro-Service (Active Promotion and Accept Customer Grab Coupon then publish event to Message broker)
+* Event Micro-Service (Consume Event Message from Message broker)
+* Query Micro-Service (Customer can query current active promotion and acquired coupons)
+
+![Alt text](https://github.com/ServiceComb/seckill/blob/master/etc/EventSourcing.png)
 
 ## Prerequisites
 You will need:
@@ -29,8 +32,8 @@ You will need:
 ## Run Services
 You can run services follow this steps:
 First Build all service images using command `mvn package -Pdocker`
-If run jar mode locally,Change application.properties change MySQL datasource config,java -jar target/seckill/seckill-xxx-service-xxx-exec.jar
-If need package docker image add `docker:push` mvn options
+If run jar mode locally you can change application.properties and then `java -jar target/seckill/seckill-xxx-service-xxx-exec.jar`
+Also you can run all service images using command `docker-compose up`
 
 If you are using [Docker Toolbox](https://www.docker.com/products/docker-toolbox), please add an extra profile `-Pdocker-machine`.
 
