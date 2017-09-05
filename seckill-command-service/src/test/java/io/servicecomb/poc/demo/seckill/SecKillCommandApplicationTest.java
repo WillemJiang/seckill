@@ -22,14 +22,10 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import io.servicecomb.poc.demo.CommandServiceApplication;
 import io.servicecomb.poc.demo.seckill.dto.CouponDto;
 import io.servicecomb.poc.demo.seckill.entities.PromotionEntity;
-import io.servicecomb.poc.demo.seckill.event.SecKillEventFormat;
 import io.servicecomb.poc.demo.seckill.json.JacksonGeneralFormat;
-import io.servicecomb.poc.demo.seckill.repositories.SecKillEventRepository;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -66,16 +62,11 @@ public class SecKillCommandApplicationTest {
   private Map<String, SecKillCommandService<String>> commandServices;
 
   @Autowired
-  private SecKillEventRepository eventRepository;
-
-  @Autowired
   private SecKillRecoveryService<String> recoveryService;
 
-  @Autowired
-  private SecKillEventFormat eventFormat;
 
   @Autowired
-  private SecKillMessagePublisher messagePublisher;
+  private SecKillEventPersistent eventPersistent;
 
   @Before
   public void setUp() throws Exception {
@@ -89,9 +80,7 @@ public class SecKillCommandApplicationTest {
     SecKillEventPersistentRunner<String> persistentRunner = new SecKillEventPersistentRunner<>(promotion,
         couponQueue,
         claimedCoupons,
-        eventRepository,
-        eventFormat,
-        messagePublisher,
+        eventPersistent,
         recoveryInfo);
     persistentRunner.run();
     persistentRunners.add(persistentRunner);

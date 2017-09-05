@@ -22,7 +22,6 @@ import io.servicecomb.poc.demo.seckill.entities.CouponEntity;
 import io.servicecomb.poc.demo.seckill.entities.PromotionEntity;
 import io.servicecomb.poc.demo.seckill.repositories.spring.SpringCouponRepository;
 import io.servicecomb.poc.demo.seckill.repositories.spring.SpringPromotionRepository;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -32,7 +31,7 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.Executors;
 
-public class SecKillEventPuller<T> {
+public class SecKillEventPoller<T> {
 
   private final SpringCouponRepository couponRepository;
   private final SpringPromotionRepository promotionRepository;
@@ -42,7 +41,7 @@ public class SecKillEventPuller<T> {
   private final int pollingInterval;
   private int loadedCouponEntityId = 0;
 
-  SecKillEventPuller(
+  SecKillEventPoller(
       SpringCouponRepository couponRepository,
       SpringPromotionRepository promotionRepository,
       int pollingInterval) {
@@ -77,9 +76,7 @@ public class SecKillEventPuller<T> {
   }
 
   private void reloadActivePromotions() {
-    List<PromotionEntity> promotions = new ArrayList<>();
-    promotionRepository.findAll().forEach(promotions::add);
     activePromotions.clear();
-    activePromotions.addAll(promotions);
+    promotionRepository.findAll().forEach(activePromotions::add);
   }
 }

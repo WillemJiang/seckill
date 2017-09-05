@@ -17,8 +17,6 @@
 package io.servicecomb.poc.demo.seckill;
 
 import io.servicecomb.poc.demo.seckill.entities.PromotionEntity;
-import io.servicecomb.poc.demo.seckill.event.SecKillEventFormat;
-import io.servicecomb.poc.demo.seckill.repositories.SecKillEventRepository;
 import io.servicecomb.poc.demo.seckill.repositories.spring.SpringPromotionRepository;
 import java.util.HashMap;
 import java.util.List;
@@ -26,7 +24,6 @@ import java.util.Map;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import org.slf4j.Logger;
@@ -37,11 +34,9 @@ public class SecKillPromotionBootstrap<T> {
   private static final Logger logger = LoggerFactory.getLogger(SecKillPromotionBootstrap.class);
 
   private final SpringPromotionRepository promotionRepository;
-  private final SecKillEventRepository eventRepository;
-  private final SecKillMessagePublisher messagePublisher;
   private final Map<String, SecKillCommandService<T>> commandServices;
-  private final SecKillEventFormat eventFormat;
   private final List<SecKillEventPersistentRunner<T>> persistentRunners;
+  private final SecKillEventPersistent eventPersistent;
   private final SecKillRecoveryService<T> recoveryService;
 
   private final Map<String, PromotionEntity> waitingPromotions = new HashMap<>();
@@ -49,18 +44,14 @@ public class SecKillPromotionBootstrap<T> {
 
   public SecKillPromotionBootstrap(
       SpringPromotionRepository promotionRepository,
-      SecKillEventRepository eventRepository,
-      SecKillMessagePublisher messagePublisher,
       Map<String, SecKillCommandService<T>> commandServices,
       List<SecKillEventPersistentRunner<T>> persistentRunners,
-      SecKillEventFormat eventFormat,
+      SecKillEventPersistent eventPersistent,
       SecKillRecoveryService<T> recoveryService) {
     this.promotionRepository = promotionRepository;
-    this.eventRepository = eventRepository;
-    this.messagePublisher = messagePublisher;
     this.commandServices = commandServices;
-    this.eventFormat = eventFormat;
     this.persistentRunners = persistentRunners;
+    this.eventPersistent = eventPersistent;
     this.recoveryService = recoveryService;
   }
 
@@ -97,9 +88,7 @@ public class SecKillPromotionBootstrap<T> {
     SecKillEventPersistentRunner<T> persistentRunner = new SecKillEventPersistentRunner<>(promotion,
         couponQueue,
         claimedCoupons,
-        eventRepository,
-        eventFormat,
-        messagePublisher,
+        eventPersistent,
         recoveryInfo);
     persistentRunners.add(persistentRunner);
     persistentRunner.run();
