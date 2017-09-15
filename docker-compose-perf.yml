@@ -1,0 +1,98 @@
+version: '2.2'
+
+services:
+  mysql-write-db:
+    image: "mysql:latest"
+    mem_limit: 4096m
+    cpu_count: 4
+    cpu_percent: 50
+    hostname: write_db_server
+    environment:
+      - MYSQL_ROOT_PASSWORD=password
+      - MYSQL_DATABASE=seckill
+      - MYSQL_USER=seckill
+      - MYSQL_PASSWORD=password
+    ports:
+      - "3306"
+    restart: always
+
+  mysql-read-db:
+    image: "mysql:latest"
+    mem_limit: 4096m
+    cpu_count: 4
+    cpu_percent: 50
+    hostname: read_db_server
+    environment:
+      - MYSQL_ROOT_PASSWORD=password
+      - MYSQL_DATABASE=seckill
+      - MYSQL_USER=seckill
+      - MYSQL_PASSWORD=password
+    ports:
+      - "3306"
+    restart: always
+
+  activemq:
+    image: "webcenter/activemq:latest"
+    mem_limit: 1024m
+    cpu_count: 4
+    cpu_percent: 50
+    hostname: queue-server
+    ports:
+      - "61616"
+    restart: always
+
+  admin-service:
+    image: "seckill-admin-service:0.2.0-SNAPSHOT"
+    mem_limit: 4096m
+    cpu_count: 4
+    cpu_percent: 50
+    hostname: admin-service
+    links:
+      - "mysql-write-db:write_db.servicecomb.io"
+    environment:
+      - JAVA_OPTS=-Dspring.profiles.active=prd -Dendpoints.shutdown.enabled=true
+    ports:
+      - "8081:8081"
+    restart: always
+
+  command-service:
+    image: "seckill-command-service:0.2.0-SNAPSHOT"
+    mem_limit: 4096m
+    cpu_count: 4
+    cpu_percent: 50
+    hostname: command-service
+    links:
+      - "mysql-write-db:write_db.servicecomb.io"
+      - "activemq:queue.servicecomb.io"
+    environment:
+      - JAVA_OPTS=-Dspring.profiles.active=prd -Dendpoints.shutdown.enabled=true
+    ports:
+      - "8082:8082"
+    restart: always
+
+  query-service:
+    image: "seckill-query-service:0.2.0-SNAPSHOT"
+    mem_limit: 4096m
+    cpu_count: 8
+    cpu_percent: 50
+    hostname: query-service
+    links:
+      - "mysql-write-db:read_db.servicecomb.io"
+    environment:
+      - JAVA_OPTS=-Dspring.profiles.active=prd -Dendpoints.shutdown.enabled=true
+    ports:
+      - "8083:8083"
+    restart: always
+
+  event-service:
+    image: "seckill-event-service:0.2.0-SNAPSHOT"
+    mem_limit: 4096m
+    cpu_count: 4
+    cpu_percent: 50
+    hostname: event-service
+    links:
+      - "mysql-write-db:read_db.servicecomb.io"
+      - "activemq:queue.servicecomb.io"
+    environment:
+      - JAVA_OPTS=-Dspring.profiles.active=prd -Dendpoints.shutdown.enabled=true
+    restart: always
