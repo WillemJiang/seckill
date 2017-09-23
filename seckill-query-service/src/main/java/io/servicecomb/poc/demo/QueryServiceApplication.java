@@ -29,7 +29,7 @@ public class QueryServiceApplication {
     }
 
     @Configuration
-    @Profile("!SpringCloud")
+    @Profile("cse")
     @EnableServiceComb
     class ServiceCombConfig {
         // Here we just enable ServiceComb by default

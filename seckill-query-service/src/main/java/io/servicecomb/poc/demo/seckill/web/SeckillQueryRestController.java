@@ -48,7 +48,7 @@ public class SeckillQueryRestController {
         logger.info("Query customer id = {} coupons", customerId);
         Collection<CouponEntity<String>> coupons = secKillEventPoller.getCustomerCoupons(customerId);
         return coupons.stream()
-                .map(coupon -> new CouponInfo(coupon.getId(), coupon.getPromotionId(), new Date(coupon.getTime()), coupon.getDiscount()))
+                .map(coupon -> new CouponInfo(coupon.getId(), coupon.getCustomerId(), coupon.getPromotionId(), new Date(coupon.getTime()), coupon.getDiscount()))
                 .collect(Collectors.toList());
     }
 

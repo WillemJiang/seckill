@@ -25,11 +25,14 @@ public class CouponInfo {
     private Date time;
     private float discount;
 
+    private String customerId;
+
     public CouponInfo() {
     }
 
-    public CouponInfo(int id, String promotionId, Date time, float discount) {
+    public CouponInfo(int id,String customerId, String promotionId, Date time, float discount) {
         this.id = id;
+        this.customerId = customerId;
         this.promotionId = promotionId;
         this.time = time;
         this.discount = discount;
@@ -37,6 +40,10 @@ public class CouponInfo {
 
     public int getId() {
         return id;
+    }
+
+    public String getCustomerId() {
+        return customerId;
     }
 
     public String getPromotionId() {
