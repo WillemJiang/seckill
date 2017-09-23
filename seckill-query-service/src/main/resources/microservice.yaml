@@ -1,0 +1,19 @@
+﻿APPLICATION_ID: acmeair
+service_description:
+  name: seckillServiceApp
+  version: 0.0.1
+cse:
+  service:
+    registry:
+      address: http://192.168.99.100:30100
+  rest:
+    address: 0.0.0.0:7007
+  handler:
+    chain:
+      Consumer:
+        default: loadbalance
+
+  references:
+    customerServiceApp:
+      version-rule: 0.0.1
+      transport: rest
