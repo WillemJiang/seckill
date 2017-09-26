@@ -1,7 +1,7 @@
 ﻿APPLICATION_ID: acmeair
 service_description:
   name: seckillServiceApp
-  version: 0.0.1
+  version: 0.0.2
 cse:
   service:
     registry:
