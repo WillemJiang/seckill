@@ -24,16 +24,8 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import io.servicecomb.poc.demo.QueryServiceApplication;
-import io.servicecomb.poc.demo.seckill.entities.CouponEntity;
-import io.servicecomb.poc.demo.seckill.entities.PromotionEntity;
-import io.servicecomb.poc.demo.seckill.event.CouponGrabbedEvent;
-import io.servicecomb.poc.demo.seckill.event.PromotionFinishEvent;
-import io.servicecomb.poc.demo.seckill.event.PromotionStartEvent;
-import io.servicecomb.poc.demo.seckill.json.JacksonGeneralFormat;
-import io.servicecomb.poc.demo.seckill.repositories.spring.SpringCouponRepository;
-import io.servicecomb.poc.demo.seckill.repositories.spring.SpringPromotionRepository;
 import java.util.Date;
+
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -43,6 +35,12 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 
+import io.servicecomb.poc.demo.QueryServiceApplication;
+import io.servicecomb.poc.demo.seckill.entities.CouponEntity;
+import io.servicecomb.poc.demo.seckill.entities.PromotionEntity;
+import io.servicecomb.poc.demo.seckill.repositories.spring.SpringCouponRepository;
+import io.servicecomb.poc.demo.seckill.repositories.spring.SpringPromotionRepository;
+
 @RunWith(SpringRunner.class)
 @SpringBootTest(classes = QueryServiceApplication.class, properties = "event.polling.interval=100")
 @AutoConfigureMockMvc
@@ -51,7 +49,9 @@ public class SecKillQueryServiceApplicationTest {
   private static final String customerId = "tester";
 
   private final PromotionEntity promotion1 = generatePromotion();
+
   private final PromotionEntity promotion2 = generatePromotion();
+
   private final PromotionEntity promotion3 = generatePromotion();
 
   private final PromotionEntity[] promotions = {promotion1, promotion2, promotion3};
@@ -69,6 +69,13 @@ public class SecKillQueryServiceApplicationTest {
   public void setUp() throws Exception {
     couponRepository.deleteAll();
     promotionRepository.deleteAll();
+  }
+
+  @Test
+  public void queryCouponWithNonExistentCustomer() throws Exception {
+    mockMvc.perform(get("/query/coupons/{customerId}", "unknown").contentType(APPLICATION_JSON))
+        .andExpect(status().isOk())
+        .andExpect(content().string("[]"));
   }
 
   @Test
@@ -119,7 +126,9 @@ public class SecKillQueryServiceApplicationTest {
   }
 
   private void addCouponToCustomer(String customerId, PromotionEntity promotion) {
-    couponRepository.save(new CouponEntity<>(promotion.getPromotionId(),System.currentTimeMillis(),promotion.getDiscount(),customerId));
+    couponRepository.save(
+        new CouponEntity<>(promotion.getPromotionId(), System.currentTimeMillis(), promotion.getDiscount(),
+            customerId));
   }
 
   private void addActivePromotion(PromotionEntity promotion) {

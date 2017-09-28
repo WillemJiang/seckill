@@ -14,6 +14,16 @@
 
   <dependencies>
     <dependency>
+      <groupId>io.servicecomb</groupId>
+      <artifactId>spring-boot-starter-provider</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>io.servicecomb</groupId>
+      <artifactId>transport-rest-vertx</artifactId>
+    </dependency>
+
+    <dependency>
       <groupId>io.servicecomb.poc.demo</groupId>
       <artifactId>seckill-event-store</artifactId>
     </dependency>

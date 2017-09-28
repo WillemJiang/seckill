@@ -14,66 +14,52 @@
  *   limitations under the License.
  */
 
-package io.servicecomb.poc.demo.seckill.entities;
+package io.servicecomb.poc.demo.seckill.dto;
 
-import org.hibernate.annotations.Type;
+import java.io.Serializable;
+import java.util.Date;
 
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
+public class CouponInfo implements Serializable {
+  private static final long serialVersionUID = 1L;
 
-@Entity
-public class CouponEntity<T> {
-
-  @Id
-  @GeneratedValue(strategy = GenerationType.AUTO)
   private int id;
 
   private String promotionId;
 
-  private long time;
+  private Date time;
 
   private float discount;
 
-  @Type(type = "java.lang.String")
-  private T customerId;
+  private String customerId;
 
-  public CouponEntity() {
+  public CouponInfo() {
   }
 
-  public CouponEntity(String promotionId, long time, float discount, T customerId) {
+  public CouponInfo(int id, String customerId, String promotionId, Date time, float discount) {
+    this.id = id;
+    this.customerId = customerId;
     this.promotionId = promotionId;
     this.time = time;
     this.discount = discount;
-    this.customerId = customerId;
   }
 
   public int getId() {
     return id;
   }
 
+  public String getCustomerId() {
+    return customerId;
+  }
+
   public String getPromotionId() {
     return promotionId;
   }
 
-  public void setPromotionId(String promotionId) {
-    this.promotionId = promotionId;
-  }
-
-  public T getCustomerId() {
-    return customerId;
-  }
-
-  public void setCustomerId(T customerId) {
-    this.customerId = customerId;
+  public Date getTime() {
+    return time;
   }
 
   public float getDiscount() {
     return discount;
-  }
-
-  public long getTime() {
-    return time;
   }
 }

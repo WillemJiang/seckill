@@ -18,10 +18,6 @@ package io.servicecomb.poc.demo.seckill;
 
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 
-import io.servicecomb.poc.demo.seckill.entities.CouponEntity;
-import io.servicecomb.poc.demo.seckill.entities.PromotionEntity;
-import io.servicecomb.poc.demo.seckill.repositories.spring.SpringCouponRepository;
-import io.servicecomb.poc.demo.seckill.repositories.spring.SpringPromotionRepository;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
@@ -29,17 +25,25 @@ import java.util.Map;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.Executors;
+
+import io.servicecomb.poc.demo.seckill.entities.CouponEntity;
+import io.servicecomb.poc.demo.seckill.entities.PromotionEntity;
+import io.servicecomb.poc.demo.seckill.repositories.spring.SpringCouponRepository;
+import io.servicecomb.poc.demo.seckill.repositories.spring.SpringPromotionRepository;
 
 public class SecKillEventPoller<T> {
 
   private final SpringCouponRepository<T> couponRepository;
+
   private final SpringPromotionRepository promotionRepository;
 
   private final Map<T, Queue<CouponEntity<T>>> customerCoupons = new ConcurrentHashMap<>();
+
   private volatile List<PromotionEntity> activePromotions = new LinkedList<>();
+
   private final int pollingInterval;
+
   private int loadedCouponEntityId = 0;
 
   SecKillEventPoller(
@@ -60,7 +64,7 @@ public class SecKillEventPoller<T> {
   }
 
   public Collection<CouponEntity<T>> getCustomerCoupons(T customerId) {
-    return customerCoupons.get(customerId);
+    return customerCoupons.getOrDefault(customerId, new ConcurrentLinkedQueue<>());
   }
 
   public Collection<PromotionEntity> getActivePromotions() {

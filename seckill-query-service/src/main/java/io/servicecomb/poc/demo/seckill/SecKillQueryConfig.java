@@ -16,11 +16,12 @@
 
 package io.servicecomb.poc.demo.seckill;
 
-import io.servicecomb.poc.demo.seckill.repositories.spring.SpringCouponRepository;
-import io.servicecomb.poc.demo.seckill.repositories.spring.SpringPromotionRepository;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+
+import io.servicecomb.poc.demo.seckill.repositories.spring.SpringCouponRepository;
+import io.servicecomb.poc.demo.seckill.repositories.spring.SpringPromotionRepository;
 
 @Configuration
 class SecKillQueryConfig {
