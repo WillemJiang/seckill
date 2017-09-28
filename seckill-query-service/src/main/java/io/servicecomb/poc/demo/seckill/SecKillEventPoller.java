@@ -16,69 +16,65 @@
 
 package io.servicecomb.poc.demo.seckill;
 
-import static java.util.concurrent.TimeUnit.MILLISECONDS;
-
 import io.servicecomb.poc.demo.seckill.entities.CouponEntity;
 import io.servicecomb.poc.demo.seckill.entities.PromotionEntity;
 import io.servicecomb.poc.demo.seckill.repositories.spring.SpringCouponRepository;
 import io.servicecomb.poc.demo.seckill.repositories.spring.SpringPromotionRepository;
-import java.util.Collection;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Queue;
+
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.Executors;
+
+import static java.util.concurrent.TimeUnit.MILLISECONDS;
 
 public class SecKillEventPoller<T> {
 
-  private final SpringCouponRepository<T> couponRepository;
-  private final SpringPromotionRepository promotionRepository;
+    private final SpringCouponRepository<T> couponRepository;
+    private final SpringPromotionRepository promotionRepository;
 
-  private final Map<T, Queue<CouponEntity<T>>> customerCoupons = new ConcurrentHashMap<>();
-  private volatile List<PromotionEntity> activePromotions = new LinkedList<>();
-  private final int pollingInterval;
-  private int loadedCouponEntityId = 0;
+    private final Map<T, Queue<CouponEntity<T>>> customerCoupons = new ConcurrentHashMap<>();
+    private volatile List<PromotionEntity> activePromotions = new LinkedList<>();
+    private final int pollingInterval;
+    private int loadedCouponEntityId = 0;
 
-  SecKillEventPoller(
-      SpringCouponRepository<T> couponRepository,
-      SpringPromotionRepository promotionRepository,
-      int pollingInterval) {
-    this.couponRepository = couponRepository;
-    this.promotionRepository = promotionRepository;
-    this.pollingInterval = pollingInterval;
-  }
-
-  void reloadScheduler() {
-    final Runnable executor = () -> {
-      populateCoupons();
-      reloadActivePromotions();
-    };
-    Executors.newScheduledThreadPool(1).scheduleWithFixedDelay(executor, 0, pollingInterval, MILLISECONDS);
-  }
-
-  public Collection<CouponEntity<T>> getCustomerCoupons(T customerId) {
-    return customerCoupons.get(customerId);
-  }
-
-  public Collection<PromotionEntity> getActivePromotions() {
-    return activePromotions;
-  }
-
-  private void populateCoupons() {
-    List<CouponEntity<T>> couponEntities = couponRepository.findByIdGreaterThan(loadedCouponEntityId);
-    for (CouponEntity<T> couponEntity : couponEntities) {
-      customerCoupons.computeIfAbsent(couponEntity.getCustomerId(), id -> new ConcurrentLinkedQueue<>())
-          .add(couponEntity);
-      loadedCouponEntityId = couponEntity.getId();
+    SecKillEventPoller(
+            SpringCouponRepository<T> couponRepository,
+            SpringPromotionRepository promotionRepository,
+            int pollingInterval) {
+        this.couponRepository = couponRepository;
+        this.promotionRepository = promotionRepository;
+        this.pollingInterval = pollingInterval;
     }
-  }
 
-  private void reloadActivePromotions() {
-    List<PromotionEntity> promotions = new LinkedList<>();
-    promotionRepository.findAll().forEach(promotions::add);
-    activePromotions = promotions;
-  }
+    void reloadScheduler() {
+        final Runnable executor = () -> {
+            populateCoupons();
+            reloadActivePromotions();
+        };
+        Executors.newScheduledThreadPool(1).scheduleWithFixedDelay(executor, 0, pollingInterval, MILLISECONDS);
+    }
+
+    public Collection<CouponEntity<T>> getCustomerCoupons(T customerId) {
+        return customerCoupons.getOrDefault(customerId, null);
+    }
+
+    public Collection<PromotionEntity> getActivePromotions() {
+        return activePromotions;
+    }
+
+    private void populateCoupons() {
+        List<CouponEntity<T>> couponEntities = couponRepository.findByIdGreaterThan(loadedCouponEntityId);
+        for (CouponEntity<T> couponEntity : couponEntities) {
+            customerCoupons.computeIfAbsent(couponEntity.getCustomerId(), id -> new ConcurrentLinkedQueue<>())
+                    .add(couponEntity);
+            loadedCouponEntityId = couponEntity.getId();
+        }
+    }
+
+    private void reloadActivePromotions() {
+        List<PromotionEntity> promotions = new LinkedList<>();
+        promotionRepository.findAll().forEach(promotions::add);
+        activePromotions = promotions;
+    }
 }

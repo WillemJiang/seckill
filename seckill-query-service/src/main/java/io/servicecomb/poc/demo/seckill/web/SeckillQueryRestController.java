@@ -29,6 +29,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 import java.util.stream.Collectors;
@@ -47,9 +48,11 @@ public class SeckillQueryRestController {
     public Collection<CouponInfo> querySuccess(@PathVariable("customerId") String customerId) {
         logger.info("Query customer id = {} coupons", customerId);
         Collection<CouponEntity<String>> coupons = secKillEventPoller.getCustomerCoupons(customerId);
-        return coupons.stream()
-                .map(coupon -> new CouponInfo(coupon.getId(), coupon.getCustomerId(), coupon.getPromotionId(), new Date(coupon.getTime()), coupon.getDiscount()))
-                .collect(Collectors.toList());
+        if (coupons != null) {
+            return coupons.stream()
+                    .map(coupon -> new CouponInfo(coupon.getId(), coupon.getCustomerId(), coupon.getPromotionId(), new Date(coupon.getTime()), coupon.getDiscount()))
+                    .collect(Collectors.toList());
+        } else return new ArrayList<>();
     }
 
     @RequestMapping(method = RequestMethod.GET, value = "/promotions")
