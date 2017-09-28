@@ -26,54 +26,54 @@ import javax.persistence.Id;
 @Entity
 public class CouponEntity<T> {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
-    private int id;
+  @Id
+  @GeneratedValue(strategy = GenerationType.AUTO)
+  private int id;
 
-    private String promotionId;
+  private String promotionId;
 
-    private long time;
+  private long time;
 
-    private float discount;
+  private float discount;
 
-    @Type(type = "java.lang.String")
-    private T customerId;
+  @Type(type = "java.lang.String")
+  private T customerId;
 
-    public CouponEntity() {
-    }
+  public CouponEntity() {
+  }
 
-    public CouponEntity(String promotionId, long time, float discount, T customerId) {
-        this.promotionId = promotionId;
-        this.time = time;
-        this.discount = discount;
-        this.customerId = customerId;
-    }
+  public CouponEntity(String promotionId, long time, float discount, T customerId) {
+    this.promotionId = promotionId;
+    this.time = time;
+    this.discount = discount;
+    this.customerId = customerId;
+  }
 
-    public int getId() {
-        return id;
-    }
+  public int getId() {
+    return id;
+  }
 
-    public String getPromotionId() {
-        return promotionId;
-    }
+  public String getPromotionId() {
+    return promotionId;
+  }
 
-    public void setPromotionId(String promotionId) {
-        this.promotionId = promotionId;
-    }
+  public void setPromotionId(String promotionId) {
+    this.promotionId = promotionId;
+  }
 
-    public T getCustomerId() {
-        return customerId;
-    }
+  public T getCustomerId() {
+    return customerId;
+  }
 
-    public void setCustomerId(T customerId) {
-        this.customerId = customerId;
-    }
+  public void setCustomerId(T customerId) {
+    this.customerId = customerId;
+  }
 
-    public float getDiscount() {
-        return discount;
-    }
+  public float getDiscount() {
+    return discount;
+  }
 
-    public long getTime() {
-        return time;
-    }
+  public long getTime() {
+    return time;
+  }
 }
