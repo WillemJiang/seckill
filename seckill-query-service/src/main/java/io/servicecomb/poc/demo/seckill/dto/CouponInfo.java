@@ -16,45 +16,50 @@
 
 package io.servicecomb.poc.demo.seckill.dto;
 
+import java.io.Serializable;
 import java.util.Date;
 
-public class CouponInfo {
+public class CouponInfo implements Serializable {
+  private static final long serialVersionUID = 1L;
 
-    private int id;
-    private String promotionId;
-    private Date time;
-    private float discount;
+  private int id;
 
-    private String customerId;
+  private String promotionId;
 
-    public CouponInfo() {
-    }
+  private Date time;
 
-    public CouponInfo(int id,String customerId, String promotionId, Date time, float discount) {
-        this.id = id;
-        this.customerId = customerId;
-        this.promotionId = promotionId;
-        this.time = time;
-        this.discount = discount;
-    }
+  private float discount;
 
-    public int getId() {
-        return id;
-    }
+  private String customerId;
 
-    public String getCustomerId() {
-        return customerId;
-    }
+  public CouponInfo() {
+  }
 
-    public String getPromotionId() {
-        return promotionId;
-    }
+  public CouponInfo(int id, String customerId, String promotionId, Date time, float discount) {
+    this.id = id;
+    this.customerId = customerId;
+    this.promotionId = promotionId;
+    this.time = time;
+    this.discount = discount;
+  }
 
-    public Date getTime() {
-        return time;
-    }
+  public int getId() {
+    return id;
+  }
 
-    public float getDiscount() {
-        return discount;
-    }
+  public String getCustomerId() {
+    return customerId;
+  }
+
+  public String getPromotionId() {
+    return promotionId;
+  }
+
+  public Date getTime() {
+    return time;
+  }
+
+  public float getDiscount() {
+    return discount;
+  }
 }

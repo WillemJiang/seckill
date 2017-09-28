@@ -16,22 +16,23 @@
 
 package io.servicecomb.poc.demo;
 
-import io.servicecomb.springboot.starter.provider.EnableServiceComb;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
 
+import io.servicecomb.springboot.starter.provider.EnableServiceComb;
+
 @SpringBootApplication
 public class QueryServiceApplication {
-    public static void main(String[] args) {
-        SpringApplication.run(QueryServiceApplication.class, args);
-    }
+  public static void main(String[] args) {
+    SpringApplication.run(QueryServiceApplication.class, args);
+  }
 
-    @Configuration
-    @Profile("cse")
-    @EnableServiceComb
-    class ServiceCombConfig {
-        // Here we just enable ServiceComb by default
-    }
+  @Configuration
+  @Profile("cse")
+  @EnableServiceComb
+  class ServiceCombConfig {
+    // Here we just enable ServiceComb by default
+  }
 }
