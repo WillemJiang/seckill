@@ -16,7 +16,6 @@
 
 package io.servicecomb.poc.demo.seckill.web;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 import java.util.stream.Collectors;
@@ -49,14 +48,10 @@ public class SeckillQueryRestController {
   public Collection<CouponInfo> querySuccess(@PathVariable("customerId") String customerId) {
     logger.info("Query customer id = {} coupons", customerId);
     Collection<CouponEntity<String>> coupons = secKillEventPoller.getCustomerCoupons(customerId);
-    if (coupons != null) {
-      return coupons.stream()
-          .map(coupon -> new CouponInfo(coupon.getId(), coupon.getCustomerId(), coupon.getPromotionId(),
-              new Date(coupon.getTime()), coupon.getDiscount()))
-          .collect(Collectors.toList());
-    } else {
-      return new ArrayList<>();
-    }
+    return coupons.stream()
+        .map(coupon -> new CouponInfo(coupon.getId(), coupon.getCustomerId(), coupon.getPromotionId(),
+            new Date(coupon.getTime()), coupon.getDiscount()))
+        .collect(Collectors.toList());
   }
 
   @RequestMapping(method = RequestMethod.GET, value = "/promotions")

@@ -64,7 +64,7 @@ public class SecKillEventPoller<T> {
   }
 
   public Collection<CouponEntity<T>> getCustomerCoupons(T customerId) {
-    return customerCoupons.getOrDefault(customerId, null);
+    return customerCoupons.getOrDefault(customerId, new ConcurrentLinkedQueue<>());
   }
 
   public Collection<PromotionEntity> getActivePromotions() {
