@@ -26,6 +26,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import java.util.Date;
 
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -67,6 +68,12 @@ public class SecKillQueryServiceApplicationTest {
 
   @Before
   public void setUp() throws Exception {
+    couponRepository.deleteAll();
+    promotionRepository.deleteAll();
+  }
+
+  @After
+  public void tearDown() throws Exception {
     couponRepository.deleteAll();
     promotionRepository.deleteAll();
   }
