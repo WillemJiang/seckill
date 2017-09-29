@@ -24,7 +24,10 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import java.util.Arrays;
+import java.util.Comparator;
 import java.util.Date;
+import java.util.List;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -34,8 +37,12 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.MvcResult;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import io.servicecomb.poc.demo.QueryServiceApplication;
+import io.servicecomb.poc.demo.seckill.dto.CouponInfo;
 import io.servicecomb.poc.demo.seckill.entities.CouponEntity;
 import io.servicecomb.poc.demo.seckill.entities.PromotionEntity;
 import io.servicecomb.poc.demo.seckill.repositories.spring.SpringCouponRepository;
@@ -70,16 +77,21 @@ public class SecKillQueryServiceApplicationSyncTest {
     addCouponToCustomer(customerId, promotion3);
     Thread.sleep(300);
 
-    mockMvc.perform(get("/sync/0").contentType(APPLICATION_JSON))
+    ObjectMapper mapper = new ObjectMapper();
+
+    MvcResult result = mockMvc.perform(get("/sync/0").contentType(APPLICATION_JSON))
         .andExpect(status().isOk())
         .andExpect(content().string(
             allOf(
                 containsString(customerId),
                 containsString(promotion1.getPromotionId()),
                 containsString(promotion2.getPromotionId()),
-                containsString(promotion3.getPromotionId()))));
+                containsString(promotion3.getPromotionId())))).andReturn();
+    List<CouponInfo> coupons = Arrays
+        .asList(mapper.readValue(result.getResponse().getContentAsString(), CouponInfo[].class));
+    coupons.sort(Comparator.comparingInt(CouponInfo::getId));
 
-    mockMvc.perform(get("/sync/1").contentType(APPLICATION_JSON))
+    mockMvc.perform(get("/sync/" + coupons.get(0).getId()).contentType(APPLICATION_JSON))
         .andExpect(status().isOk())
         .andExpect(content().string(
             allOf(
@@ -88,7 +100,7 @@ public class SecKillQueryServiceApplicationSyncTest {
                 containsString(promotion2.getPromotionId()),
                 containsString(promotion3.getPromotionId()))));
 
-    mockMvc.perform(get("/sync/2").contentType(APPLICATION_JSON))
+    mockMvc.perform(get("/sync/" + coupons.get(1).getId()).contentType(APPLICATION_JSON))
         .andExpect(status().isOk())
         .andExpect(content().string(
             allOf(
@@ -97,7 +109,7 @@ public class SecKillQueryServiceApplicationSyncTest {
                 not(containsString(promotion2.getPromotionId())),
                 containsString(promotion3.getPromotionId()))));
 
-    mockMvc.perform(get("/sync/3").contentType(APPLICATION_JSON))
+    mockMvc.perform(get("/sync/" + coupons.get(2).getId()).contentType(APPLICATION_JSON))
         .andExpect(status().isOk())
         .andExpect(content().string("[]"));
   }
