@@ -18,14 +18,17 @@ package io.servicecomb.poc.demo.seckill;
 
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Queue;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.Executors;
+import java.util.stream.Collectors;
 
 import io.servicecomb.poc.demo.seckill.entities.CouponEntity;
 import io.servicecomb.poc.demo.seckill.entities.PromotionEntity;
@@ -40,7 +43,9 @@ public class SecKillEventPoller<T> {
 
   private final Map<T, Queue<CouponEntity<T>>> customerCoupons = new ConcurrentHashMap<>();
 
-  private volatile List<PromotionEntity> activePromotions = new LinkedList<>();
+  private Set<CouponEntity<T>> allCoupons = ConcurrentHashMap.newKeySet();
+
+  private volatile List<PromotionEntity> activePromotions = new ArrayList<>();
 
   private final int pollingInterval;
 
@@ -71,11 +76,16 @@ public class SecKillEventPoller<T> {
     return activePromotions;
   }
 
+  public Collection<CouponEntity<T>> getLatestCoupons(int latestId) {
+    return allCoupons.stream().filter(coupon -> coupon.getId() > latestId).collect(Collectors.toList());
+  }
+
   private void populateCoupons() {
     List<CouponEntity<T>> couponEntities = couponRepository.findByIdGreaterThan(loadedCouponEntityId);
     for (CouponEntity<T> couponEntity : couponEntities) {
       customerCoupons.computeIfAbsent(couponEntity.getCustomerId(), id -> new ConcurrentLinkedQueue<>())
           .add(couponEntity);
+      allCoupons.add(couponEntity);
       loadedCouponEntityId = couponEntity.getId();
     }
   }
