@@ -29,6 +29,7 @@ import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
 
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -65,9 +66,18 @@ public class SecKillQueryServiceApplicationSyncTest {
   @Autowired
   private MockMvc mockMvc;
 
+  @Before
+  public void setUp() throws Exception {
+    couponRepository.deleteAll();
+  }
+
+  @After
+  public void tearDown() throws Exception {
+    couponRepository.deleteAll();
+  }
+
   @Test
   public void syncCoupon() throws Exception {
-    couponRepository.deleteAll();
 
     addCouponToCustomer(customerId, promotion1);
     addCouponToCustomer(customerId, promotion2);
