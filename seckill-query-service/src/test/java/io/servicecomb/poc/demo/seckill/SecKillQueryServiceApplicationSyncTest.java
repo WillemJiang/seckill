@@ -65,13 +65,10 @@ public class SecKillQueryServiceApplicationSyncTest {
   @Autowired
   private MockMvc mockMvc;
 
-  @Before
-  public void setUp() throws Exception {
-    couponRepository.deleteAll();
-  }
-
   @Test
   public void syncCoupon() throws Exception {
+    couponRepository.deleteAll();
+
     addCouponToCustomer(customerId, promotion1);
     addCouponToCustomer(customerId, promotion2);
     addCouponToCustomer(customerId, promotion3);
