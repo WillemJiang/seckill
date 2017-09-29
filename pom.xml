@@ -212,6 +212,7 @@
             <systemPropertyVariables>
               <pact.rootDir>../target/pacts</pact.rootDir>
             </systemPropertyVariables>
+            <reuseForks>false</reuseForks>
           </configuration>
         </plugin>
         <plugin>
