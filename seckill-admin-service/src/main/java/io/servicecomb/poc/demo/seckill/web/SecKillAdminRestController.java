@@ -16,16 +16,11 @@
 
 package io.servicecomb.poc.demo.seckill.web;
 
-import static org.springframework.http.HttpStatus.BAD_REQUEST;
+import static javax.ws.rs.core.Response.Status.BAD_REQUEST;
 import static org.springframework.http.HttpStatus.OK;
 
-import io.servicecomb.poc.demo.seckill.dto.PromotionDto;
-import io.servicecomb.poc.demo.seckill.entities.EventEntity;
-import io.servicecomb.poc.demo.seckill.entities.PromotionEntity;
-import io.servicecomb.poc.demo.seckill.event.SecKillEventType;
-import io.servicecomb.poc.demo.seckill.repositories.spring.SpringPromotionRepository;
-import io.servicecomb.poc.demo.seckill.repositories.spring.SpringSecKillEventRepository;
 import java.util.List;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,6 +31,16 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
+import io.servicecomb.poc.demo.seckill.dto.PromotionDto;
+import io.servicecomb.poc.demo.seckill.entities.EventEntity;
+import io.servicecomb.poc.demo.seckill.entities.PromotionEntity;
+import io.servicecomb.poc.demo.seckill.event.SecKillEventType;
+import io.servicecomb.poc.demo.seckill.repositories.spring.SpringPromotionRepository;
+import io.servicecomb.poc.demo.seckill.repositories.spring.SpringSecKillEventRepository;
+import io.servicecomb.provider.rest.common.RestSchema;
+import io.servicecomb.swagger.invocation.exception.InvocationException;
+
+@RestSchema(schemaId = "seckillAdmin")
 @RestController
 @RequestMapping("/admin/promotions")
 public class SecKillAdminRestController {
@@ -43,6 +48,7 @@ public class SecKillAdminRestController {
   private static final Logger logger = LoggerFactory.getLogger(SecKillAdminRestController.class);
 
   private final SpringPromotionRepository promotionRepository;
+
   private final SpringSecKillEventRepository eventRepository;
 
   @Autowired
@@ -70,13 +76,12 @@ public class SecKillAdminRestController {
       return new ResponseEntity<>(promotion.getPromotionId(), OK);
     }
 
-    return new ResponseEntity<>(String.format(
+    throw new InvocationException(BAD_REQUEST, String.format(
         "Invalid promotion {numberOfCoupons=%d, discount=%f, publishTime=%s, finishTime=%s}",
         promotionDto.getNumberOfCoupons(),
         promotionDto.getDiscount(),
         promotionDto.getPublishTime(),
-        promotionDto.getFinishTime()),
-        BAD_REQUEST);
+        promotionDto.getFinishTime()));
   }
 
   @RequestMapping(method = RequestMethod.PUT, value = "/{promotionId}")
@@ -95,21 +100,18 @@ public class SecKillAdminRestController {
           promotionRepository.save(promotion);
           return new ResponseEntity<>(promotion.getPromotionId(), OK);
         }
-        return new ResponseEntity<>(
-            String.format("PromotionEntity had started and changes is rejected {promotionId=%s}", promotionId),
-            BAD_REQUEST);
+        throw new InvocationException(BAD_REQUEST,
+            String.format("PromotionEntity had started and changes is rejected {promotionId=%s}", promotionId));
       }
-      return new ResponseEntity<>(String.format("PromotionEntity not exists {promotionId=%s}", promotionId),
-          BAD_REQUEST);
+      throw new InvocationException(BAD_REQUEST,
+          String.format("PromotionEntity not exists {promotionId=%s}", promotionId));
     }
-
-    return new ResponseEntity<>(String.format(
+    throw new InvocationException(BAD_REQUEST, String.format(
         "Invalid promotion {numberOfCoupons=%d, discount=%f, publishTime=%s,, finishTime=%s}",
         promotionDto.getNumberOfCoupons(),
         promotionDto.getDiscount(),
         promotionDto.getPublishTime(),
-        promotionDto.getFinishTime()),
-        BAD_REQUEST);
+        promotionDto.getFinishTime()));
   }
 
   private boolean isValidPromotion(@RequestBody PromotionDto create) {

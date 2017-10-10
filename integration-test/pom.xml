@@ -32,6 +32,10 @@
       <groupId>io.servicecomb.poc.demo</groupId>
       <artifactId>seckill-event-store</artifactId>
     </dependency>
+    <dependency>
+      <groupId>io.servicecomb.poc.demo</groupId>
+      <artifactId>test-support</artifactId>
+    </dependency>
 
     <dependency>
       <groupId>io.servicecomb.poc.demo</groupId>

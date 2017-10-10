@@ -1,13 +1,13 @@
 ﻿APPLICATION_ID: seckill
 service_description:
-  name: seckillQueryService
+  name: seckillCommandService
   version: 0.0.1
 cse:
   service:
     registry:
       address: http://192.168.99.100:30100
   rest:
-    address: 0.0.0.0:8083
+    address: 0.0.0.0:8082
   handler:
     chain:
       Consumer:

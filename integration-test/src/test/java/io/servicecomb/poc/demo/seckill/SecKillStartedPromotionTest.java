@@ -16,11 +16,10 @@
 
 package io.servicecomb.poc.demo.seckill;
 
-import static org.hamcrest.CoreMatchers.allOf;
 import static org.hamcrest.CoreMatchers.containsString;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -30,51 +29,40 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.jms.annotation.EnableJms;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.context.web.WebAppConfiguration;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
+import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import org.springframework.web.servlet.mvc.method.annotation.ExceptionHandlerExceptionResolver;
 
-import io.servicecomb.poc.demo.seckill.dto.CouponDto;
 import io.servicecomb.poc.demo.seckill.dto.PromotionDto;
 import io.servicecomb.poc.demo.seckill.json.JacksonGeneralFormat;
-import io.servicecomb.poc.demo.seckill.repositories.spring.SpringCouponRepository;
-import io.servicecomb.poc.demo.seckill.repositories.spring.SpringPromotionRepository;
-import io.servicecomb.poc.demo.seckill.repositories.spring.SpringSecKillEventRepository;
+import io.servicecomb.poc.demo.seckill.web.SecKillAdminRestController;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(classes = IntegrationTestApplication.class)
 @WebAppConfiguration
-@AutoConfigureMockMvc
 @EnableJms
-public class SecKillIntegrationTest {
-
+public class SecKillStartedPromotionTest {
   private final Format format = new JacksonGeneralFormat();
 
-  @Autowired
   private MockMvc mockMvc;
 
   @Autowired
-  private SpringPromotionRepository promotionRepository;
-
-  @Autowired
-  private SpringSecKillEventRepository eventRepository;
-
-  @Autowired
-  private SpringCouponRepository couponRepository;
+  private SecKillAdminRestController adminRestController;
 
   @Before
   public void setUp() throws Exception {
-    eventRepository.deleteAll();
-    couponRepository.deleteAll();
-    promotionRepository.deleteAll();
+    mockMvc = MockMvcBuilders.standaloneSetup(adminRestController)
+        .setHandlerExceptionResolvers(withExceptionControllerAdvice())
+        .build();
   }
 
   @Test
-  public void createPromotionAndGrabSuccessfully() throws Exception {
+  public void failsUpdatePromotionWhenPromotionHadStarted() throws Exception {
     MvcResult result = mockMvc.perform(post("/admin/promotions/").contentType(APPLICATION_JSON)
         .content(format.serialize(new PromotionDto(5, 0.7f, new Date()))))
         .andExpect(status().isOk()).andReturn();
@@ -83,19 +71,15 @@ public class SecKillIntegrationTest {
 
     String promotionId = result.getResponse().getContentAsString();
 
-    mockMvc.perform(post("/command/coupons/").contentType(APPLICATION_JSON)
-        .content(format.serialize(new CouponDto(promotionId, "zyy"))))
-        .andExpect(status().isOk()).andExpect(content().string("Request accepted"));
+    mockMvc.perform(put("/admin/promotions/" + promotionId + "/").contentType(APPLICATION_JSON)
+        .content(format.serialize(new PromotionDto(5, 0.7f, new Date()))))
+        .andExpect(status().isBadRequest())
+        .andExpect(content().string(containsString("PromotionEntity had started and changes is rejected")));
+  }
 
-    Thread.sleep(1000);
-
-    mockMvc.perform(get("/query/coupons/{customerId}", "zyy").contentType(APPLICATION_JSON))
-        .andExpect(status().isOk())
-        .andExpect(content().string(
-            allOf(
-                containsString(promotionId),
-                containsString("zyy"))));
-
-    Thread.sleep(1000);
+  private ExceptionHandlerExceptionResolver withExceptionControllerAdvice() {
+    final ExceptionHandlerExceptionResolver exceptionResolver = new InvocationExceptionHandlerExceptionResolver();
+    exceptionResolver.afterPropertiesSet();
+    return exceptionResolver;
   }
 }

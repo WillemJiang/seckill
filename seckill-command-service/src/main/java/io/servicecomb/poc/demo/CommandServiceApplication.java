@@ -18,12 +18,23 @@ package io.servicecomb.poc.demo;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Profile;
 import org.springframework.jms.annotation.EnableJms;
+
+import io.servicecomb.springboot.starter.provider.EnableServiceComb;
 
 @SpringBootApplication
 @EnableJms
 public class CommandServiceApplication {
   public static void main(String[] args) {
     SpringApplication.run(CommandServiceApplication.class, args);
+  }
+
+  @Configuration
+  @Profile("cse")
+  @EnableServiceComb
+  class ServiceCombConfig {
+    // Here we just enable ServiceComb by default
   }
 }

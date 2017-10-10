@@ -22,36 +22,48 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import java.util.Date;
+
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.context.web.WebAppConfiguration;
+import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import org.springframework.web.servlet.mvc.method.annotation.ExceptionHandlerExceptionResolver;
+
 import io.servicecomb.poc.demo.CommandServiceApplication;
 import io.servicecomb.poc.demo.seckill.dto.CouponDto;
 import io.servicecomb.poc.demo.seckill.entities.PromotionEntity;
 import io.servicecomb.poc.demo.seckill.json.JacksonGeneralFormat;
 import io.servicecomb.poc.demo.seckill.repositories.spring.SpringPromotionRepository;
-import java.util.Date;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.junit4.SpringRunner;
-import org.springframework.test.context.web.WebAppConfiguration;
-import org.springframework.test.web.servlet.MockMvc;
+import io.servicecomb.poc.demo.seckill.web.SecKillCommandRestController;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(classes = CommandServiceApplication.class)
 @WebAppConfiguration
-@AutoConfigureMockMvc
 public class SecKillPromotionBootstrapTest {
 
   private final Format format = new JacksonGeneralFormat();
 
-  @Autowired
   private MockMvc mockMvc;
 
   @Autowired
+  private SecKillCommandRestController controller;
+
+  @Autowired
   private SpringPromotionRepository promotionRepository;
+
+  @Before
+  public void setUp() {
+    mockMvc = MockMvcBuilders.standaloneSetup(controller).setHandlerExceptionResolvers(withExceptionControllerAdvice())
+        .build();
+
+    promotionRepository.deleteAll();
+  }
 
   @Test
   public void testPromotionStartedWhenPublishTimeReach() throws Exception {
@@ -61,15 +73,19 @@ public class SecKillPromotionBootstrapTest {
     promotionRepository.save(delayPromotion);
 
     mockMvc.perform(post("/command/coupons/").contentType(APPLICATION_JSON)
-        .content(format.serialize(new CouponDto<>(delayPromotion.getPromotionId(), "zyy"))))
+        .content(format.serialize(new CouponDto(delayPromotion.getPromotionId(), "zyy"))))
         .andExpect(status().isBadRequest()).andExpect(content().string(containsString("Invalid promotion")));
 
     Thread.sleep(waitTime + 1000);
 
     mockMvc.perform(post("/command/coupons/").contentType(APPLICATION_JSON)
-        .content(format.serialize(new CouponDto<>(delayPromotion.getPromotionId(), "zyy"))))
+        .content(format.serialize(new CouponDto(delayPromotion.getPromotionId(), "zyy"))))
         .andExpect(status().isOk()).andExpect(content().string("Request accepted"));
+  }
 
-
+  private ExceptionHandlerExceptionResolver withExceptionControllerAdvice() {
+    final ExceptionHandlerExceptionResolver exceptionResolver = new InvocationExceptionHandlerExceptionResolver();
+    exceptionResolver.afterPropertiesSet();
+    return exceptionResolver;
   }
 }

@@ -24,13 +24,8 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import io.servicecomb.poc.demo.seckill.dto.CouponDto;
-import io.servicecomb.poc.demo.seckill.dto.PromotionDto;
-import io.servicecomb.poc.demo.seckill.json.JacksonGeneralFormat;
-import io.servicecomb.poc.demo.seckill.repositories.spring.SpringCouponRepository;
-import io.servicecomb.poc.demo.seckill.repositories.spring.SpringPromotionRepository;
-import io.servicecomb.poc.demo.seckill.repositories.spring.SpringSecKillEventRepository;
 import java.util.Date;
+
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -41,6 +36,13 @@ import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.context.web.WebAppConfiguration;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
+
+import io.servicecomb.poc.demo.seckill.dto.CouponDto;
+import io.servicecomb.poc.demo.seckill.dto.PromotionDto;
+import io.servicecomb.poc.demo.seckill.json.JacksonGeneralFormat;
+import io.servicecomb.poc.demo.seckill.repositories.spring.SpringCouponRepository;
+import io.servicecomb.poc.demo.seckill.repositories.spring.SpringPromotionRepository;
+import io.servicecomb.poc.demo.seckill.repositories.spring.SpringSecKillEventRepository;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(classes = IntegrationTestApplication.class)
@@ -78,11 +80,11 @@ public class SecKillMultiActivePromotionIntegrationTest {
     Thread.sleep(1000);
 
     mockMvc.perform(post("/command/coupons/").contentType(APPLICATION_JSON)
-        .content(format.serialize(new CouponDto<>(promotionId1, "zyy"))))
+        .content(format.serialize(new CouponDto(promotionId1, "zyy"))))
         .andExpect(status().isOk()).andExpect(content().string("Request accepted"));
 
     mockMvc.perform(post("/command/coupons/").contentType(APPLICATION_JSON)
-        .content(format.serialize(new CouponDto<>(promotionId2, "zyy"))))
+        .content(format.serialize(new CouponDto(promotionId2, "zyy"))))
         .andExpect(status().isOk()).andExpect(content().string("Request accepted"));
 
     Thread.sleep(1000);
@@ -94,6 +96,5 @@ public class SecKillMultiActivePromotionIntegrationTest {
                 containsString(promotionId1),
                 containsString(promotionId2),
                 containsString("zyy"))));
-
   }
 }
