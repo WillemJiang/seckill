@@ -14,35 +14,19 @@
  *   limitations under the License.
  */
 
-package io.servicecomb.poc.demo.seckill.dto;
+package io.servicecomb.poc.demo.seckill;
 
-public class CouponDto {
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.ControllerAdvice;
+import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.ResponseStatus;
 
-  private String promotionId;
-
-  private String customerId;
-
-  public String getPromotionId() {
-    return promotionId;
-  }
-
-  public void setPromotionId(String promotionId) {
-    this.promotionId = promotionId;
-  }
-
-  public String getCustomerId() {
-    return customerId;
-  }
-
-  public void setCustomerId(String customerId) {
-    this.customerId = customerId;
-  }
-
-  public CouponDto() {
-  }
-
-  public CouponDto(String promotionId, String customerId) {
-    this.promotionId = promotionId;
-    this.customerId = customerId;
+@ControllerAdvice
+class TooManyRequestsExceptionAdvice {
+  @ExceptionHandler(Exception.class)
+  @ResponseStatus(HttpStatus.TOO_MANY_REQUESTS)
+  public Object exceptionHandler(Exception e) {
+    return new HttpEntity<>(e.getMessage());
   }
 }

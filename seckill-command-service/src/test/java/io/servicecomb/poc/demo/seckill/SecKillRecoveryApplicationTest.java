@@ -22,42 +22,46 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.UUID;
+
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.context.web.WebAppConfiguration;
+import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import org.springframework.web.servlet.mvc.method.annotation.ExceptionHandlerExceptionResolver;
+
 import io.servicecomb.poc.demo.CommandServiceApplication;
 import io.servicecomb.poc.demo.seckill.dto.CouponDto;
-import io.servicecomb.poc.demo.seckill.entities.PromotionEntity;
 import io.servicecomb.poc.demo.seckill.entities.EventEntity;
+import io.servicecomb.poc.demo.seckill.entities.PromotionEntity;
 import io.servicecomb.poc.demo.seckill.event.CouponGrabbedEvent;
 import io.servicecomb.poc.demo.seckill.event.PromotionStartEvent;
 import io.servicecomb.poc.demo.seckill.event.SecKillEventFormat;
 import io.servicecomb.poc.demo.seckill.json.JacksonGeneralFormat;
 import io.servicecomb.poc.demo.seckill.repositories.spring.SpringPromotionRepository;
 import io.servicecomb.poc.demo.seckill.repositories.spring.SpringSecKillEventRepository;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.UUID;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.junit4.SpringRunner;
-import org.springframework.test.context.web.WebAppConfiguration;
-import org.springframework.test.web.servlet.MockMvc;
+import io.servicecomb.poc.demo.seckill.web.SecKillCommandRestController;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(classes = CommandServiceApplication.class)
 @WebAppConfiguration
-@AutoConfigureMockMvc
 public class SecKillRecoveryApplicationTest {
 
   private final PromotionEntity promotion = new PromotionEntity(new Date(), 10, 0.7f);
   private final Format format = new JacksonGeneralFormat();
 
-  @Autowired
   private MockMvc mockMvc;
+
+  @Autowired
+  private SecKillCommandRestController controller;
 
   @Autowired
   private SpringSecKillEventRepository eventRepository;
@@ -68,6 +72,11 @@ public class SecKillRecoveryApplicationTest {
   @Autowired
   private SecKillEventFormat eventFormat;
 
+  @Before
+  public void setUp() {
+    mockMvc = MockMvcBuilders.standaloneSetup(controller).setHandlerExceptionResolvers(withExceptionControllerAdvice())
+        .build();
+  }
 
   @Test
   public void recoveryServiceSuccessfully() throws Exception {
@@ -87,23 +96,29 @@ public class SecKillRecoveryApplicationTest {
     for (int i = 0; i < 11; i++) {
       if (i == 10) {
         mockMvc.perform(post("/command/coupons/").contentType(APPLICATION_JSON)
-            .content(format.serialize(new CouponDto<>(promotion.getPromotionId(), i))))
+            .content(format.serialize(new CouponDto(promotion.getPromotionId(), String.valueOf(i)))))
             .andExpect(status().is(429))
             .andExpect(content().string(containsString("out of stock")));
       } else if (i % 2 == 0) {
         mockMvc.perform(post("/command/coupons/").contentType(APPLICATION_JSON)
-            .content(format.serialize(new CouponDto<>(promotion.getPromotionId(), i))))
+            .content(format.serialize(new CouponDto(promotion.getPromotionId(), String.valueOf(i)))))
             .andExpect(status().is(429))
             .andExpect(content().string(containsString("duplicate order")));
       } else if (i % 2 == 1) {
         mockMvc.perform(post("/command/coupons/").contentType(APPLICATION_JSON)
-            .content(format.serialize(new CouponDto<>(promotion.getPromotionId(), i))))
+            .content(format.serialize(new CouponDto(promotion.getPromotionId(), String.valueOf(i)))))
             .andExpect(status().isOk());
       }
     }
 
     mockMvc.perform(post("/command/coupons/").contentType(APPLICATION_JSON)
-        .content(format.serialize(new CouponDto<>(UUID.randomUUID().toString(), "zyy"))))
+        .content(format.serialize(new CouponDto(UUID.randomUUID().toString(), "zyy"))))
         .andExpect(status().isBadRequest()).andExpect(content().string(containsString("Invalid promotion")));
+  }
+
+  private ExceptionHandlerExceptionResolver withExceptionControllerAdvice() {
+    final ExceptionHandlerExceptionResolver exceptionResolver = new InvocationExceptionHandlerExceptionResolver();
+    exceptionResolver.afterPropertiesSet();
+    return exceptionResolver;
   }
 }

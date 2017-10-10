@@ -25,36 +25,39 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import io.servicecomb.poc.demo.AdminServiceApplication;
-import io.servicecomb.poc.demo.seckill.dto.PromotionDto;
-import io.servicecomb.poc.demo.seckill.entities.PromotionEntity;
-import io.servicecomb.poc.demo.seckill.json.JacksonGeneralFormat;
-import io.servicecomb.poc.demo.seckill.repositories.spring.SpringPromotionRepository;
 import java.util.Date;
 import java.util.UUID;
+
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.context.web.WebAppConfiguration;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
+import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import org.springframework.web.servlet.mvc.method.annotation.ExceptionHandlerExceptionResolver;
+
+import io.servicecomb.poc.demo.AdminServiceApplication;
+import io.servicecomb.poc.demo.seckill.dto.PromotionDto;
+import io.servicecomb.poc.demo.seckill.entities.PromotionEntity;
+import io.servicecomb.poc.demo.seckill.json.JacksonGeneralFormat;
+import io.servicecomb.poc.demo.seckill.repositories.spring.SpringPromotionRepository;
+import io.servicecomb.poc.demo.seckill.web.SecKillAdminRestController;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(classes = AdminServiceApplication.class)
 @WebAppConfiguration
-@AutoConfigureMockMvc
 public class SecKillAdminApplicationTest {
 
   private final Format format = new JacksonGeneralFormat();
 
-  @Autowired
   private MockMvc mockMvc;
+
+  @Autowired
+  private SecKillAdminRestController controller;
 
   @Autowired
   private SpringPromotionRepository repository;
@@ -62,6 +65,10 @@ public class SecKillAdminApplicationTest {
 
   @Before
   public void setup() throws Exception {
+
+    mockMvc = MockMvcBuilders.standaloneSetup(controller).setHandlerExceptionResolvers(withExceptionControllerAdvice())
+        .build();
+
     repository.deleteAll();
   }
 
@@ -148,5 +155,11 @@ public class SecKillAdminApplicationTest {
 
   private Date truncateToSeconds(Date date) {
     return new Date((date.getTime() / 1000) * 1000);
+  }
+
+  private ExceptionHandlerExceptionResolver withExceptionControllerAdvice() {
+    final ExceptionHandlerExceptionResolver exceptionResolver = new InvocationExceptionHandlerExceptionResolver();
+    exceptionResolver.afterPropertiesSet();
+    return exceptionResolver;
   }
 }

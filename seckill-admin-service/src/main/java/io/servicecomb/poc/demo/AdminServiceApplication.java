@@ -18,10 +18,21 @@ package io.servicecomb.poc.demo;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Profile;
+
+import io.servicecomb.springboot.starter.provider.EnableServiceComb;
 
 @SpringBootApplication
 public class AdminServiceApplication {
   public static void main(String[] args) {
     SpringApplication.run(AdminServiceApplication.class, args);
+  }
+
+  @Configuration
+  @Profile("cse")
+  @EnableServiceComb
+  class ServiceCombConfig {
+    // Here we just enable ServiceComb by default
   }
 }

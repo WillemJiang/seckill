@@ -16,12 +16,10 @@
 
 package io.servicecomb.poc.demo.seckill.web;
 
-import static org.springframework.http.HttpStatus.BAD_REQUEST;
+import static javax.ws.rs.core.Response.Status.BAD_REQUEST;
 
-import io.servicecomb.poc.demo.seckill.SecKillCommandService;
-import io.servicecomb.poc.demo.seckill.SecKillGrabResult;
-import io.servicecomb.poc.demo.seckill.dto.CouponDto;
 import java.util.Map;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,6 +30,14 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
+import io.servicecomb.poc.demo.seckill.SecKillCommandService;
+import io.servicecomb.poc.demo.seckill.SecKillGrabResult;
+import io.servicecomb.poc.demo.seckill.dto.CouponDto;
+import io.servicecomb.provider.rest.common.RestSchema;
+import io.servicecomb.swagger.invocation.exception.CommonExceptionData;
+import io.servicecomb.swagger.invocation.exception.InvocationException;
+
+@RestSchema(schemaId = "seckillCommand")
 @RestController
 @RequestMapping("/command/coupons")
 public class SecKillCommandRestController {
@@ -47,7 +53,7 @@ public class SecKillCommandRestController {
 
   @RequestMapping(method = RequestMethod.POST, value = "/")
   public ResponseEntity<String> seckill(
-      @RequestBody CouponDto<String> couponDto) {
+      @RequestBody CouponDto couponDto) {
     if (isValidCoupon(couponDto)) {
       if (commandServices.containsKey(couponDto.getPromotionId())) {
         SecKillGrabResult result = commandServices.get(couponDto.getPromotionId())
@@ -56,15 +62,18 @@ public class SecKillCommandRestController {
         if (result == SecKillGrabResult.Success) {
           return new ResponseEntity<>("Request accepted", HttpStatus.OK);
         } else if (result == SecKillGrabResult.Failed) {
-          return new ResponseEntity<>("Request rejected due to coupon out of stock", HttpStatus.TOO_MANY_REQUESTS);
+          throw new InvocationException(429, "Too Many Requests",
+              new CommonExceptionData("Request rejected due to coupon out of stock"));
         } else {
-          return new ResponseEntity<>("Request rejected duplicate order", HttpStatus.TOO_MANY_REQUESTS);
+          throw new InvocationException(429, "Too Many Requests",
+              new CommonExceptionData("Request rejected duplicate order"));
         }
       } else {
-        return new ResponseEntity<>(String.format("Invalid promotion {promotion=%s}", couponDto.getPromotionId()), BAD_REQUEST);
+        throw new InvocationException(BAD_REQUEST,
+            String.format("Invalid promotion {promotion=%s}", couponDto.getPromotionId()));
       }
     } else {
-      return new ResponseEntity<>("Invalid coupon {promotionId is null or customerId is null}", BAD_REQUEST);
+      throw new InvocationException(BAD_REQUEST, "Invalid coupon {promotionId is null or customerId is null}");
     }
   }
 
