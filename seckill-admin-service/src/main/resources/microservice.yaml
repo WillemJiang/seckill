@@ -2,6 +2,8 @@
 service_description:
   name: seckillAdminService
   version: 0.0.1
+  properties:
+    allowCrossApp: true
 cse:
   service:
     registry:
