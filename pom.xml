@@ -249,6 +249,13 @@
           <groupId>org.jacoco</groupId>
           <artifactId>jacoco-maven-plugin</artifactId>
           <version>0.7.8</version>
+          <configuration>
+            <excludes>
+              <exclude>**/*io/servicecomb/poc/demo/seckill/BadRequestExceptionAdvice.class</exclude>
+              <exclude>**/*io/servicecomb/poc/demo/seckill/InvocationExceptionHandlerExceptionResolver.class</exclude>
+              <exclude>**/*io/servicecomb/poc/demo/seckill/TooManyRequestsExceptionAdvice.class</exclude>
+            </excludes>
+          </configuration>
           <executions>
             <execution>
               <id>default-prepare-agent</id>
