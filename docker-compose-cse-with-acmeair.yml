@@ -1,0 +1,120 @@
+version: '2.0'
+
+services:
+  service-center:
+    image: "servicecomb/service-center"
+    hostname: service-center
+    ports:
+      - "30100:30100"
+
+  mysql-write-db:
+    image: "mysql:latest"
+    hostname: write_db_server
+    environment:
+      - MYSQL_ROOT_PASSWORD=password
+      - MYSQL_DATABASE=seckill
+      - MYSQL_USER=seckill
+      - MYSQL_PASSWORD=password
+    ports:
+      - "3306"
+
+  mysql-read-db:
+    image: "mysql:latest"
+    hostname: read_db_server
+    environment:
+      - MYSQL_ROOT_PASSWORD=password
+      - MYSQL_DATABASE=seckill
+      - MYSQL_USER=seckill
+      - MYSQL_PASSWORD=password
+    ports:
+      - "3306"
+
+  activemq:
+    image: "webcenter/activemq:latest"
+    hostname: queue-server
+    ports:
+      - "61616"
+
+  admin-service:
+    image: "seckill-admin-service:0.2.0-SNAPSHOT"
+    hostname: admin-service
+    links:
+      - "mysql-write-db:write_db.servicecomb.io"
+    environment:
+      - JAVA_OPTS=-Dspring.profiles.active=prd,cse -Dendpoints.shutdown.enabled=true
+    ports:
+      - "8081:8081"
+
+  command-service:
+    image: "seckill-command-service:0.2.0-SNAPSHOT"
+    hostname: command-service
+    links:
+      - "mysql-write-db:write_db.servicecomb.io"
+      - "activemq:queue.servicecomb.io"
+    environment:
+      - JAVA_OPTS=-Dspring.profiles.active=prd,cse -Dendpoints.shutdown.enabled=true
+    ports:
+      - "8082:8082"
+
+  query-service:
+    image: "seckill-query-service:0.2.0-SNAPSHOT"
+    hostname: query-service
+    links:
+      - "mysql-write-db:read_db.servicecomb.io"
+    environment:
+      - JAVA_OPTS=-Dspring.profiles.active=prd,cse -Dendpoints.shutdown.enabled=true
+    ports:
+      - "8083:8083"
+
+  event-service:
+    image: "seckill-event-service:0.2.0-SNAPSHOT"
+    hostname: event-service
+    links:
+      - "mysql-write-db:read_db.servicecomb.io"
+      - "activemq:queue.servicecomb.io"
+    environment:
+      - JAVA_OPTS=-Dspring.profiles.active=prd -Dendpoints.shutdown.enabled=true
+
+# acmeair images
+
+  acmeair-mongo:
+    image: "mongo"
+    hostname: mongo
+    ports:
+      - "27017:27017"
+
+  acmeair-customerservice:
+    image: "acmeair-customer-service:2.0.0-SNAPSHOT"
+    hostname: customerservice
+    links:
+      - "service-center:sc.servicecomb.io"
+      - "acmeair-mongo:mongo.acmeair.com"
+    environment:
+      - JAVA_OPTS=-Dspring.profiles.active=mongodb -Dserver.port=8080 -Dspring.data.mongodb.host=mongo.acmeair.com -Dcse.service.registry.address=http://sc.servicecomb.io:30100
+      - JAR_NAME=acmeair-customer-service
+    ports:
+      - "8084:8082"
+
+
+  acmeair-bookingservice:
+    image: "acmeair-booking-service:2.0.0-SNAPSHOT"
+    hostname: bookingservice
+    links:
+      - "service-center:sc.servicecomb.io"
+      - "acmeair-mongo:mongo.acmeair.com"
+    environment:
+      - JAVA_OPTS=-Dspring.profiles.active=mongodb -Dserver.port=8080 -Dspring.data.mongodb.host=mongo.acmeair.com -Dcse.service.registry.address=http://sc.servicecomb.io:30100
+      - JAR_NAME=acmeair-booking-service
+    ports:
+      - "8086:8082"
+
+  acmeair-webapp:
+    image: "acmeair-webapp:2.0.0-SNAPSHOT"
+    hostname: webapp
+    links:
+       - "service-center:sc.servicecomb.io"
+    environment:
+      - JAVA_OPTS=-Dcse.service.registry.address=http://sc.servicecomb.io:30100 -Dspring.profiles.active=sc
+      - JAR_NAME=acmeair-webapp
+    ports:
+      - "8080:8080"

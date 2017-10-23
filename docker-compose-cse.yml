@@ -1,0 +1,76 @@
+version: '2.0'
+
+services:
+  service-center:
+    image: "servicecomb/service-center"
+    hostname: service-center
+    ports:
+      - "30100:30100"
+
+  mysql-write-db:
+    image: "mysql:latest"
+    hostname: write_db_server
+    environment:
+      - MYSQL_ROOT_PASSWORD=password
+      - MYSQL_DATABASE=seckill
+      - MYSQL_USER=seckill
+      - MYSQL_PASSWORD=password
+    ports:
+      - "3306"
+
+  mysql-read-db:
+    image: "mysql:latest"
+    hostname: read_db_server
+    environment:
+      - MYSQL_ROOT_PASSWORD=password
+      - MYSQL_DATABASE=seckill
+      - MYSQL_USER=seckill
+      - MYSQL_PASSWORD=password
+    ports:
+      - "3306"
+
+  activemq:
+    image: "webcenter/activemq:latest"
+    hostname: queue-server
+    ports:
+      - "61616"
+
+  admin-service:
+    image: "seckill-admin-service:0.2.0-SNAPSHOT"
+    hostname: admin-service
+    links:
+      - "mysql-write-db:write_db.servicecomb.io"
+    environment:
+      - JAVA_OPTS=-Dspring.profiles.active=prd,cse -Dendpoints.shutdown.enabled=true
+    ports:
+      - "8081:8081"
+
+  command-service:
+    image: "seckill-command-service:0.2.0-SNAPSHOT"
+    hostname: command-service
+    links:
+      - "mysql-write-db:write_db.servicecomb.io"
+      - "activemq:queue.servicecomb.io"
+    environment:
+      - JAVA_OPTS=-Dspring.profiles.active=prd,cse -Dendpoints.shutdown.enabled=true
+    ports:
+      - "8082:8082"
+
+  query-service:
+    image: "seckill-query-service:0.2.0-SNAPSHOT"
+    hostname: query-service
+    links:
+      - "mysql-write-db:read_db.servicecomb.io"
+    environment:
+      - JAVA_OPTS=-Dspring.profiles.active=prd,cse -Dendpoints.shutdown.enabled=true
+    ports:
+      - "8083:8083"
+
+  event-service:
+    image: "seckill-event-service:0.2.0-SNAPSHOT"
+    hostname: event-service
+    links:
+      - "mysql-write-db:read_db.servicecomb.io"
+      - "activemq:queue.servicecomb.io"
+    environment:
+      - JAVA_OPTS=-Dspring.profiles.active=prd -Dendpoints.shutdown.enabled=true
